@@ -361,8 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-MenaCart/API/appsettings.json
-MenaCart/API/appsettings.json
+
 /MenaCart/Infrastructure/Migrations
-/MenaCart/API
+
 /MenaCart/API/appsettings.json
