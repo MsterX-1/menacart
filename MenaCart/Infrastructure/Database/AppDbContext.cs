@@ -106,21 +106,22 @@ namespace Infrastructure.Database
                 .HasForeignKey(c => c.ParentCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // One-to-one: a User has one Cart
             builder.Entity<Cart>()
                 .HasOne(c => c.User)
-                .WithMany()
-                .HasForeignKey(c => c.UserId)
+                .WithOne(u => u.Cart)
+                .HasForeignKey<Cart>(c => c.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Review>()
                 .HasOne(r => r.User)
-                .WithMany()
+                .WithMany(u => u.Reviews)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Address>()
                 .HasOne(a => a.User)
-                .WithMany()
+                .WithMany(u => u.Addresses)
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
             // ---- Fix for OrderItems cascade path (Error 1785) ----
@@ -137,8 +138,8 @@ namespace Infrastructure.Database
                 .OnDelete(DeleteBehavior.Restrict);
             // ---- Fix for Wishlists cascade path (Error 1785) ----
             builder.Entity<Wishlist>()
-                .HasOne(w => w.User) // Assumes navigation property is named User
-                .WithMany()
+                .HasOne(w => w.User)
+                .WithMany(u => u.WishlistItems)
                 .HasForeignKey(w => w.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -156,7 +157,7 @@ namespace Infrastructure.Database
             // ---> THIS IS THE FIX FOR ERROR 1785 <---
             builder.Entity<Order>()
                 .HasOne(o => o.User)
-                .WithMany()
+                .WithMany(u => u.Orders)
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
