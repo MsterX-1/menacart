@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Domain.Models;
+﻿using Domain.Models;
 using Domain.Security;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+
 namespace Infrastructure.Database
 {
     public class AppDbContext : IdentityDbContext<User>
@@ -103,6 +104,60 @@ namespace Infrastructure.Database
                 .HasOne(c => c.ParentCategory)
                 .WithMany(c => c.ChildCategories)
                 .HasForeignKey(c => c.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Cart>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Address>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // ---- Fix for OrderItems cascade path (Error 1785) ----
+            builder.Entity<OrderItem>()
+                .HasOne(oi => oi.SubOrder) // Assumes your navigation property is named SubOrder
+                .WithMany(so => so.OrderItems) // If SubOrder doesn't have a list of items, just use .WithMany()
+                .HasForeignKey(oi => oi.SubOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<OrderItem>()
+                .HasOne(oi => oi.ProductVariant) // Assumes your navigation property is named Variant or ProductVariant
+                .WithMany()
+                .HasForeignKey(oi => oi.VariantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // ---- Fix for Wishlists cascade path (Error 1785) ----
+            builder.Entity<Wishlist>()
+                .HasOne(w => w.User) // Assumes navigation property is named User
+                .WithMany()
+                .HasForeignKey(w => w.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Wishlist>()
+                .HasOne(w => w.ProductVariant) // Assumes navigation property is named Variant or ProductVariant
+                .WithMany()
+                .HasForeignKey(w => w.VariantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // ---- Prevent future error for CartItems ----
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.ProductVariant)
+                .WithMany()
+                .HasForeignKey(ci => ci.VariantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // ---> THIS IS THE FIX FOR ERROR 1785 <---
+            builder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany()
+                .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // ---- Index for common lookup / join paths (mirrors SQL script section 10) ----

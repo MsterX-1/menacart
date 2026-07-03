@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 MenaCart/API/appsettings.json
 MenaCart/API/appsettings.json
+/MenaCart/Infrastructure/Migrations
+/MenaCart/API
