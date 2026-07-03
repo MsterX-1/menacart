@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MenaCart/API/API.csproj" />
+  <Project Path="MenaCart/Application/Application.csproj" />
+  <Project Path="MenaCart/Domain/Domain.csproj" />
+  <Project Path="MenaCart/Infrastructure/Infrastructure.csproj" />
+</Solution>
