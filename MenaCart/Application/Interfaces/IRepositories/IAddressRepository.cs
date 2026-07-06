@@ -2,12 +2,11 @@
 
 namespace Application.Interfaces.IRepositories
 {
-    public interface IAddressRepository
+    public interface IAddressRepository : IGenaricRepository<Address>
     {
-        /// <summary>
-        /// Returns the address only if it belongs to the given user.
-        /// Returns null if not found or ownership mismatch.
-        /// </summary>
         Task<Address?> GetByIdAndUserIdAsync(int addressId, string userId);
+        Task<Address?> GetDefaultByUserIdAsync(string userId);
+        Task<IEnumerable<Address>> GetAllByUserIdAsync(string userId);
+        Task ClearDefaultAsync(string userId);
     }
 }

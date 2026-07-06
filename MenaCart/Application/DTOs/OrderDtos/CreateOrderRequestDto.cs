@@ -2,7 +2,7 @@
 {
     public class CreateOrderRequestDto
     {
-        public int AddressId { get; set; }
+        public int? AddressId { get; set; }
         public string? CouponCode { get; set; }
     }
 }

@@ -78,5 +78,31 @@ namespace API.Controllers
             var result = await _orderService.GetOrdersForUserAsync(userId, page, pageSize);
             return Ok(result);
         }
+        /// <summary>
+        /// Cancel an order. Only possible while status is Placed
+        /// and no suborder has started processing.
+        /// </summary>
+        [HttpDelete("Cancel{orderId}")]
+        public async Task<IActionResult> CancelOrder(int orderId)
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                await _orderService.CancelOrderAsync(userId, orderId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

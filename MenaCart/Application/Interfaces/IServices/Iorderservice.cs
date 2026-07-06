@@ -8,6 +8,7 @@ namespace Application.Interfaces.IServices
         Task<OrderConfirmationResponseDto> PlaceOrderAsync(string userId, CreateOrderRequestDto request);
         Task<OrderConfirmationResponseDto> GetOrderAsync(string userId, int orderId);
         Task<IEnumerable<OrderConfirmationResponseDto>> GetOrdersForUserAsync(string userId, int page, int pageSize);
+        Task CancelOrderAsync(string userId, int orderId);
 
         // Seller
         Task<IEnumerable<SubOrderDto>> GetSellerSubOrdersAsync(string userId, string? statusFilter, int page, int pageSize);

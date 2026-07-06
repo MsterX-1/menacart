@@ -27,6 +27,7 @@ namespace API.Extensions
             services.AddScoped<ISellerRepository, SellerRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+            services.AddScoped<IReturnRepository, ReturnRepository>();
 
 
             // Services
@@ -34,6 +35,9 @@ namespace API.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IReturnService, ReturnService>();
 
 
             return services;

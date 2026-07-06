@@ -22,6 +22,7 @@ namespace Application.Interfaces.IUnitOfWork
         IShippingRepository ShippingRepository { get; }
         IProductRepository ProductRepository { get; }
         IProductVariantRepository ProductVariantRepository { get; }
+        IReturnRepository ReturnRepository { get; }
         Task<int> CompleteAsync();
 
     }

@@ -1,0 +1,150 @@
+using Application.DTOs.UserDtos.AdminDtos;
+using Application.Interfaces.IServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace API.Controllers
+{
+    [ApiController]
+    [Route("api/admin")]
+    [Authorize(Roles = "Admin")]
+    public class AdminController : ControllerBase
+    {
+        private readonly IAdminService _adminService;
+
+        public AdminController(IAdminService adminService)
+        {
+            _adminService = adminService;
+        }
+
+        // ── Seller Management ──────────────────────────────────────────────────
+
+        /// <summary>
+        /// Get all sellers, optionally filtered by status: Pending, Active, Suspended, Rejected.
+        /// </summary>
+        [HttpGet("sellers")]
+        public async Task<IActionResult> GetAllSellers(
+            [FromQuery] string? status = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            var result = await _adminService.GetAllSellersAsync(status, page, pageSize);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Approve, suspend, or reject a seller account.
+        /// </summary>
+        [HttpPatch("sellers/{sellerId}/status")]
+        public async Task<IActionResult> UpdateSellerStatus(
+            int sellerId,
+            [FromBody] UpdateSellerStatusDto request)
+        {
+            try
+            {
+                var result = await _adminService.UpdateSellerStatusAsync(sellerId, request);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Ban a seller's email and lock their account permanently.
+        /// </summary>
+        [HttpPost("sellers/{sellerId}/ban")]
+        public async Task<IActionResult> BanSellerEmail(
+            int sellerId,
+            [FromBody] BanSellerEmailDto request)
+        {
+            try
+            {
+                await _adminService.BanSellerEmailAsync(sellerId, request);
+                return Ok(new { message = "Seller has been banned successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Send a warning notification to a seller.
+        /// </summary>
+        [HttpPost("sellers/{sellerId}/warning")]
+        public async Task<IActionResult> SendWarning(
+            int sellerId,
+            [FromBody] SendWarningDto request)
+        {
+            try
+            {
+                await _adminService.SendWarningAsync(sellerId, request);
+                return Ok(new { message = "Warning sent successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // ── Coupons ────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Get all coupons.
+        /// </summary>
+        [HttpGet("coupons")]
+        public async Task<IActionResult> GetAllCoupons()
+        {
+            var result = await _adminService.GetAllCouponsAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Create a new platform coupon.
+        /// </summary>
+        [HttpPost("coupons")]
+        public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponDto request)
+        {
+            try
+            {
+                var result = await _adminService.CreateCouponAsync(request);
+                return CreatedAtAction(nameof(GetAllCoupons), result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a coupon.
+        /// </summary>
+        [HttpDelete("coupons/{couponId}")]
+        public async Task<IActionResult> DeleteCoupon(int couponId)
+        {
+            try
+            {
+                await _adminService.DeleteCouponAsync(couponId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+    }
+}

@@ -30,11 +30,24 @@ namespace Application.Services
             if (cart == null || !cart.CartItems.Any())
                 throw new Exception("Your cart is empty.");
 
-            // ── 2. Validate address belongs to caller ──────────────────────────
-            var address = await _unitOfWork.AddressRepository.GetByIdAndUserIdAsync(request.AddressId, userId);
+            // ── 2. Resolve address ─────────────────────────────────────────────
+            Address? address;
 
-            if (address == null)
-                throw new UnauthorizedAccessException("Address not found or does not belong to you.");
+            if (request.AddressId.HasValue)
+            {
+                address = await _unitOfWork.AddressRepository
+                    .GetByIdAndUserIdAsync(request.AddressId.Value, userId);
+
+                if (address == null)
+                    throw new UnauthorizedAccessException("Address not found or does not belong to you.");
+            }
+            else
+            {
+                address = await _unitOfWork.AddressRepository.GetDefaultByUserIdAsync(userId);
+
+                if (address == null)
+                    throw new Exception("No default address found. Please add an address to your account.");
+            }
 
             // ── 3. Filter inactive sellers / unapproved products ───────────────
             var activeItems = cart.CartItems
@@ -43,7 +56,7 @@ namespace Application.Services
                 .ToList();
 
             if (!activeItems.Any())
-                throw new Exception("No eligible items in cart. Products may belong to inactive sellers or are not yet approved.");
+                throw new Exception("No eligible items in cart. Products may belong to inactive sellers or are not approved.");
 
             // ── 4. Validate stock ──────────────────────────────────────────────
             var stockErrors = activeItems
@@ -98,7 +111,7 @@ namespace Application.Services
                 var order = new Order
                 {
                     UserId = userId,
-                    AddressId = request.AddressId,
+                    AddressId = address.AddressId,
                     CouponId = coupon?.CouponId,
                     TotalAmount = totalAmount,
                     Status = OrderStatus.Placed,
@@ -181,7 +194,6 @@ namespace Application.Services
 
                 // ── 10. Clear cart ─────────────────────────────────────────────
                 await _unitOfWork.CartRepository.ClearCartItemsAsync(cart.CartId);
-
                 await _unitOfWork.CompleteAsync();
 
                 var placed = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(order.OrderId);
@@ -213,6 +225,45 @@ namespace Application.Services
             return orders.Select(MapOrderToDto);
         }
 
+        public async Task CancelOrderAsync(string userId, int orderId)
+        {
+            var order = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(orderId);
+
+            if (order == null)
+                throw new KeyNotFoundException("Order not found.");
+
+            if (order.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have access to this order.");
+
+            if (order.Status != OrderStatus.Placed)
+                throw new Exception($"Order cannot be cancelled — current status is {order.Status}.");
+
+            if (order.SubOrders.Any(s => s.Status != SubOrderStatus.Placed))
+                throw new Exception("Order cannot be cancelled — one or more items are already being processed.");
+
+            foreach (var subOrder in order.SubOrders)
+            {
+                subOrder.Status = SubOrderStatus.Cancelled;
+                subOrder.UpdatedAt = DateTime.UtcNow;
+
+                foreach (var item in subOrder.OrderItems)
+                    item.ProductVariant.StockQuantity += item.Quantity;
+
+                await _unitOfWork.NotificationRepository.Add(new Notification
+                {
+                    UserId = subOrder.SellerProfile.UserId,
+                    Message = $"Order #{order.OrderId} has been cancelled by the customer.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            order.Status = OrderStatus.Cancelled;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.CompleteAsync();
+        }
+
         // ══════════════════════════════════════════════════════════════════════
         // SELLER
         // ══════════════════════════════════════════════════════════════════════
@@ -221,7 +272,6 @@ namespace Application.Services
             string userId, string? statusFilter, int page, int pageSize)
         {
             var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
-
             if (seller == null)
                 throw new UnauthorizedAccessException("Seller profile not found.");
 
@@ -234,34 +284,25 @@ namespace Application.Services
         public async Task UpdateSubOrderStatusAsync(
             string userId, int subOrderId, UpdateSubOrderStatusRequestDto request)
         {
-            // ── 1. Resolve seller ──────────────────────────────────────────────
             var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
-
             if (seller == null)
                 throw new UnauthorizedAccessException("Seller profile not found.");
 
-            // ── 2. Load suborder ───────────────────────────────────────────────
             var subOrder = await _unitOfWork.SubOrderRepository.GetByIdWithDetailsAsync(subOrderId);
-
             if (subOrder == null)
                 throw new KeyNotFoundException("SubOrder not found.");
 
-            // ── 3. Ownership check ─────────────────────────────────────────────
             if (subOrder.SellerId != seller.SellerId)
                 throw new UnauthorizedAccessException("You do not own this SubOrder.");
 
-            // ── 4. Parse and validate the requested new status ─────────────────
             if (!Enum.TryParse<SubOrderStatus>(request.Status, ignoreCase: true, out var newStatus))
                 throw new Exception($"Invalid status '{request.Status}'.");
 
-            // ── 5. Validate forward-only transition ────────────────────────────
             ValidateTransition(subOrder.Status, newStatus);
 
-            // ── 6. Apply status ────────────────────────────────────────────────
             subOrder.Status = newStatus;
             subOrder.UpdatedAt = DateTime.UtcNow;
 
-            // ── 7. Handle shipping side effects ────────────────────────────────
             if (newStatus == SubOrderStatus.Shipped)
             {
                 if (string.IsNullOrWhiteSpace(request.Carrier) || string.IsNullOrWhiteSpace(request.TrackingNumber))
@@ -294,7 +335,6 @@ namespace Application.Services
             else if (newStatus == SubOrderStatus.Delivered)
             {
                 var shipping = await _unitOfWork.ShippingRepository.GetBySubOrderIdAsync(subOrderId);
-
                 if (shipping == null)
                     throw new Exception("Cannot mark as Delivered — no Shipping record exists. Mark as Shipped first.");
 
@@ -303,11 +343,10 @@ namespace Application.Services
                 shipping.UpdatedAt = DateTime.UtcNow;
             }
 
-            // ── 8. Notify buyer ────────────────────────────────────────────────
             await _unitOfWork.NotificationRepository.Add(new Notification
             {
                 UserId = subOrder.Order.UserId,
-                Message = $"Your order item from {subOrder.SellerProfile.StoreName} is now {newStatus}.",
+                Message = $"Your order from {subOrder.SellerProfile.StoreName} is now {newStatus}.",
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             });
@@ -318,11 +357,11 @@ namespace Application.Services
         // ── Transition validation ──────────────────────────────────────────────
         private static readonly Dictionary<SubOrderStatus, SubOrderStatus[]> _allowedTransitions = new()
         {
-            { SubOrderStatus.Placed,      new[] { SubOrderStatus.Processing, SubOrderStatus.Cancelled } },
-            { SubOrderStatus.Processing,  new[] { SubOrderStatus.Shipped,    SubOrderStatus.Cancelled } },
-            { SubOrderStatus.Shipped,     new[] { SubOrderStatus.Delivered } },
-            { SubOrderStatus.Delivered,   Array.Empty<SubOrderStatus>() },
-            { SubOrderStatus.Cancelled,   Array.Empty<SubOrderStatus>() },
+            { SubOrderStatus.Placed,     new[] { SubOrderStatus.Processing, SubOrderStatus.Cancelled } },
+            { SubOrderStatus.Processing, new[] { SubOrderStatus.Shipped,    SubOrderStatus.Cancelled } },
+            { SubOrderStatus.Shipped,    new[] { SubOrderStatus.Delivered } },
+            { SubOrderStatus.Delivered,  Array.Empty<SubOrderStatus>() },
+            { SubOrderStatus.Cancelled,  Array.Empty<SubOrderStatus>() },
         };
 
         private static void ValidateTransition(SubOrderStatus current, SubOrderStatus next)
@@ -331,10 +370,7 @@ namespace Application.Services
                 throw new Exception($"Invalid transition: {current} → {next}.");
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        // MAPPERS
-        // ══════════════════════════════════════════════════════════════════════
-
+        // ── Mappers ────────────────────────────────────────────────────────────
         private static OrderConfirmationResponseDto MapOrderToDto(Order order) => new()
         {
             OrderId = order.OrderId,

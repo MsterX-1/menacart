@@ -27,6 +27,7 @@ namespace Infrastructure.UnitOfWork
         public IShippingRepository ShippingRepository { get; }
         public IProductRepository ProductRepository { get; }
         public IProductVariantRepository ProductVariantRepository { get; }
+        public IReturnRepository ReturnRepository { get; }
 
         public UnitOfWork(
             AppDbContext context,
@@ -39,7 +40,8 @@ namespace Infrastructure.UnitOfWork
             ISellerRepository sellerRepository,
             IShippingRepository shippingRepository,
             IProductRepository productRepository,
-            IProductVariantRepository productVariantRepository)
+            IProductVariantRepository productVariantRepository,
+            IReturnRepository returnRepository)
         {
             _context = context;
             RefreshTokenRepository = refreshTokenRepository;
@@ -50,6 +52,9 @@ namespace Infrastructure.UnitOfWork
             AddressRepository = addressRepository;
             SellerRepository = sellerRepository;
             ShippingRepository = shippingRepository;
+            ProductRepository = productRepository;
+            ProductVariantRepository = productVariantRepository;
+            ReturnRepository = returnRepository;
         }
 
         // Lazy-loaded Generic Repository Properties
