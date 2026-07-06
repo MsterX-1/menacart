@@ -10,8 +10,8 @@ namespace Infrastructure.Repositories
 {
     public class GenaricRepository<T> : IGenaricRepository<T> where T : class
     {
-        private readonly AppDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly AppDbContext _context;
+        protected readonly DbSet<T> _dbSet;
         public GenaricRepository(AppDbContext context)
         {
             _context = context;
@@ -25,6 +25,7 @@ namespace Infrastructure.Repositories
         public async Task Update(T entity)
         {
             _dbSet.Update(entity);
+            await Task.CompletedTask; // Update is synchronous, so we return a completed task if the interface requires a Task.
         }
 
         public async Task Delete(object id)

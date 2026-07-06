@@ -15,7 +15,7 @@ namespace Infrastructure.Seed
 
 
             // SEED ROLES
-            string[] roles = { "Admin", "Customer" };
+            string[] roles = { "Admin", "Seller","Customer" };
 
             foreach (var role in roles)
             {

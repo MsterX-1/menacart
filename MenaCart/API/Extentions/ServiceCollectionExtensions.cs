@@ -17,10 +17,24 @@ namespace API.Extensions
 
             // Repositories
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<ISubOrderRepository, SubOrderRepository>();
+            services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<IAddressRepository, AddressRepository>();
+            services.AddScoped<ICouponRepository, CouponRepository>();
+           
+            services.AddScoped<IShippingRepository, ShippingRepository>();
+            services.AddScoped<ISellerRepository, SellerRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
+
 
             // Services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IProductService, ProductService>();
+
 
             return services;
         }

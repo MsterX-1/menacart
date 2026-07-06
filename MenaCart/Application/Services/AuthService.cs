@@ -164,8 +164,26 @@ namespace Application.Services
             }
 
             // Assign default role (e.g., "Customer") - ensure this role exists in the system
-            await _userManager.AddToRoleAsync(user, "Customer");
-
+            await _userManager.AddToRoleAsync(user, dto.Role);
+            if (dto.Role == "Seller")
+            {
+                await _unitOfWork.SellerRepository.Add(new SellerProfile
+                {
+                    UserId = user.Id,
+                    StoreName = $"{dto.FirstName}'s Store",
+                    StoreDescription = string.Empty,
+                    StoreLogoUrl = string.Empty,
+                    StoreBannerUrl = string.Empty,
+                    StoreAddress = string.Empty,
+                    Phone = string.Empty,
+                    Rating = 0,
+                    IsVerified = false,
+                    Status = SellerStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+                await _unitOfWork.CompleteAsync();
+            }
             // Generate JWT
             var jwtToken = await CreateJwtToken(user);
 
