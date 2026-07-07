@@ -1,9 +1,10 @@
-﻿using Application.DTOs.OrderDtos;
+using Application.DTOs.OrderDtos;
 using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Services
 {
@@ -11,11 +12,13 @@ namespace Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
+        private readonly UserManager<User> _userManager;
 
-        public OrderService(IUnitOfWork unitOfWork, IConfiguration config)
+        public OrderService(IUnitOfWork unitOfWork, IConfiguration config, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
             _config = config;
+            _userManager = userManager;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -105,6 +108,7 @@ namespace Application.Services
 
             var commissionRate = Convert.ToDecimal(_config["Commission:DefaultRatePercent"] ?? "10");
 
+            await _unitOfWork.BeginTransactionAsync();
             try
             {
                 // ── 7. Create Order ────────────────────────────────────────────
@@ -121,16 +125,15 @@ namespace Application.Services
                 };
 
                 await _unitOfWork.OrderRepository.Add(order);
-                await _unitOfWork.CompleteAsync();
 
                 // ── 8. Group by seller → SubOrders + OrderItems + Commissions ──
-                var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId);
+                var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
 
                 foreach (var sellerGroup in grouped)
                 {
                     var subOrder = new SubOrder
                     {
-                        OrderId = order.OrderId,
+                        Order = order,
                         SellerId = sellerGroup.Key,
                         Status = SubOrderStatus.Placed,
                         CreatedAt = DateTime.UtcNow,
@@ -138,7 +141,6 @@ namespace Application.Services
                     };
 
                     await _unitOfWork.SubOrderRepository.Add(subOrder);
-                    await _unitOfWork.CompleteAsync();
 
                     foreach (var cartItem in sellerGroup)
                     {
@@ -147,7 +149,7 @@ namespace Application.Services
 
                         var orderItem = new OrderItem
                         {
-                            SubOrderId = subOrder.SubOrderId,
+                            SubOrder = subOrder,
                             VariantId = variant.VariantId,
                             Quantity = cartItem.Quantity,
                             PriceAtPurchase = variant.Price,
@@ -155,13 +157,12 @@ namespace Application.Services
                         };
 
                         await _unitOfWork.OrderItemRepository.Add(orderItem);
-                        await _unitOfWork.CompleteAsync();
 
                         var saleAmount = cartItem.Quantity * variant.Price;
                         await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
                         {
                             SellerId = sellerGroup.Key,
-                            OrderItemId = orderItem.OrderItemId,
+                            OrderItem = orderItem,
                             SaleAmount = saleAmount,
                             CommissionRate = commissionRate,
                             CommissionAmount = saleAmount * commissionRate / 100,
@@ -169,14 +170,6 @@ namespace Application.Services
                             CreatedAt = DateTime.UtcNow
                         });
                     }
-
-                    await _unitOfWork.NotificationRepository.Add(new Notification
-                    {
-                        UserId = sellerGroup.First().ProductVariant.Product.SellerProfile.UserId,
-                        Message = $"You have a new order (Order #{order.OrderId}).",
-                        IsRead = false,
-                        CreatedAt = DateTime.UtcNow
-                    });
                 }
 
                 // ── 9. Apply coupon usage ──────────────────────────────────────
@@ -187,21 +180,45 @@ namespace Application.Services
                     {
                         UserId = userId,
                         CouponId = coupon.CouponId,
-                        OrderId = order.OrderId,
+                        Order = order,
                         UsedAt = DateTime.UtcNow
                     });
                 }
 
                 // ── 10. Clear cart ─────────────────────────────────────────────
                 await _unitOfWork.CartRepository.ClearCartItemsAsync(cart.CartId);
+
+                // Commit main entities to DB to generate OrderId
                 await _unitOfWork.CompleteAsync();
+
+                // ── 11. Create Notifications ──
+                foreach (var sellerGroup in grouped)
+                {
+                    await _unitOfWork.NotificationRepository.Add(new Notification
+                    {
+                        UserId = sellerGroup.First().ProductVariant.Product.SellerProfile.UserId,
+                        Message = $"You have a new order (Order #{order.OrderId}).",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _unitOfWork.CompleteAsync();
+
+                await _unitOfWork.CommitTransactionAsync();
 
                 var placed = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(order.OrderId);
                 return MapOrderToDto(placed!);
             }
             catch (DbUpdateConcurrencyException)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 throw new Exception("Stock conflict — another purchase occurred at the same time. Please try again.");
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
             }
         }
 
@@ -227,41 +244,51 @@ namespace Application.Services
 
         public async Task CancelOrderAsync(string userId, int orderId)
         {
-            var order = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(orderId);
-
-            if (order == null)
-                throw new KeyNotFoundException("Order not found.");
-
-            if (order.UserId != userId)
-                throw new UnauthorizedAccessException("You do not have access to this order.");
-
-            if (order.Status != OrderStatus.Placed)
-                throw new Exception($"Order cannot be cancelled — current status is {order.Status}.");
-
-            if (order.SubOrders.Any(s => s.Status != SubOrderStatus.Placed))
-                throw new Exception("Order cannot be cancelled — one or more items are already being processed.");
-
-            foreach (var subOrder in order.SubOrders)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                subOrder.Status = SubOrderStatus.Cancelled;
-                subOrder.UpdatedAt = DateTime.UtcNow;
+                var order = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(orderId);
 
-                foreach (var item in subOrder.OrderItems)
-                    item.ProductVariant.StockQuantity += item.Quantity;
+                if (order == null)
+                    throw new KeyNotFoundException("Order not found.");
 
-                await _unitOfWork.NotificationRepository.Add(new Notification
+                if (order.UserId != userId)
+                    throw new UnauthorizedAccessException("You do not have access to this order.");
+
+                if (order.Status != OrderStatus.Placed)
+                    throw new Exception($"Order cannot be cancelled — current status is {order.Status}.");
+
+                if (order.SubOrders.Any(s => s.Status != SubOrderStatus.Placed))
+                    throw new Exception("Order cannot be cancelled — one or more items are already being processed.");
+
+                foreach (var subOrder in order.SubOrders)
                 {
-                    UserId = subOrder.SellerProfile.UserId,
-                    Message = $"Order #{order.OrderId} has been cancelled by the customer.",
-                    IsRead = false,
-                    CreatedAt = DateTime.UtcNow
-                });
+                    subOrder.Status = SubOrderStatus.Cancelled;
+                    subOrder.UpdatedAt = DateTime.UtcNow;
+
+                    foreach (var item in subOrder.OrderItems)
+                        item.ProductVariant.StockQuantity += item.Quantity;
+
+                    await _unitOfWork.NotificationRepository.Add(new Notification
+                    {
+                        UserId = subOrder.SellerProfile.UserId,
+                        Message = $"Order #{order.OrderId} has been cancelled by the customer.",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                order.Status = OrderStatus.Cancelled;
+                order.UpdatedAt = DateTime.UtcNow;
+
+                await _unitOfWork.CompleteAsync();
+                await _unitOfWork.CommitTransactionAsync();
             }
-
-            order.Status = OrderStatus.Cancelled;
-            order.UpdatedAt = DateTime.UtcNow;
-
-            await _unitOfWork.CompleteAsync();
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -271,12 +298,25 @@ namespace Application.Services
         public async Task<IEnumerable<SubOrderDto>> GetSellerSubOrdersAsync(
             string userId, string? statusFilter, int page, int pageSize)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            var isAdmin = user != null && await _userManager.IsInRoleAsync(user, "Admin");
+
+            int sellerId;
             var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
             if (seller == null)
+            {
+                if (isAdmin)
+                {
+                    // Admin might not have a seller profile. If they don't, they can't list "their" suborders,
+                    // so we throw or return empty. Let's throw a clear error or return empty. Let's return empty.
+                    return Enumerable.Empty<SubOrderDto>();
+                }
                 throw new UnauthorizedAccessException("Seller profile not found.");
+            }
+            sellerId = seller.SellerId;
 
             var subOrders = await _unitOfWork.SubOrderRepository
-                .GetBySellerIdAsync(seller.SellerId, statusFilter, page, pageSize);
+                .GetBySellerIdAsync(sellerId, statusFilter, page, pageSize);
 
             return subOrders.Select(MapSubOrderToDto);
         }
@@ -284,15 +324,22 @@ namespace Application.Services
         public async Task UpdateSubOrderStatusAsync(
             string userId, int subOrderId, UpdateSubOrderStatusRequestDto request)
         {
-            var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
-            if (seller == null)
-                throw new UnauthorizedAccessException("Seller profile not found.");
+            var user = await _userManager.FindByIdAsync(userId);
+            var isAdmin = user != null && await _userManager.IsInRoleAsync(user, "Admin");
+
+            SellerProfile? seller = null;
+            if (!isAdmin)
+            {
+                seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
+                if (seller == null)
+                    throw new UnauthorizedAccessException("Seller profile not found.");
+            }
 
             var subOrder = await _unitOfWork.SubOrderRepository.GetByIdWithDetailsAsync(subOrderId);
             if (subOrder == null)
                 throw new KeyNotFoundException("SubOrder not found.");
 
-            if (subOrder.SellerId != seller.SellerId)
+            if (!isAdmin && subOrder.SellerId != seller!.SellerId)
                 throw new UnauthorizedAccessException("You do not own this SubOrder.");
 
             if (!Enum.TryParse<SubOrderStatus>(request.Status, ignoreCase: true, out var newStatus))
@@ -339,7 +386,7 @@ namespace Application.Services
                     throw new Exception("Cannot mark as Delivered — no Shipping record exists. Mark as Shipped first.");
 
                 shipping.Status = ShippingStatus.Delivered;
-                shipping.ShippedAt = DateTime.UtcNow;
+                shipping.DeliveredAt = DateTime.UtcNow;
                 shipping.UpdatedAt = DateTime.UtcNow;
             }
 

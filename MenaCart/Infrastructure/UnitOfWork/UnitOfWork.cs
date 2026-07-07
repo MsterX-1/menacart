@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Application.Interfaces.IRepositories;
 using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
@@ -10,11 +10,6 @@ namespace Infrastructure.UnitOfWork
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-
-        // Private backing fields for the generic repositories
-        private IGenaricRepository<OrderItem>? _orderItemRepository;
-        private IGenaricRepository<SellerCommission>? _sellerCommissionRepository;
-        private IGenaricRepository<Notification>? _notificationRepository;
 
         // Public properties for custom repositories
         public IRefreshTokenRepository RefreshTokenRepository { get; }
@@ -29,6 +24,11 @@ namespace Infrastructure.UnitOfWork
         public IProductVariantRepository ProductVariantRepository { get; }
         public IReturnRepository ReturnRepository { get; }
 
+        // Generic repositories
+        public IGenaricRepository<OrderItem> OrderItemRepository { get; }
+        public IGenaricRepository<SellerCommission> SellerCommissionRepository { get; }
+        public IGenaricRepository<Notification> NotificationRepository { get; }
+ 
         public UnitOfWork(
             AppDbContext context,
             IRefreshTokenRepository refreshTokenRepository,
@@ -41,7 +41,10 @@ namespace Infrastructure.UnitOfWork
             IShippingRepository shippingRepository,
             IProductRepository productRepository,
             IProductVariantRepository productVariantRepository,
-            IReturnRepository returnRepository)
+            IReturnRepository returnRepository,
+            IGenaricRepository<OrderItem> orderItemRepository,
+            IGenaricRepository<SellerCommission> sellerCommissionRepository,
+            IGenaricRepository<Notification> notificationRepository)
         {
             _context = context;
             RefreshTokenRepository = refreshTokenRepository;
@@ -55,21 +58,37 @@ namespace Infrastructure.UnitOfWork
             ProductRepository = productRepository;
             ProductVariantRepository = productVariantRepository;
             ReturnRepository = returnRepository;
+
+            OrderItemRepository = orderItemRepository;
+            SellerCommissionRepository = sellerCommissionRepository;
+            NotificationRepository = notificationRepository;
         }
-
-        // Lazy-loaded Generic Repository Properties
-        public IGenaricRepository<OrderItem> OrderItemRepository => 
-            _orderItemRepository ??= new GenaricRepository<OrderItem>(_context);
-
-        public IGenaricRepository<SellerCommission> SellerCommissionRepository => 
-            _sellerCommissionRepository ??= new GenaricRepository<SellerCommission>(_context);
-
-        public IGenaricRepository<Notification> NotificationRepository => 
-            _notificationRepository ??= new GenaricRepository<Notification>(_context);
 
         public async Task<int> CompleteAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        public async Task BeginTransactionAsync()
+        {
+            await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            if (_context.Database.CurrentTransaction != null)
+            {
+                await _context.Database.CurrentTransaction.CommitAsync();
+            }
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            if (_context.Database.CurrentTransaction != null)
+            {
+                await _context.Database.CurrentTransaction.RollbackAsync();
+                await _context.Database.CurrentTransaction.DisposeAsync();
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories;
 using Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -24,6 +24,8 @@ namespace Application.Interfaces.IUnitOfWork
         IProductVariantRepository ProductVariantRepository { get; }
         IReturnRepository ReturnRepository { get; }
         Task<int> CompleteAsync();
-
+        Task BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

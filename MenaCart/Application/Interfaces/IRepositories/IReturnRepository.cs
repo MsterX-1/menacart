@@ -11,5 +11,7 @@ namespace Application.Interfaces.IRepositories
 
         /// <summary>Returns for a specific seller (via OrderItem → SubOrder → SellerId).</summary>
         Task<IEnumerable<Return>> GetBySellerIdAsync(int sellerId, int page, int pageSize);
+
+        Task<bool> HasActiveReturnForOrderItemAsync(int orderItemId);
     }
 }

@@ -1,8 +1,9 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories;
 using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
 using Application.Services;
 using Infrastructure.Repository;
+using Infrastructure.Repositories;
 using Infrastructure.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +17,7 @@ namespace API.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Repositories
+            services.AddScoped(typeof(IGenaricRepository<>), typeof(GenaricRepository<>));
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ISubOrderRepository, SubOrderRepository>();

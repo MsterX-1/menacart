@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AuthDtos;
+using Application.DTOs.AuthDtos;
 using Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +43,7 @@ namespace API.Controllers
         /// Also sets a refresh token in an HTTP-only cookie.
         /// </summary>
         [HttpPost("Login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             try
@@ -52,7 +53,8 @@ namespace API.Controllers
                 var response = new AuthResponseDto
                 {
                     Token = result.Token,
-                    TokenExpiresOn = result.TokenExpiresOn
+                    TokenExpiresOn = result.TokenExpiresOn,
+                    Roles = result.Roles
                 };
                 return Ok(response);
             }
@@ -63,20 +65,22 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Registers a new user and returns a JWT access token.
+        /// Registers a new user and returns JWT + Refresh Token.
         /// Automatically logs in the user by issuing tokens.
         /// </summary>
         [HttpPost("Register")]
+        [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             try
             {
-                var result = await _authService.Register(dto);
+                var result = await _authService.RegisterAsync(dto);
                 SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiration);
                 var response = new AuthResponseDto
                 {
                     Token = result.Token,
-                    TokenExpiresOn = result.TokenExpiresOn
+                    TokenExpiresOn = result.TokenExpiresOn,
+                    Roles = result.Roles
                 };
                 return Ok(response);
             }
@@ -92,6 +96,7 @@ namespace API.Controllers
         /// Implements refresh token rotation.
         /// </summary>
         [HttpPost("RefreshToken")]
+        [AllowAnonymous]
         public async Task<IActionResult> RefreshToken()
         {
             try
@@ -105,7 +110,8 @@ namespace API.Controllers
                 var response = new AuthResponseDto
                 {
                     Token = result.Token,
-                    TokenExpiresOn = result.TokenExpiresOn
+                    TokenExpiresOn = result.TokenExpiresOn,
+                    Roles = result.Roles
                 };
                 return Ok(response);
             }
@@ -113,6 +119,29 @@ namespace API.Controllers
             {
                 return Unauthorized(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Revokes the specified refresh token (or from cookie) and removes the cookie.
+        /// </summary>
+        [HttpPost("revoke")]
+        [Authorize]
+        public async Task<IActionResult> Revoke([FromBody] RevokeRequestDto? dto)
+        {
+            var token = dto?.RefreshToken;
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                Request.Cookies.TryGetValue("refreshToken", out token);
+            }
+
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                await _authService.RevokeTokenAsync(token);
+            }
+
+            // Always delete the cookie to clear client state
+            Response.Cookies.Delete("refreshToken");
+            return NoContent();
         }
 
         /// <summary>
@@ -141,12 +170,34 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Logs out the current user by revoking all refresh tokens
+        /// Logs out the current user by revoking the current session's refresh token
         /// and removing the refresh token cookie.
         /// </summary>
         [Authorize]
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                if (Request.Cookies.TryGetValue("refreshToken", out var token))
+                {
+                    await _authService.RevokeTokenAsync(token);
+                    Response.Cookies.Delete("refreshToken");
+                }
+                return Ok("Logged out successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Logs out the user from ALL devices by revoking all refresh tokens.
+        /// </summary>
+        [Authorize]
+        [HttpPost("LogoutAll")]
+        public async Task<IActionResult> LogoutAll()
         {
             try
             {
@@ -159,13 +210,12 @@ namespace API.Controllers
                 var result = await _authService.LogoutAsync(userId);
                 if (result)
                 {
-                    // Remove the refresh token cookie
                     Response.Cookies.Delete("refreshToken");
-                    return Ok("Logged out successfully.");
+                    return Ok("Logged out from all devices successfully.");
                 }
                 else
                 {
-                    return BadRequest("Logout failed.");
+                    return BadRequest("Logout all failed.");
                 }
             }
             catch (Exception ex)

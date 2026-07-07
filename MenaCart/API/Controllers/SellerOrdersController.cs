@@ -1,4 +1,4 @@
-﻿using API.Extensions;
+using API.Extensions;
 using Application.DTOs.OrderDtos;
 using Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +8,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/seller/suborders")]
-    [Authorize(Roles = "Seller")]
+    [Authorize(Roles = "Seller,Admin")]
     public class SellerOrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
