@@ -1,0 +1,182 @@
+.addresses-container {
+  padding: var(--space-6);
+  background-color: var(--color-bg-base);
+  min-height: calc(100vh - 100px);
+}
+
+.addresses-container.loading,
+.addresses-container.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--space-4);
+}
+
+.addresses-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-4);
+}
+
+.addresses-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  letter-spacing: -0.03em;
+}
+
+.addresses-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.addresses-empty {
+  text-align: center;
+  padding: var(--space-16) var(--space-4);
+  background-color: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.addresses-empty h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-2);
+}
+
+.addresses-empty p {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+
+.addresses-sections-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 1024px) {
+  .addresses-sections-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.addresses-column {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.column-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: var(--space-1);
+}
+
+.column-empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--space-4) 0;
+}
+
+.addresses-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.address-card {
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.address-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.address-card.default-card {
+  border-color: var(--color-primary);
+  background-color: oklch(from var(--color-primary) l c h / 0.02);
+}
+
+.address-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-2);
+}
+
+.address-type-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.default-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.address-card-body {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text-main);
+}
+
+.address-street {
+  font-weight: var(--font-weight-medium);
+}
+
+.address-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.card-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn-delete {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.btn-delete:hover:not(:disabled) {
+  background-color: var(--color-error-bg);
+}
+
+.btn-set-default {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}

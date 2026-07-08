@@ -17,7 +17,8 @@ namespace Application.Interfaces.IUnitOfWork
         IAddressRepository AddressRepository { get; }
         IGenaricRepository<OrderItem> OrderItemRepository { get; }
         ISellerCommissionRepository SellerCommissionRepository { get; }
-        IGenaricRepository<Notification> NotificationRepository { get; }
+        INotificationRepository NotificationRepository { get; }
+        IWishlistRepository WishlistRepository { get; }
         ISellerRepository SellerRepository { get; }
         IShippingRepository ShippingRepository { get; }
         IProductRepository ProductRepository { get; }

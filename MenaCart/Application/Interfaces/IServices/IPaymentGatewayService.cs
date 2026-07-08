@@ -7,6 +7,7 @@ namespace Application.Interfaces.IServices
     public interface IPaymentGatewayService
     {
         Task<PaymentSessionResponseDto> CreateSessionAsync(Order order);
-        Task<bool> VerifyWebhookSignatureAsync(string payload, string signature);
+        Task<PaymentWebhookDto?> ProcessWebhookAsync(string payload, string signature);
+        Task<string> CreateTransferAsync(string destinationAccountId, decimal amount, string description);
     }
 }

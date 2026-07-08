@@ -5,6 +5,7 @@ using Application.Services;
 using Infrastructure.Repository;
 using Infrastructure.Repositories;
 using Infrastructure.UnitOfWork;
+using Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace API.Extensions
@@ -37,6 +38,8 @@ namespace API.Extensions
             services.AddScoped<ISellerCommissionRepository, SellerCommissionRepository>();
             services.AddScoped<ISellerPayoutRepository, SellerPayoutRepository>();
             services.AddScoped<ILoyaltyPointRepository, LoyaltyPointRepository>();
+            services.AddScoped<IWishlistRepository, WishlistRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
 
 
             // Services
@@ -51,12 +54,15 @@ namespace API.Extensions
             services.AddScoped<ISellerOnboardingService, SellerOnboardingService>();
             services.AddScoped<ISellerDocumentService, SellerDocumentService>();
             services.AddScoped<IShippingService, ShippingService>();
-            services.AddScoped<IPaymentGatewayService, MockPaymentGatewayService>();
+            services.AddScoped<IPaymentGatewayService, StripePaymentGatewayService>();
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IPayoutService, PayoutService>();
             services.AddScoped<ILoyaltyService, LoyaltyService>();
             services.AddScoped<ICouponService, CouponService>();
             services.AddScoped<IAddressService, AddressService>();
+            services.AddScoped<IWishlistService, WishlistService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<ISellerDashboardService, SellerDashboardService>();
 
 
             return services;

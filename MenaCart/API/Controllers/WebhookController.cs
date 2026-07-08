@@ -21,9 +21,19 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> HandlePaymentWebhook()
         {
-            if (!Request.Headers.TryGetValue("X-Payment-Signature", out var signatureHeader))
+            string? signature = null;
+            if (Request.Headers.TryGetValue("Stripe-Signature", out var stripeSig))
             {
-                return BadRequest(new { message = "Missing X-Payment-Signature header." });
+                signature = stripeSig.ToString();
+            }
+            else if (Request.Headers.TryGetValue("X-Payment-Signature", out var xSig))
+            {
+                signature = xSig.ToString();
+            }
+
+            if (string.IsNullOrEmpty(signature))
+            {
+                return BadRequest(new { message = "Missing signature header." });
             }
 
             string rawBody;
@@ -34,13 +44,7 @@ namespace API.Controllers
 
             try
             {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var webhookData = JsonSerializer.Deserialize<PaymentWebhookDto>(rawBody, options);
-
-                if (webhookData == null)
-                    return BadRequest(new { message = "Invalid JSON payload." });
-
-                await _orderService.ProcessPaymentWebhookAsync(webhookData, rawBody, signatureHeader.ToString());
+                await _orderService.ProcessPaymentWebhookAsync(rawBody, signature);
                 return Ok(new { message = "Webhook processed successfully." });
             }
             catch (System.UnauthorizedAccessException ex)

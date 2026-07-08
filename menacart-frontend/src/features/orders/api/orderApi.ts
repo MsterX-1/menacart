@@ -1,0 +1,56 @@
+import { apiClient } from '../../../api/client';
+import type { Order, CreateOrderRequest, SubOrder, UpdateSubOrderStatusRequest } from '../../../types/order';
+import type { Coupon } from '../../../types/coupon';
+import type { Loyalty } from '../../../types/loyalty';
+
+// Buyer endpoints
+export const placeOrder = async (data: CreateOrderRequest): Promise<Order> => {
+  const response = await apiClient.post<Order>('/orders', data);
+  return response.data;
+};
+
+export const getOrderById = async (orderId: number): Promise<Order> => {
+  const response = await apiClient.get<Order>(`/orders/${orderId}`);
+  return response.data;
+};
+
+export const getMyOrders = async (page = 1, pageSize = 20): Promise<Order[]> => {
+  const response = await apiClient.get<Order[]>('/orders/myOrders', {
+    params: { page, pageSize },
+  });
+  return response.data;
+};
+
+export const cancelOrder = async (orderId: number): Promise<void> => {
+  await apiClient.delete(`/orders/Cancel${orderId}`);
+};
+
+// Seller endpoints
+export const getSellerSubOrders = async (
+  status?: string,
+  page = 1,
+  pageSize = 20
+): Promise<SubOrder[]> => {
+  const response = await apiClient.get<SubOrder[]>('/seller/suborders', {
+    params: { status, page, pageSize },
+  });
+  return response.data;
+};
+
+export const updateSubOrderStatus = async (
+  subOrderId: number,
+  data: UpdateSubOrderStatusRequest
+): Promise<void> => {
+  await apiClient.patch(`/seller/suborders/${subOrderId}/status`, data);
+};
+
+// Coupons & Loyalty for checkout integration
+export const getCouponByCode = async (code: string): Promise<Coupon> => {
+  const response = await apiClient.get<Coupon>(`/coupons/${code}`);
+  return response.data;
+};
+
+export const getLoyaltyBalance = async (): Promise<Loyalty> => {
+  const response = await apiClient.get<Loyalty>('/loyalty');
+  return response.data;
+};

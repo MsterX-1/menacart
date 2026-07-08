@@ -13,10 +13,12 @@ namespace Application.Services
     public class PayoutService : IPayoutService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPaymentGatewayService _paymentGatewayService;
 
-        public PayoutService(IUnitOfWork unitOfWork)
+        public PayoutService(IUnitOfWork unitOfWork, IPaymentGatewayService paymentGatewayService)
         {
             _unitOfWork = unitOfWork;
+            _paymentGatewayService = paymentGatewayService;
         }
 
         public async Task<PayoutResponseDto> RequestPayoutAsync(string userId, RequestPayoutDto request)
@@ -75,6 +77,20 @@ namespace Application.Services
             }
         }
 
+        public async Task<decimal> GetAvailableBalanceAsync(string userId)
+        {
+            var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
+            if (seller == null)
+                throw new UnauthorizedAccessException("Seller profile not found.");
+
+            var commissions = await _unitOfWork.SellerCommissionRepository.GetSettledCommissionsBySellerIdAsync(seller.SellerId);
+            var commissionList = commissions.ToList();
+            if (!commissionList.Any())
+                return 0;
+
+            return commissionList.Sum(c => c.SaleAmount - c.CommissionAmount);
+        }
+
         public async Task<IEnumerable<PayoutResponseDto>> GetMyPayoutsAsync(string userId)
         {
             var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
@@ -109,6 +125,30 @@ namespace Application.Services
                 payout.Status = newStatus;
                 payout.TransactionRef = request.TransactionRef;
                 payout.PayoutDate = newStatus == SellerPayoutStatus.Paid ? DateTime.UtcNow : null;
+
+                if (newStatus == SellerPayoutStatus.Paid && payout.PaymentMethod.Equals("Stripe", StringComparison.OrdinalIgnoreCase))
+                {
+                    var seller = await _unitOfWork.SellerRepository.GetById(payout.SellerId);
+                    if (seller == null)
+                        throw new KeyNotFoundException("Seller profile not found.");
+
+                    if (string.IsNullOrEmpty(seller.StripeAccountId))
+                        throw new InvalidOperationException("Seller does not have a Stripe Account ID configured. Configure it in their profile before paying via Stripe.");
+
+                    try
+                    {
+                        var transferId = await _paymentGatewayService.CreateTransferAsync(
+                            seller.StripeAccountId,
+                            payout.Amount,
+                            $"Payout #{payout.PayoutId} for Seller #{seller.SellerId}"
+                        );
+                        payout.TransactionRef = transferId;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new InvalidOperationException($"Stripe transfer failed: {ex.Message}", ex);
+                    }
+                }
 
                 if (newStatus == SellerPayoutStatus.Failed)
                 {

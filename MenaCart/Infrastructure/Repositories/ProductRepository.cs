@@ -66,5 +66,20 @@ namespace Infrastructure.Repository
                 .Take(pageSize)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Product>> GetPendingAsync(int page, int pageSize)
+        {
+            return await _dbSet
+                .Where(p => p.ApprovalStatus == ApprovalStatus.Pending && p.IsActive)
+                .Include(p => p.Category)
+                .Include(p => p.SellerProfile)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                    .ThenInclude(pv => pv.Images)
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 }

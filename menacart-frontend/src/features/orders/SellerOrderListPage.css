@@ -1,0 +1,221 @@
+.seller-orders-page {
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--max-width-page);
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+.seller-orders-error,
+.seller-orders-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: var(--space-3);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.empty-box-icon {
+  font-size: 64px;
+  color: var(--color-text-muted);
+}
+
+.seller-orders-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+@media (min-width: 768px) {
+  .seller-orders-header {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.seller-orders-title {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin-top: 0;
+  margin-bottom: var(--space-1);
+}
+
+.seller-orders-subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* Filters */
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.filter-select {
+  background: transparent;
+  border: none;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  outline: none;
+  cursor: pointer;
+}
+
+/* Table styling */
+.sub-orders-table-wrapper {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.sub-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.sub-orders-table th {
+  background-color: var(--color-bg-panel);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.sub-orders-table td {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  vertical-align: middle;
+}
+
+.sub-orders-table tr:last-child td {
+  border-bottom: none;
+}
+
+.font-highlight {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.price-cell {
+  font-weight: var(--font-weight-semibold);
+}
+
+.items-cell-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.table-item-badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+/* Modal for Status Updating */
+.status-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: oklch(0 0 0 / 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-modal);
+  padding: var(--space-4);
+}
+
+.status-modal {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 480px;
+  width: 100%;
+}
+
+.modal-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin-top: 0;
+  margin-bottom: var(--space-1);
+}
+
+.modal-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+}
+
+.status-update-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.select-field {
+  width: 100%;
+}
+
+.shipping-fields-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background-color: var(--color-bg-panel);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.animate-fade-in {
+  animation: modal-fade-in var(--transition-fast) forwards;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}

@@ -505,11 +505,13 @@ namespace Application.Services
                 throw new Exception($"Invalid transition: {current} → {next}.");
         }
 
-        public async Task ProcessPaymentWebhookAsync(PaymentWebhookDto webhookData, string rawBody, string signature)
+        public async Task ProcessPaymentWebhookAsync(string rawBody, string signature)
         {
-            var isSigValid = await _paymentGatewayService.VerifyWebhookSignatureAsync(rawBody, signature);
-            if (!isSigValid)
-                throw new UnauthorizedAccessException("Invalid webhook signature.");
+            var webhookData = await _paymentGatewayService.ProcessWebhookAsync(rawBody, signature);
+            if (webhookData == null)
+            {
+                return;
+            }
 
             var order = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(webhookData.OrderId);
             if (order == null)
@@ -597,6 +599,7 @@ namespace Application.Services
             {
                 OrderItemId = i.OrderItemId,
                 VariantId = i.VariantId,
+                ProductId = i.ProductVariant?.ProductId ?? 0,
                 ProductName = i.ProductVariant?.Product?.Name ?? string.Empty,
                 Color = i.ProductVariant?.Color,
                 Size = i.ProductVariant?.Size,

@@ -1,0 +1,247 @@
+.checkout-success-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-12) var(--space-4);
+  min-height: 80vh;
+}
+
+.checkout-success-loading,
+.checkout-success-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.success-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Checkmark Animation */
+.checkmark-wrapper {
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--space-6);
+}
+
+.checkmark-svg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 2;
+  stroke: var(--color-success);
+  stroke-miterlimit: 10;
+  box-shadow: inset 0px 0px 0px var(--color-success);
+  animation: fill-checkmark 0.4s ease-in-out 0.4s forwards, scale-checkmark 0.3s ease-in-out 0.9s both;
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 2;
+  stroke-miterlimit: 10;
+  stroke: var(--color-success);
+  fill: none;
+  animation: stroke-checkmark 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke-checkmark 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke-checkmark {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale-checkmark {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+@keyframes fill-checkmark {
+  100% {
+    box-shadow: inset 0px 0px 0px 40px var(--color-success-bg);
+  }
+}
+
+.success-icon.error-state {
+  font-size: 60px;
+  color: var(--color-error);
+  line-height: 1;
+}
+
+.success-title {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin-top: 0;
+  margin-bottom: var(--space-2);
+}
+
+.success-subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+  margin-top: 0;
+  margin-bottom: var(--space-8);
+}
+
+/* Order summary box */
+.order-details-summary {
+  width: 100%;
+  background-color: var(--color-bg-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin-bottom: var(--space-8);
+  text-align: left;
+}
+
+.order-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: var(--space-4);
+}
+
+.meta-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.meta-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-main);
+}
+
+.font-highlight {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.status-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  width: fit-content;
+}
+
+.payment-paid {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.payment-pending {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.payment-failed {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.section-title-minor {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+}
+
+.sub-orders-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sub-order-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+}
+
+.sub-order-shop-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shop-name {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+.items-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.sub-order-status-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-contrast);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* Actions */
+.success-actions {
+  display: flex;
+  gap: var(--space-4);
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .success-actions {
+    flex-direction: column;
+  }
+  .success-actions a,
+  .success-actions button {
+    width: 100%;
+  }
+}

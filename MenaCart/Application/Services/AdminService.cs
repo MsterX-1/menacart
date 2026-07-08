@@ -3,6 +3,7 @@ using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services
 {
@@ -182,6 +183,12 @@ namespace Application.Services
 
             await _unitOfWork.CouponRepository.Delete(couponId);
             await _unitOfWork.CompleteAsync();
+        }
+
+        public async Task<AdminDashboardStatsDto> GetDashboardStatsAsync()
+        {
+            var totalUsersCount = await _userManager.Users.CountAsync();
+            return await _unitOfWork.OrderRepository.GetAdminDashboardStatsAsync(totalUsersCount);
         }
 
         // ── Mappers ────────────────────────────────────────────────────────────

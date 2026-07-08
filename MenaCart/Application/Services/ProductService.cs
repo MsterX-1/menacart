@@ -315,6 +315,12 @@ namespace Application.Services
             return MapToDto(product);
         }
 
+        public async Task<IEnumerable<ProductResponseDto>> GetPendingProductsAsync(int page, int pageSize)
+        {
+            var products = await _unitOfWork.ProductRepository.GetPendingAsync(page, pageSize);
+            return products.Select(MapToDto);
+        }
+
         // ── Mapper ─────────────────────────────────────────────────────────────
         private static ProductResponseDto MapToDto(Product p) => new()
         {

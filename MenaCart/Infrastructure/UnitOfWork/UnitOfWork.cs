@@ -19,6 +19,7 @@ namespace Infrastructure.UnitOfWork
         public ICouponRepository CouponRepository { get; }
         public IAddressRepository AddressRepository { get; }
         public ISellerRepository SellerRepository { get; }
+        public IWishlistRepository WishlistRepository { get; }
         public IShippingRepository ShippingRepository { get; }
         public IProductRepository ProductRepository { get; }
         public IProductVariantRepository ProductVariantRepository { get; }
@@ -33,7 +34,7 @@ namespace Infrastructure.UnitOfWork
 
         // Generic repositories
         public IGenaricRepository<OrderItem> OrderItemRepository { get; }
-        public IGenaricRepository<Notification> NotificationRepository { get; }
+        public INotificationRepository NotificationRepository { get; }
         public IGenaricRepository<Payment> PaymentRepository { get; }
  
         public UnitOfWork(
@@ -45,6 +46,7 @@ namespace Infrastructure.UnitOfWork
             ICouponRepository couponRepository,
             IAddressRepository addressRepository,
             ISellerRepository sellerRepository,
+            IWishlistRepository wishlistRepository,
             IShippingRepository shippingRepository,
             IProductRepository productRepository,
             IProductVariantRepository productVariantRepository,
@@ -57,7 +59,7 @@ namespace Infrastructure.UnitOfWork
             ISellerPayoutRepository sellerPayoutRepository,
             ILoyaltyPointRepository loyaltyPointRepository,
             IGenaricRepository<OrderItem> orderItemRepository,
-            IGenaricRepository<Notification> notificationRepository,
+            INotificationRepository notificationRepository,
             IGenaricRepository<Payment> paymentRepository)
         {
             _context = context;
@@ -68,6 +70,7 @@ namespace Infrastructure.UnitOfWork
             CouponRepository = couponRepository;
             AddressRepository = addressRepository;
             SellerRepository = sellerRepository;
+            WishlistRepository = wishlistRepository;
             ShippingRepository = shippingRepository;
             ProductRepository = productRepository;
             ProductVariantRepository = productVariantRepository;

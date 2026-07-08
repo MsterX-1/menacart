@@ -1,0 +1,219 @@
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  padding: 0 var(--space-4);
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--max-width-page);
+  height: 64px;
+  margin: 0 auto;
+  gap: var(--space-4);
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.nav-link {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  padding: var(--space-2) 0;
+  transition: color var(--transition-fast);
+  border-bottom: 2px solid transparent;
+}
+
+.nav-link:hover {
+  color: var(--color-text-main);
+}
+
+.nav-link.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.notifications-bell-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bell-toggle-btn {
+  background: none;
+  border: none;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  padding: var(--space-2);
+  border-radius: var(--radius-round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background-color var(--transition-fast);
+}
+
+.bell-toggle-btn:hover {
+  background-color: var(--color-bg-alt);
+}
+
+.bell-badge-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--color-danger);
+  color: white;
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-bg-surface);
+}
+
+.user-profile-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.user-greeting {
+  color: var(--color-text-muted);
+}
+
+.user-name-link {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+}
+
+.user-name-link:hover {
+  color: var(--color-primary);
+}
+
+/* Role Badges */
+.role-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.role-customer {
+  background-color: var(--color-info-bg);
+  color: var(--color-info);
+  border: 1px solid var(--color-info);
+}
+
+.role-seller {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+}
+
+.role-admin {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+
+.auth-buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.app-main-content {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: var(--max-width-page);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.app-footer {
+  background-color: var(--color-bg-surface);
+  border-top: 1px solid var(--color-border-subtle);
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.footer-container {
+  max-width: var(--max-width-page);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.footer-links a:hover {
+  color: var(--color-text-main);
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-main);
+  cursor: pointer;
+  padding: var(--space-2);
+}
+
+/* Mobile responsive menu */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .app-nav {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    width: 100%;
+    background-color: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: var(--space-4);
+    gap: var(--space-2);
+    box-shadow: var(--shadow-md);
+  }
+
+  .app-nav.nav-open {
+    display: flex;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+}

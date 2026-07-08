@@ -24,5 +24,10 @@ namespace Application.Interfaces.IRepositories
         /// All products (any status) for a specific seller — for seller dashboard.
         /// </summary>
         Task<IEnumerable<Product>> GetBySellerIdAsync(int sellerId, int page, int pageSize);
+
+        /// <summary>
+        /// Retrieves products with Pending approval status for admin verification.
+        /// </summary>
+        Task<IEnumerable<Product>> GetPendingAsync(int page, int pageSize);
     }
 }

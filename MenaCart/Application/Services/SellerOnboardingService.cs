@@ -36,6 +36,7 @@ namespace Application.Services
                 profile.StoreBannerUrl = request.StoreBannerUrl;
                 profile.StoreAddress = request.StoreAddress;
                 profile.Phone = request.Phone;
+                profile.StripeAccountId = request.StripeAccountId;
                 profile.Status = SellerStatus.Pending;
                 profile.RejectionReason = null;
                 profile.UpdatedAt = DateTime.UtcNow;
@@ -54,6 +55,7 @@ namespace Application.Services
                     StoreBannerUrl = request.StoreBannerUrl,
                     StoreAddress = request.StoreAddress,
                     Phone = request.Phone,
+                    StripeAccountId = request.StripeAccountId,
                     Status = SellerStatus.Pending,
                     IsVerified = false,
                     Rating = 0,
@@ -99,6 +101,7 @@ namespace Application.Services
             profile.StoreBannerUrl = request.StoreBannerUrl;
             profile.StoreAddress = request.StoreAddress;
             profile.Phone = request.Phone;
+            profile.StripeAccountId = request.StripeAccountId;
             profile.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.SellerRepository.Update(profile);
@@ -122,6 +125,7 @@ namespace Application.Services
             IsVerified = p.IsVerified,
             Status = p.Status.ToString(),
             RejectionReason = p.RejectionReason,
+            StripeAccountId = p.StripeAccountId,
             CreatedAt = p.CreatedAt
         };
     }

@@ -48,6 +48,24 @@ namespace API.Controllers
         }
 
         /// <summary>
+        /// Seller gets their available settled commission balance.
+        /// </summary>
+        [HttpGet("seller/balance")]
+        public async Task<IActionResult> GetAvailableBalance()
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                var balance = await _payoutService.GetAvailableBalanceAsync(userId);
+                return Ok(new { availableBalance = balance });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Seller views their own payout request history.
         /// </summary>
         [HttpGet("seller")]

@@ -1,0 +1,175 @@
+.admin-categories-container {
+  padding: var(--space-6);
+  background-color: var(--color-bg-base);
+  min-height: calc(100vh - 100px);
+}
+
+.admin-categories-container.loading,
+.admin-categories-container.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--space-4);
+}
+
+.admin-categories-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-4);
+}
+
+.admin-categories-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  letter-spacing: -0.03em;
+}
+
+.admin-categories-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.category-tree-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  max-width: var(--max-width-page);
+  margin: 0 auto;
+}
+
+.categories-empty {
+  text-align: center;
+  padding: var(--space-16) var(--space-4);
+}
+
+.categories-empty h2 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-2);
+}
+
+.categories-empty p {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+
+.category-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tree-node-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tree-node {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-1);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.tree-node:hover {
+  border-color: var(--color-border-strong);
+}
+
+.tree-node-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.tree-node-bullet {
+  color: var(--color-text-disabled);
+  font-weight: var(--font-weight-bold);
+}
+
+.tree-node-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-main);
+}
+
+.tree-node-parent-badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-panel);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.tree-node-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn-delete {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.btn-delete:hover:not(:disabled) {
+  background-color: var(--color-error-bg);
+}
+
+/* Modal Form Overlay Styles */
+.category-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  backdrop-filter: blur(2px);
+}
+
+.category-modal {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  width: 100%;
+  max-width: 450px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  animation: modalEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.category-modal h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+  letter-spacing: -0.01em;
+}
+
+.modal-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.category-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}

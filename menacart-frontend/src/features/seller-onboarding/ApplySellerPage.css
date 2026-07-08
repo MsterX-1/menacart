@@ -1,0 +1,194 @@
+/* Apply Seller Page Styles */
+.apply-seller-container {
+  max-width: var(--max-width-page);
+  margin: var(--space-8) auto;
+  padding: 0 var(--space-4);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.apply-seller-container.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.apply-seller-header {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.apply-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.apply-subtitle {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: var(--space-2) auto 0;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.apply-layout-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.apply-form-card {
+  padding: var(--space-8);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.form-card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.rejection-banner {
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Status Screen */
+.apply-seller-status-page {
+  max-width: 600px;
+  margin: var(--space-12) auto;
+  padding: var(--space-10);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-round);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.success-badge {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.pending-badge {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+}
+
+.error-badge {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}
+
+.status-tip {
+  background: var(--color-bg-panel);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  border-left: 3px solid var(--color-primary);
+  text-align: left;
+}
+
+.rejection-box {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  text-align: left;
+  width: 100%;
+}
+
+/* Benefits Sidebar */
+.apply-benefits-sidebar {
+  padding: var(--space-6);
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.benefits-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin: 0 0 var(--space-5) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.benefits-list li {
+  display: flex;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.benefit-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.benefits-list strong {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  margin-bottom: 2px;
+}
+
+.benefits-list p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Responsive grid styles */
+@media (max-width: 860px) {
+  .apply-layout-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}

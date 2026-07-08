@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.DTOs.SellerDtos;
+using Application.Interfaces.IRepositories;
 using Domain.Models;
 using Infrastructure.Database;
 using Infrastructure.Repositories;
@@ -42,6 +43,54 @@ namespace Infrastructure.Repository
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+        public async Task<SellerDashboardStatsDto> GetSellerDashboardStatsAsync(int sellerId)
+        {
+            var totalOrders = await _context.SubOrders
+                .CountAsync(so => so.SellerId == sellerId && so.Order.PaymentStatus == OrderPaymentStatus.Paid);
+
+            var totalProducts = await _context.Products
+                .CountAsync(p => p.SellerId == sellerId);
+
+            var commissions = await _context.SellerCommissions
+                .Where(sc => sc.SellerId == sellerId)
+                .ToListAsync();
+
+            var totalRevenue = commissions.Sum(c => c.SaleAmount);
+            var totalCommissionPaid = commissions.Sum(c => c.CommissionAmount);
+            var netProfit = totalRevenue - totalCommissionPaid;
+
+            var pendingPayoutBalance = await _context.SellerPayouts
+                .Where(p => p.SellerId == sellerId && (p.Status == SellerPayoutStatus.Pending || p.Status == SellerPayoutStatus.Processing))
+                .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+
+            var topProducts = await _context.OrderItems
+                .Include(oi => oi.ProductVariant)
+                    .ThenInclude(pv => pv.Product)
+                .Where(oi => oi.ProductVariant.Product.SellerId == sellerId)
+                .GroupBy(oi => oi.ProductVariant.ProductId)
+                .Select(g => new TopSellerProductDto
+                {
+                    ProductId = g.Key,
+                    Name = g.Select(oi => oi.ProductVariant.Product.Name).FirstOrDefault() ?? "Unknown",
+                    TotalSold = g.Sum(oi => oi.Quantity),
+                    Revenue = g.Sum(oi => oi.PriceAtPurchase * oi.Quantity),
+                    AverageRating = (double)(g.Select(oi => oi.ProductVariant.Product.AverageRating).FirstOrDefault())
+                })
+                .OrderByDescending(p => p.TotalSold)
+                .Take(5)
+                .ToListAsync();
+
+            return new SellerDashboardStatsDto
+            {
+                TotalRevenue = totalRevenue,
+                TotalCommissionPaid = totalCommissionPaid,
+                NetProfit = netProfit,
+                TotalOrders = totalOrders,
+                TotalProducts = totalProducts,
+                PendingPayoutBalance = pendingPayoutBalance,
+                TopProducts = topProducts
+            };
         }
     }
 }

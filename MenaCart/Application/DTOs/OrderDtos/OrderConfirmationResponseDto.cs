@@ -4,6 +4,7 @@ namespace Application.DTOs.OrderDtos
     {
         public int OrderItemId { get; set; }
         public int VariantId { get; set; }
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public string? Color { get; set; }
         public string? Size { get; set; }

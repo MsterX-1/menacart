@@ -16,6 +16,7 @@ namespace Application.DTOs.SellerDtos
         public bool IsVerified { get; set; }
         public string Status { get; set; } = string.Empty;
         public string? RejectionReason { get; set; }
+        public string? StripeAccountId { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

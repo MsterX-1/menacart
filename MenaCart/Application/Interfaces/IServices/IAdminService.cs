@@ -14,5 +14,8 @@ namespace Application.Interfaces.IServices
         Task<CouponResponseDto> CreateCouponAsync(CreateCouponDto request);
         Task<IEnumerable<CouponResponseDto>> GetAllCouponsAsync();
         Task DeleteCouponAsync(int couponId);
+
+        // Dashboard
+        Task<AdminDashboardStatsDto> GetDashboardStatsAsync();
     }
 }

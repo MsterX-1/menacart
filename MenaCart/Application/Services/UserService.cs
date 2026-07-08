@@ -1,11 +1,14 @@
-﻿using Application.DTOs.UserDtos;
+using Application.DTOs.UserDtos;
 using Application.Extentions;
 using Application.Interfaces.IServices;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -20,12 +23,21 @@ namespace Application.Services
 
         public async Task<IEnumerable<GetUserDto>> GetAllUsersAsync()
         {
-            var users = _userManager.Users.ToList();
+            var users = await _userManager.Users.ToListAsync();
 
             if (users == null || !users.Any())
                 throw new Exception("No users found.");
 
-            return users.ConvertToGetUsersDto();
+            var dtos = new List<GetUserDto>();
+            foreach (var user in users)
+            {
+                var dto = user.ConvertToGetUserDto();
+                var roles = await _userManager.GetRolesAsync(user);
+                dto.Roles = roles.ToList();
+                dtos.Add(dto);
+            }
+
+            return dtos;
         }
 
         public async Task<GetUserDto> GetUserByIdAsync(string id)

@@ -3,6 +3,7 @@ using Application.DTOs.ProductDtos;
 using Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace API.Controllers
 {
@@ -24,6 +25,7 @@ namespace API.Controllers
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
+        [OutputCache(Duration = 60)]
         public async Task<IActionResult> Browse(
             [FromQuery] string? search = null,
             [FromQuery] int? categoryId = null,
@@ -40,6 +42,7 @@ namespace API.Controllers
         /// </summary>
         [HttpGet("{productId}")]
         [AllowAnonymous]
+        [OutputCache(Duration = 60)]
         public async Task<IActionResult> GetById(int productId)
         {
             try
@@ -151,6 +154,26 @@ namespace API.Controllers
         }
 
         // ── Admin ──────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Get all products pending approval.
+        /// </summary>
+        [HttpGet("admin/pending")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPending(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var result = await _productService.GetPendingProductsAsync(page, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
         /// <summary>
         /// Admin approves or rejects a product.

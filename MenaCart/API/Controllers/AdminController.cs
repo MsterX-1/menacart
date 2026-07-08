@@ -101,6 +101,21 @@ namespace API.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Get aggregated dashboard statistics for administration.
+        /// </summary>
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetDashboardStats()
+        {
+            try
+            {
+                var stats = await _adminService.GetDashboardStatsAsync();
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace API
             builder.Services.AddAuthenticationConfig(builder.Configuration);
             builder.Services.AddSwaggerConfig();
             builder.Services.AddCorsConfig();
-
+            builder.Services.AddOutputCache();
 
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -46,6 +46,8 @@ namespace API
             app.UseStaticFiles();
 
             app.UseCors("AllowFrontend"); // Use the frontend-specific policy
+            
+            app.UseOutputCache();
 
             app.UseAuthentication();
             app.UseAuthorization();

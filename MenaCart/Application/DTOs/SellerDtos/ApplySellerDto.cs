@@ -22,5 +22,8 @@ namespace Application.DTOs.SellerDtos
         [Required]
         [MaxLength(20)]
         public string Phone { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string? StripeAccountId { get; set; }
     }
 }

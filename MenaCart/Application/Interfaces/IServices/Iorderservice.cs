@@ -15,6 +15,6 @@ namespace Application.Interfaces.IServices
         Task<IEnumerable<SubOrderDto>> GetSellerSubOrdersAsync(string userId, string? statusFilter, int page, int pageSize);
         Task UpdateSubOrderStatusAsync(string userId, int subOrderId, UpdateSubOrderStatusRequestDto request);
         // Webhook
-        Task ProcessPaymentWebhookAsync(PaymentWebhookDto webhookData, string rawBody, string signature);
+        Task ProcessPaymentWebhookAsync(string rawBody, string signature);
     }
 }
