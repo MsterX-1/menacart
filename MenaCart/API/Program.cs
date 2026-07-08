@@ -38,10 +38,7 @@ namespace API
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.ConfigObject.PersistAuthorization = true;
-                });
+                app.UseSwaggerUI();
             }
 
             // Middleware

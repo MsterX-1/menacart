@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -13,5 +13,6 @@ namespace Application.DTOs.ProductDtos
         public int StockQuantity { get; set; }
         public decimal Price { get; set; }
         public string? ImageUrl { get; set; }
+        public List<string> VariantImages { get; set; } = new();
     }
 }

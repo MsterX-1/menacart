@@ -45,19 +45,46 @@ namespace Application.Services
                 Brand = request.Brand,
                 ApprovalStatus = ApprovalStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                ProductVariants = request.Variants.Select(v => new ProductVariant
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            // Map product-level images
+            if (request.ProductImages != null)
+            {
+                product.ProductImages = request.ProductImages.Select(url => new ProductImage
+                {
+                    ImageUrl = url,
+                    IsPrimary = false,
+                    Product = product
+                }).ToList();
+            }
+
+            // Map variants and their specific images
+            product.ProductVariants = request.Variants.Select(v =>
+            {
+                var pv = new ProductVariant
                 {
                     Sku = v.Sku,
                     Color = v.Color,
                     Size = v.Size,
                     StockQuantity = v.StockQuantity,
                     Price = v.Price,
-                    ImageUrl = v.ImageUrl,
+                    ImageUrl = v.ImageUrl ?? string.Empty,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                }).ToList()
-            };
+                };
+
+                if (v.VariantImages != null)
+                {
+                    pv.Images = v.VariantImages.Select(url => new ProductImage
+                    {
+                        ImageUrl = url,
+                        Product = product
+                    }).ToList();
+                }
+
+                return pv;
+            }).ToList();
 
             await _unitOfWork.ProductRepository.Add(product);
             await _unitOfWork.CompleteAsync();
@@ -89,6 +116,25 @@ namespace Application.Services
 
             // Keep the same ApprovalStatus when updating (do not reset to Pending per blueprint)
 
+            // Handle product-level image updates
+            if (request.ProductImages != null)
+            {
+                var existingGeneralImages = product.ProductImages.Where(pi => pi.ProductVariantId == null).ToList();
+                foreach (var img in existingGeneralImages)
+                {
+                    product.ProductImages.Remove(img);
+                }
+
+                foreach (var url in request.ProductImages)
+                {
+                    product.ProductImages.Add(new ProductImage
+                    {
+                        ImageUrl = url,
+                        Product = product
+                    });
+                }
+            }
+
             // Handle variants
             if (request.Variants != null)
             {
@@ -116,6 +162,25 @@ namespace Application.Services
                         if (vDto.Price.HasValue) existing.Price = vDto.Price.Value;
                         if (vDto.ImageUrl != null) existing.ImageUrl = vDto.ImageUrl;
                         existing.UpdatedAt = DateTime.UtcNow;
+
+                        // Sync variant-specific images
+                        if (vDto.VariantImages != null)
+                        {
+                            var existingVariantImages = existing.Images.ToList();
+                            foreach (var img in existingVariantImages)
+                            {
+                                product.ProductImages.Remove(img);
+                            }
+
+                            foreach (var url in vDto.VariantImages)
+                            {
+                                existing.Images.Add(new ProductImage
+                                {
+                                    ImageUrl = url,
+                                    Product = product
+                                });
+                            }
+                        }
                     }
                     else
                     {
@@ -126,17 +191,28 @@ namespace Application.Services
                         if (await _unitOfWork.ProductVariantRepository.SkuExistsAsync(vDto.Sku))
                             throw new Exception($"SKU '{vDto.Sku}' already exists.");
 
-                        product.ProductVariants.Add(new ProductVariant
+                        var newVariant = new ProductVariant
                         {
                             Sku = vDto.Sku,
                             Color = vDto.Color,
                             Size = vDto.Size,
                             StockQuantity = vDto.StockQuantity ?? 0,
                             Price = vDto.Price ?? product.BasePrice,
-                            ImageUrl = vDto.ImageUrl,
+                            ImageUrl = vDto.ImageUrl ?? string.Empty,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
-                        });
+                        };
+
+                        if (vDto.VariantImages != null)
+                        {
+                            newVariant.Images = vDto.VariantImages.Select(url => new ProductImage
+                            {
+                                ImageUrl = url,
+                                Product = product
+                            }).ToList();
+                        }
+
+                        product.ProductVariants.Add(newVariant);
                     }
                 }
             }
@@ -255,6 +331,7 @@ namespace Application.Services
             SellerId = p.SellerId,
             StoreName = p.SellerProfile?.StoreName ?? string.Empty,
             CreatedAt = p.CreatedAt,
+            ProductImages = p.ProductImages?.Where(pi => pi.ProductVariantId == null).Select(pi => pi.ImageUrl).ToList() ?? new(),
             Variants = p.ProductVariants?.Select(v => new VariantResponseDto
             {
                 VariantId = v.VariantId,
@@ -263,7 +340,8 @@ namespace Application.Services
                 Size = v.Size,
                 StockQuantity = v.StockQuantity,
                 Price = v.Price,
-                ImageUrl = v.ImageUrl
+                ImageUrl = v.ImageUrl,
+                VariantImages = v.Images?.Select(vi => vi.ImageUrl).ToList() ?? new()
             }).ToList() ?? new()
         };
     }

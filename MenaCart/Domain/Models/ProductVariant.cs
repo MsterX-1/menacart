@@ -46,5 +46,6 @@ namespace Domain.Models
         public ICollection<Wishlist> WishlistEntries { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; }
         public ICollection<Return> ExchangeReturns { get; set; }
+        public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     }
 }

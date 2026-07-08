@@ -83,7 +83,8 @@ MenaCart/
 ### Products & Categories
 - **Purpose**: Manage the catalog. Sellers create products; admins approve them.
 - **Classes**: `ProductService`, `CategoryService`, `ProductsController`.
-- **Database**: `Products`, `ProductVariants`, `Categories`.
+- **Database**: `Products`, `ProductVariants`, `Categories`, `ProductImages`.
+- **Image Galleries**: Supports a main product image gallery (`ProductImages`) and variant-specific galleries (`VariantImages`), allowing unique image sets per color/size combination.
 
 ### Shopping Cart
 - **Purpose**: Temporary storage for buyer intentions.
@@ -158,9 +159,10 @@ graph TD
 1. **Order**: The parent record. Represents the buyer's single transaction and total payment.
 2. **SubOrder**: The seller's fulfillment record. Linked to an `Order` and a `SellerId`. Unique constraint on `(OrderId, SellerId)`.
 3. **OrderItem**: The actual product variant purchased, linked to a `SubOrder`. Locks in the `PriceAtPurchase`.
-4. **ProductVariant**: Holds `StockQuantity` and `RowVersion` (Timestamp) to prevent overselling.
-5. **SellerCommission**: Tracks platform fees per `OrderItem`.
-6. **RefreshToken**: Tracks active and revoked sessions for security.
+4. **ProductVariant**: Holds `StockQuantity` and `RowVersion` (Timestamp) to prevent overselling. Keeps a main thumbnail `ImageUrl`.
+5. **ProductImage**: Stores image URLs linked to a `Product`. Optionally linked to a specific `ProductVariant` via `ProductVariantId` for color/size specific galleries.
+6. **SellerCommission**: Tracks platform fees per `OrderItem`.
+7. **RefreshToken**: Tracks active and revoked sessions for security.
 
 ### Business Rules via Schema:
 - **Soft Delete**: `Product` and `Address` use `IsActive` flags. Hard deletes are forbidden to protect historical order records.
@@ -183,6 +185,8 @@ erDiagram
     SUBORDER ||--o{ ORDERITEM : contains
     SUBORDER ||--o| SHIPPING : tracked_by
     PRODUCT ||--o{ PRODUCTVARIANT : has
+    PRODUCT ||--o{ PRODUCTIMAGE : has
+    PRODUCTVARIANT ||--o{ PRODUCTIMAGE : has
     ORDERITEM }o--|| PRODUCTVARIANT : references
     ORDERITEM ||--o| RETURN : may_have
     ORDERITEM ||--o| SELLERCOMMISSION : generates

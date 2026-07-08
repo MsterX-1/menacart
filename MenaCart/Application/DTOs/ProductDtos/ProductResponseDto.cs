@@ -21,6 +21,7 @@ namespace Application.DTOs.ProductDtos
         public int SellerId { get; set; }
         public string StoreName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public List<string> ProductImages { get; set; } = new();
         public List<VariantResponseDto> Variants { get; set; } = new();
     }
 }

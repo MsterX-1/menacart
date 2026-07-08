@@ -213,10 +213,17 @@ namespace Infrastructure.Database
             builder.Entity<Return>().HasIndex(r => r.OrderItemId);
             builder.Entity<Return>().HasIndex(r => r.ExchangeVariantId);
             builder.Entity<ProductImage>().HasIndex(pi => pi.ProductId);
+            builder.Entity<ProductImage>().HasIndex(pi => pi.ProductVariantId);
 
             // Composite indexes for soft deletes & active listings
             builder.Entity<Product>().HasIndex(p => new { p.CategoryId, p.IsActive, p.ApprovalStatus });
             builder.Entity<Address>().HasIndex(a => new { a.UserId, a.IsActive });
+
+            builder.Entity<ProductImage>()
+                .HasOne(pi => pi.ProductVariant)
+                .WithMany(pv => pv.Images)
+                .HasForeignKey(pi => pi.ProductVariantId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }

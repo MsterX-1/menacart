@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -27,5 +27,7 @@ namespace Application.DTOs.ProductDtos
 
         [MaxLength(500)]
         public string? ImageUrl { get; set; }
+
+        public List<string>? VariantImages { get; set; } = new();
     }
 }

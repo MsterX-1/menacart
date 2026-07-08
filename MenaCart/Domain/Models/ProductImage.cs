@@ -20,8 +20,13 @@ namespace Domain.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public int? ProductVariantId { get; set; }
+
         // Navigation
         [ForeignKey(nameof(ProductId))]
         public Product Product { get; set; }
+
+        [ForeignKey(nameof(ProductVariantId))]
+        public virtual ProductVariant? ProductVariant { get; set; }
     }
 }

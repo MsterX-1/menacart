@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -23,6 +23,8 @@ namespace Application.DTOs.ProductDtos
 
         [Required]
         public int CategoryId { get; set; }
+
+        public List<string>? ProductImages { get; set; } = new();
 
         [Required]
         [MinLength(1, ErrorMessage = "At least one variant is required.")]
