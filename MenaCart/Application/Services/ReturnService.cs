@@ -105,7 +105,7 @@ namespace Application.Services
             await _unitOfWork.NotificationRepository.Add(new Notification
             {
                 UserId = subOrder.SellerProfile.UserId,
-                Message = $"A {returnType} request has been submitted for Order #{order.OrderId}.",
+                Message = $"A {returnType} request has been submitted for <a href=\"/seller/orders/{order.OrderId}\">Order #{order.OrderId}</a>.",
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             });
@@ -238,14 +238,14 @@ namespace Application.Services
 
             // Notify customer
             var buyerUserId = ret.OrderItem.SubOrder.Order.UserId;
-            var message = newStatus switch
+            var message = ret.Status switch
             {
                 ReturnStatus.Approved => ret.Type == ReturnType.Return
-                    ? $"Your return request has been approved. Refund of {ret.RefundAmount:C} will be processed."
-                    : "Your exchange request has been approved.",
-                ReturnStatus.Rejected => $"Your return request was rejected. {request.Note ?? string.Empty}",
-                ReturnStatus.Completed => "Your return/exchange has been completed.",
-                _ => $"Your return status has been updated to {newStatus}."
+                    ? $"Your return request for <a href=\"/orders/{ret.OrderItem.SubOrder.OrderId}\">Order #{ret.OrderItem.SubOrder.OrderId}</a> has been approved."
+                    : $"Your exchange request for <a href=\"/orders/{ret.OrderItem.SubOrder.OrderId}\">Order #{ret.OrderItem.SubOrder.OrderId}</a> has been approved.",
+                ReturnStatus.Rejected => $"Your return request for <a href=\"/orders/{ret.OrderItem.SubOrder.OrderId}\">Order #{ret.OrderItem.SubOrder.OrderId}</a> was rejected. {request.Note ?? string.Empty}",
+                ReturnStatus.Completed => $"Your return/exchange for <a href=\"/orders/{ret.OrderItem.SubOrder.OrderId}\">Order #{ret.OrderItem.SubOrder.OrderId}</a> has been completed.",
+                _ => $"Your return status for <a href=\"/orders/{ret.OrderItem.SubOrder.OrderId}\">Order #{ret.OrderItem.SubOrder.OrderId}</a> has been updated to {newStatus}."
             };
 
             await _unitOfWork.NotificationRepository.Add(new Notification

@@ -1,4 +1,4 @@
-﻿namespace Application.DTOs.OrderDtos
+namespace Application.DTOs.OrderDtos
 {
     public class OrderItemDto
     {
@@ -17,6 +17,7 @@
         public int SellerId { get; set; }
         public string StoreName { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public decimal ShippingCost { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
     }
 
@@ -26,6 +27,8 @@
         public decimal TotalAmount { get; set; }
         public string Status { get; set; } = string.Empty;
         public string PaymentStatus { get; set; } = string.Empty;
+        public string PaymentUrl { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public List<SubOrderDto> SubOrders { get; set; } = new();
     }

@@ -34,6 +34,11 @@ namespace Domain.Models
         [Required]
         public SellerCommissionStatus Status { get; set; } = SellerCommissionStatus.Pending;
 
+        public int? PayoutId { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation
@@ -42,5 +47,8 @@ namespace Domain.Models
 
         [ForeignKey(nameof(OrderItemId))]
         public OrderItem OrderItem { get; set; }
+
+        [ForeignKey(nameof(PayoutId))]
+        public SellerPayout? SellerPayout { get; set; }
     }
 }

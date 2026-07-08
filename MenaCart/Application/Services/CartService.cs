@@ -59,6 +59,16 @@ namespace Application.Services
             if (variant == null)
                 throw new KeyNotFoundException("Product variant not found.");
 
+            var product = await _unitOfWork.ProductRepository.GetByIdWithDetailsAsync(variant.ProductId);
+            if (product == null)
+                throw new KeyNotFoundException("Product not found.");
+
+            if (product.ApprovalStatus != ApprovalStatus.Approved || !product.IsActive)
+                throw new Exception("This product is not active or approved for sale.");
+
+            if (product.SellerProfile == null || product.SellerProfile.Status != SellerStatus.Active)
+                throw new Exception("The seller of this product is not active.");
+
             if (variant.StockQuantity < request.Quantity)
                 throw new Exception($"Only {variant.StockQuantity} units available.");
 
@@ -140,34 +150,63 @@ namespace Application.Services
         }
 
         // ── Mapper ─────────────────────────────────────────────────────────────
-        private static CartResponseDto MapToDto(Cart cart, List<Address> addresses) => new()
+        private static CartResponseDto MapToDto(Cart cart, List<Address> addresses)
         {
-            CartId = cart.CartId,
-            Items = cart.CartItems?.Select(ci => new CartItemResponseDto
+            var warnings = new List<string>();
+            var items = cart.CartItems?.Select(ci =>
             {
-                CartItemId = ci.CartItemId,
-                VariantId = ci.VariantId,
-                ProductId = ci.ProductVariant?.ProductId ?? 0,
-                ProductName = ci.ProductVariant?.Product?.Name ?? string.Empty,
-                Color = ci.ProductVariant?.Color,
-                Size = ci.ProductVariant?.Size,
-                ImageUrl = ci.ProductVariant?.ImageUrl,
-                UnitPrice = ci.ProductVariant?.Price ?? 0,
-                Quantity = ci.Quantity,
-                StockQuantity = ci.ProductVariant?.StockQuantity ?? 0
-            }).ToList() ?? new(),
-            SavedAddresses = addresses.Select(a => new AddressResponseDto
+                var variant = ci.ProductVariant;
+                var product = variant?.Product;
+
+                if (variant != null && product != null)
+                {
+                    if (product.ApprovalStatus != ApprovalStatus.Approved || !product.IsActive)
+                    {
+                        warnings.Add($"Product '{product.Name}' is no longer available for purchase.");
+                    }
+                    else if (product.SellerProfile == null || product.SellerProfile.Status != SellerStatus.Active)
+                    {
+                        warnings.Add($"Product '{product.Name}' is no longer available because the seller is inactive.");
+                    }
+                    else if (variant.StockQuantity < ci.Quantity)
+                    {
+                        warnings.Add($"Only {variant.StockQuantity} unit(s) of '{product.Name}' are available in stock (requested {ci.Quantity}).");
+                    }
+                }
+
+                return new CartItemResponseDto
+                {
+                    CartItemId = ci.CartItemId,
+                    VariantId = ci.VariantId,
+                    ProductId = variant?.ProductId ?? 0,
+                    ProductName = product?.Name ?? string.Empty,
+                    Color = variant?.Color,
+                    Size = variant?.Size,
+                    ImageUrl = variant?.ImageUrl,
+                    UnitPrice = variant?.Price ?? 0,
+                    Quantity = ci.Quantity,
+                    StockQuantity = variant?.StockQuantity ?? 0
+                };
+            }).ToList() ?? new();
+
+            return new CartResponseDto
             {
-                AddressId = a.AddressId,
-                AddressType = a.AddressType.ToString(),
-                Street = a.Street,
-                City = a.City,
-                State = a.State,
-                Country = a.Country,
-                ZipCode = a.ZipCode,
-                IsDefault = a.IsDefault
-            }).ToList(),
-            DefaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.AddressId
-        };
+                CartId = cart.CartId,
+                Items = items,
+                Warnings = warnings,
+                SavedAddresses = addresses.Select(a => new AddressResponseDto
+                {
+                    AddressId = a.AddressId,
+                    AddressType = a.AddressType.ToString(),
+                    Street = a.Street,
+                    City = a.City,
+                    State = a.State,
+                    Country = a.Country,
+                    ZipCode = a.ZipCode,
+                    IsDefault = a.IsDefault
+                }).ToList(),
+                DefaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.AddressId
+            };
+        }
     }
 }

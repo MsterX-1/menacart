@@ -87,8 +87,7 @@ namespace Application.Services
             if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
             product.UpdatedAt = DateTime.UtcNow;
 
-            // Reset to Pending so admin re-approves after edits
-            product.ApprovalStatus = ApprovalStatus.Pending;
+            // Keep the same ApprovalStatus when updating (do not reset to Pending per blueprint)
 
             // Handle variants
             if (request.Variants != null)
@@ -162,7 +161,8 @@ namespace Application.Services
             if (product.SellerId != seller.SellerId)
                 throw new UnauthorizedAccessException("You do not own this product.");
 
-            await _unitOfWork.ProductRepository.Delete(productId);
+            product.IsActive = false;
+            await _unitOfWork.ProductRepository.Update(product);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -210,6 +210,14 @@ namespace Application.Services
                 throw new Exception($"Invalid status '{request.Status}'.");
 
             product.ApprovalStatus = newStatus;
+            if (newStatus == ApprovalStatus.Rejected)
+            {
+                product.RejectionReason = request.RejectionReason ?? "Not specified.";
+            }
+            else
+            {
+                product.RejectionReason = null;
+            }
             product.UpdatedAt = DateTime.UtcNow;
 
             // Notify seller
@@ -238,6 +246,10 @@ namespace Application.Services
             BasePrice = p.BasePrice,
             Brand = p.Brand,
             ApprovalStatus = p.ApprovalStatus.ToString(),
+            AverageRating = p.AverageRating,
+            ReviewCount = p.ReviewCount,
+            IsActive = p.IsActive,
+            RejectionReason = p.RejectionReason,
             CategoryId = p.CategoryId,
             CategoryName = p.Category?.Name ?? string.Empty,
             SellerId = p.SellerId,

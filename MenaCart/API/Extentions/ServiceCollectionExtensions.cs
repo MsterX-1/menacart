@@ -30,6 +30,13 @@ namespace API.Extensions
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             services.AddScoped<IReturnRepository, ReturnRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ISellerDocumentRepository, SellerDocumentRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<ISellerReviewRepository, SellerReviewRepository>();
+            services.AddScoped<ISellerCommissionRepository, SellerCommissionRepository>();
+            services.AddScoped<ISellerPayoutRepository, SellerPayoutRepository>();
+            services.AddScoped<ILoyaltyPointRepository, LoyaltyPointRepository>();
 
 
             // Services
@@ -40,6 +47,15 @@ namespace API.Extensions
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IReturnService, ReturnService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ISellerOnboardingService, SellerOnboardingService>();
+            services.AddScoped<ISellerDocumentService, SellerDocumentService>();
+            services.AddScoped<IShippingService, ShippingService>();
+            services.AddScoped<IPaymentGatewayService, MockPaymentGatewayService>();
+            services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IPayoutService, PayoutService>();
+            services.AddScoped<ILoyaltyService, LoyaltyService>();
+            services.AddScoped<ICouponService, CouponService>();
 
 
             return services;

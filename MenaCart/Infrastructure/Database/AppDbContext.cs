@@ -100,6 +100,15 @@ namespace Infrastructure.Database
             builder.Entity<Shipping>()
                 .HasIndex(s => s.SubOrderId).IsUnique(); // one shipment per sub-order
 
+            builder.Entity<Review>()
+                .HasIndex(r => new { r.UserId, r.ProductId }).IsUnique();
+
+            builder.Entity<SellerReview>()
+                .HasIndex(sr => new { sr.CustomerId, sr.SellerId }).IsUnique();
+
+            builder.Entity<SellerBankInfo>()
+                .HasIndex(sbi => sbi.SellerId).IsUnique();
+
             // ---- Restrict cascade delete on multi-parent / historical tables ----
             builder.Entity<SellerReview>()
                 .HasOne(sr => sr.Customer)
@@ -117,6 +126,12 @@ namespace Infrastructure.Database
                 .HasOne(o => o.Coupon)
                 .WithMany(c => c.Orders)
                 .HasForeignKey(o => o.CouponId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.Address)
+                .WithMany(a => a.Orders)
+                .HasForeignKey(o => o.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Category>()
@@ -198,6 +213,10 @@ namespace Infrastructure.Database
             builder.Entity<Return>().HasIndex(r => r.OrderItemId);
             builder.Entity<Return>().HasIndex(r => r.ExchangeVariantId);
             builder.Entity<ProductImage>().HasIndex(pi => pi.ProductId);
+
+            // Composite indexes for soft deletes & active listings
+            builder.Entity<Product>().HasIndex(p => new { p.CategoryId, p.IsActive, p.ApprovalStatus });
+            builder.Entity<Address>().HasIndex(a => new { a.UserId, a.IsActive });
         }
     }
 }

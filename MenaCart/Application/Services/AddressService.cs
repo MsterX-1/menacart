@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AddressDtos;
+using Application.DTOs.AddressDtos;
 using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
@@ -27,7 +27,7 @@ namespace Application.Services
 
             // If this is set as default, clear existing defaults first
             if (request.IsDefault)
-                await _unitOfWork.AddressRepository.ClearDefaultAsync(userId);
+                await _unitOfWork.AddressRepository.ClearDefaultAsync(userId, addressType);
 
             var address = new Address
             {
@@ -71,7 +71,7 @@ namespace Application.Services
 
             if (request.IsDefault.HasValue && request.IsDefault.Value)
             {
-                await _unitOfWork.AddressRepository.ClearDefaultAsync(userId);
+                await _unitOfWork.AddressRepository.ClearDefaultAsync(userId, address.AddressType);
                 address.IsDefault = true;
             }
 
@@ -88,7 +88,8 @@ namespace Application.Services
             if (address == null)
                 throw new KeyNotFoundException("Address not found.");
 
-            await _unitOfWork.AddressRepository.Delete(addressId);
+            address.IsActive = false;
+            await _unitOfWork.AddressRepository.Update(address);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -98,7 +99,7 @@ namespace Application.Services
             if (address == null)
                 throw new KeyNotFoundException("Address not found.");
 
-            await _unitOfWork.AddressRepository.ClearDefaultAsync(userId);
+            await _unitOfWork.AddressRepository.ClearDefaultAsync(userId, address.AddressType);
             address.IsDefault = true;
             address.UpdatedAt = DateTime.UtcNow;
 

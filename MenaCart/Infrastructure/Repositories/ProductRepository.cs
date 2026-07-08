@@ -23,7 +23,7 @@ namespace Infrastructure.Repository
             string? search, int? categoryId, int? sellerId, int page, int pageSize)
         {
             var query = _dbSet
-                .Where(p => p.ApprovalStatus == ApprovalStatus.Approved)
+                .Where(p => p.ApprovalStatus == ApprovalStatus.Approved && p.IsActive)
                 .Include(p => p.Category)
                 .Include(p => p.SellerProfile)
                 .Include(p => p.ProductVariants)

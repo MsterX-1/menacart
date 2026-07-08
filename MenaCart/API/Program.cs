@@ -46,6 +46,7 @@ namespace API
 
             // Middleware
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
             app.UseCors("AllowFrontend"); // Use the frontend-specific policy
 

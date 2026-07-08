@@ -23,11 +23,18 @@ namespace Infrastructure.UnitOfWork
         public IProductRepository ProductRepository { get; }
         public IProductVariantRepository ProductVariantRepository { get; }
         public IReturnRepository ReturnRepository { get; }
+        public ICategoryRepository CategoryRepository { get; }
+        public ISellerDocumentRepository SellerDocumentRepository { get; }
+        public IReviewRepository ReviewRepository { get; }
+        public ISellerReviewRepository SellerReviewRepository { get; }
+        public ISellerCommissionRepository SellerCommissionRepository { get; }
+        public ISellerPayoutRepository SellerPayoutRepository { get; }
+        public ILoyaltyPointRepository LoyaltyPointRepository { get; }
 
         // Generic repositories
         public IGenaricRepository<OrderItem> OrderItemRepository { get; }
-        public IGenaricRepository<SellerCommission> SellerCommissionRepository { get; }
         public IGenaricRepository<Notification> NotificationRepository { get; }
+        public IGenaricRepository<Payment> PaymentRepository { get; }
  
         public UnitOfWork(
             AppDbContext context,
@@ -42,9 +49,16 @@ namespace Infrastructure.UnitOfWork
             IProductRepository productRepository,
             IProductVariantRepository productVariantRepository,
             IReturnRepository returnRepository,
+            ICategoryRepository categoryRepository,
+            ISellerDocumentRepository sellerDocumentRepository,
+            IReviewRepository reviewRepository,
+            ISellerReviewRepository sellerReviewRepository,
+            ISellerCommissionRepository sellerCommissionRepository,
+            ISellerPayoutRepository sellerPayoutRepository,
+            ILoyaltyPointRepository loyaltyPointRepository,
             IGenaricRepository<OrderItem> orderItemRepository,
-            IGenaricRepository<SellerCommission> sellerCommissionRepository,
-            IGenaricRepository<Notification> notificationRepository)
+            IGenaricRepository<Notification> notificationRepository,
+            IGenaricRepository<Payment> paymentRepository)
         {
             _context = context;
             RefreshTokenRepository = refreshTokenRepository;
@@ -58,10 +72,17 @@ namespace Infrastructure.UnitOfWork
             ProductRepository = productRepository;
             ProductVariantRepository = productVariantRepository;
             ReturnRepository = returnRepository;
-
-            OrderItemRepository = orderItemRepository;
+            CategoryRepository = categoryRepository;
+            SellerDocumentRepository = sellerDocumentRepository;
+            ReviewRepository = reviewRepository;
+            SellerReviewRepository = sellerReviewRepository;
             SellerCommissionRepository = sellerCommissionRepository;
+            SellerPayoutRepository = sellerPayoutRepository;
+            LoyaltyPointRepository = loyaltyPointRepository;
+ 
+            OrderItemRepository = orderItemRepository;
             NotificationRepository = notificationRepository;
+            PaymentRepository = paymentRepository;
         }
 
         public async Task<int> CompleteAsync()

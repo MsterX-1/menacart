@@ -16,13 +16,20 @@ namespace Application.Interfaces.IUnitOfWork
         ICouponRepository CouponRepository { get; }
         IAddressRepository AddressRepository { get; }
         IGenaricRepository<OrderItem> OrderItemRepository { get; }
-        IGenaricRepository<SellerCommission> SellerCommissionRepository { get; }
+        ISellerCommissionRepository SellerCommissionRepository { get; }
         IGenaricRepository<Notification> NotificationRepository { get; }
         ISellerRepository SellerRepository { get; }
         IShippingRepository ShippingRepository { get; }
         IProductRepository ProductRepository { get; }
         IProductVariantRepository ProductVariantRepository { get; }
         IReturnRepository ReturnRepository { get; }
+        ICategoryRepository CategoryRepository { get; }
+        ISellerDocumentRepository SellerDocumentRepository { get; }
+        IGenaricRepository<Payment> PaymentRepository { get; }
+        IReviewRepository ReviewRepository { get; }
+        ISellerReviewRepository SellerReviewRepository { get; }
+        ISellerPayoutRepository SellerPayoutRepository { get; }
+        ILoyaltyPointRepository LoyaltyPointRepository { get; }
         Task<int> CompleteAsync();
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();

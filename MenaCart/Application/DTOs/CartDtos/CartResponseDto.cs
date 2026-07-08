@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AddressDtos;
+using Application.DTOs.AddressDtos;
 
 namespace Application.DTOs.CartDtos
 {
@@ -32,5 +32,8 @@ namespace Application.DTOs.CartDtos
 
         /// <summary>The default address ID for quick reference.</summary>
         public int? DefaultAddressId { get; set; }
+
+        /// <summary>Warnings about items in the cart (e.g. stock, approval, active status changes).</summary>
+        public List<string> Warnings { get; set; } = new();
     }
 }

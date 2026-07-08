@@ -30,6 +30,9 @@ namespace Domain.Models
         [Required]
         public SellerDocumentStatus Status { get; set; } = SellerDocumentStatus.Pending;
 
+        [MaxLength(500)]
+        public string? RejectionReason { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation

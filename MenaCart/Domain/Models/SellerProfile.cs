@@ -51,6 +51,9 @@ namespace Domain.Models
         [Required]
         public SellerStatus Status { get; set; } = SellerStatus.Pending;
 
+        [MaxLength(500)]
+        public string? RejectionReason { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

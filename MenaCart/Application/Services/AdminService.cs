@@ -43,6 +43,20 @@ namespace Application.Services
             seller.Status = newStatus;
             seller.UpdatedAt = DateTime.UtcNow;
 
+            if (newStatus == SellerStatus.Active)
+            {
+                seller.IsVerified = true;
+                seller.RejectionReason = null;
+                if (seller.User != null)
+                {
+                    await _userManager.AddToRoleAsync(seller.User, "Seller");
+                }
+            }
+            else if (newStatus == SellerStatus.Rejected || newStatus == SellerStatus.Suspended)
+            {
+                seller.RejectionReason = request.Reason;
+            }
+
             // Notify seller
             var message = newStatus switch
             {

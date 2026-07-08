@@ -48,6 +48,9 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit");
 
@@ -76,6 +79,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("AddressId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsActive");
 
                     b.ToTable("Addresses");
                 });
@@ -255,6 +260,10 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LinkUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -416,6 +425,9 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<decimal>("AverageRating")
+                        .HasColumnType("decimal(3,2)");
+
                     b.Property<decimal>("BasePrice")
                         .HasColumnType("decimal(10,2)");
 
@@ -434,10 +446,20 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("int");
 
                     b.Property<int>("SellerId")
                         .HasColumnType("int");
@@ -450,6 +472,8 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("SellerId");
+
+                    b.HasIndex("CategoryId", "IsActive", "ApprovalStatus");
 
                     b.ToTable("Products");
                 });
@@ -618,7 +642,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique();
 
                     b.ToTable("Reviews");
                 });
@@ -659,7 +684,8 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("BankInfoId");
 
-                    b.HasIndex("SellerId");
+                    b.HasIndex("SellerId")
+                        .IsUnique();
 
                     b.ToTable("SellerBankInfos");
                 });
@@ -684,6 +710,15 @@ namespace Infrastructure.Migrations
                     b.Property<int>("OrderItemId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("PayoutId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<decimal>("SaleAmount")
                         .HasColumnType("decimal(10,2)");
 
@@ -699,6 +734,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("OrderItemId")
                         .IsUnique();
+
+                    b.HasIndex("PayoutId");
 
                     b.HasIndex("SellerId");
 
@@ -723,6 +760,10 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("DocumentUrl")
                         .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RejectionReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -805,6 +846,10 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("Rating")
                         .HasColumnType("decimal(3,2)");
 
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -879,11 +924,12 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("SellerReviewId");
 
-                    b.HasIndex("CustomerId");
-
                     b.HasIndex("SellerId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("CustomerId", "SellerId")
+                        .IsUnique();
 
                     b.ToTable("SellerReviews");
                 });
@@ -990,6 +1036,9 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("SellerId")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("ShippingCost")
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1406,7 +1455,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Models.Address", "Address")
                         .WithMany("Orders")
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Models.Coupon", "Coupon")
@@ -1558,6 +1607,10 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Domain.Models.SellerPayout", "SellerPayout")
+                        .WithMany()
+                        .HasForeignKey("PayoutId");
+
                     b.HasOne("Domain.Models.SellerProfile", "SellerProfile")
                         .WithMany("SellerCommissions")
                         .HasForeignKey("SellerId")
@@ -1565,6 +1618,8 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("OrderItem");
+
+                    b.Navigation("SellerPayout");
 
                     b.Navigation("SellerProfile");
                 });

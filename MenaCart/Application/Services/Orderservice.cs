@@ -1,4 +1,5 @@
 using Application.DTOs.OrderDtos;
+using Application.DTOs.PaymentDtos;
 using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
@@ -13,12 +14,21 @@ namespace Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
         private readonly UserManager<User> _userManager;
+        private readonly IShippingService _shippingService;
+        private readonly IPaymentGatewayService _paymentGatewayService;
 
-        public OrderService(IUnitOfWork unitOfWork, IConfiguration config, UserManager<User> userManager)
+        public OrderService(
+            IUnitOfWork unitOfWork,
+            IConfiguration config,
+            UserManager<User> userManager,
+            IShippingService shippingService,
+            IPaymentGatewayService paymentGatewayService)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _userManager = userManager;
+            _shippingService = shippingService;
+            _paymentGatewayService = paymentGatewayService;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -104,7 +114,34 @@ namespace Application.Services
                     ? subtotal * coupon.DiscountValue / 100
                     : coupon.DiscountValue;
             }
-            decimal totalAmount = Math.Max(0, subtotal - discount);
+
+            var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
+            decimal totalShippingCost = 0;
+            var shippingCosts = new Dictionary<int, decimal>();
+            foreach (var sellerGroup in grouped)
+            {
+                var cost = await _shippingService.CalculateShippingCostAsync(address);
+                shippingCosts[sellerGroup.Key] = cost;
+                totalShippingCost += cost;
+            }
+
+            decimal totalAmount = Math.Max(0, subtotal - discount) + totalShippingCost;
+
+            // Calculate points discount if requested
+            decimal pointsDiscountAmount = 0;
+            int pointsToDeduct = 0;
+            if (request.RedeemPoints)
+            {
+                var pointsBalance = await _unitOfWork.LoyaltyPointRepository.GetBalanceByUserIdAsync(userId);
+                var pointsToCurrencyRate = Convert.ToDecimal(_config["Loyalty:PointsToCurrencyRate"] ?? "100");
+                if (pointsToCurrencyRate > 0 && pointsBalance > 0)
+                {
+                    var maxPointsDiscount = pointsBalance / pointsToCurrencyRate;
+                    pointsDiscountAmount = Math.Min(totalAmount, maxPointsDiscount);
+                    pointsToDeduct = (int)(pointsDiscountAmount * pointsToCurrencyRate);
+                    totalAmount -= pointsDiscountAmount;
+                }
+            }
 
             var commissionRate = Convert.ToDecimal(_config["Commission:DefaultRatePercent"] ?? "10");
 
@@ -127,8 +164,6 @@ namespace Application.Services
                 await _unitOfWork.OrderRepository.Add(order);
 
                 // ── 8. Group by seller → SubOrders + OrderItems + Commissions ──
-                var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
-
                 foreach (var sellerGroup in grouped)
                 {
                     var subOrder = new SubOrder
@@ -136,6 +171,7 @@ namespace Application.Services
                         Order = order,
                         SellerId = sellerGroup.Key,
                         Status = SubOrderStatus.Placed,
+                        ShippingCost = shippingCosts[sellerGroup.Key],
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -191,13 +227,26 @@ namespace Application.Services
                 // Commit main entities to DB to generate OrderId
                 await _unitOfWork.CompleteAsync();
 
+                // Deduct points from loyalty ledger
+                if (pointsToDeduct > 0)
+                {
+                    await _unitOfWork.LoyaltyPointRepository.Add(new LoyaltyPoint
+                    {
+                        UserId = userId,
+                        Points = -pointsToDeduct,
+                        Reason = $"Redeemed on Order #{order.OrderId}",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _unitOfWork.CompleteAsync();
+                }
+
                 // ── 11. Create Notifications ──
                 foreach (var sellerGroup in grouped)
                 {
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
                         UserId = sellerGroup.First().ProductVariant.Product.SellerProfile.UserId,
-                        Message = $"You have a new order (Order #{order.OrderId}).",
+                        Message = $"You have a new order: <a href=\"/seller/orders/{order.OrderId}\">Order #{order.OrderId}</a>.",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     });
@@ -207,8 +256,14 @@ namespace Application.Services
 
                 await _unitOfWork.CommitTransactionAsync();
 
+                // ── 12. Create Payment Session ──
+                var session = await _paymentGatewayService.CreateSessionAsync(order);
+
                 var placed = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(order.OrderId);
-                return MapOrderToDto(placed!);
+                var response = MapOrderToDto(placed!);
+                response.PaymentUrl = session.PaymentUrl;
+                response.SessionId = session.SessionId;
+                return response;
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -272,7 +327,7 @@ namespace Application.Services
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
                         UserId = subOrder.SellerProfile.UserId,
-                        Message = $"Order #{order.OrderId} has been cancelled by the customer.",
+                        Message = $"Order <a href=\"/seller/orders/{order.OrderId}\">#{order.OrderId}</a> has been cancelled by the customer.",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     });
@@ -388,12 +443,45 @@ namespace Application.Services
                 shipping.Status = ShippingStatus.Delivered;
                 shipping.DeliveredAt = DateTime.UtcNow;
                 shipping.UpdatedAt = DateTime.UtcNow;
+
+                // Settle commissions
+                var commissions = await _unitOfWork.SellerCommissionRepository.GetBySubOrderIdAsync(subOrderId);
+                foreach (var commission in commissions)
+                {
+                    if (commission.Status == SellerCommissionStatus.Pending)
+                    {
+                        commission.Status = SellerCommissionStatus.Settled;
+                        await _unitOfWork.SellerCommissionRepository.Update(commission);
+                    }
+                }
+
+                // Check if all suborders are delivered to complete the main order and award loyalty points
+                var parentOrder = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(subOrder.OrderId);
+                if (parentOrder != null && parentOrder.SubOrders.All(so => so.Status == SubOrderStatus.Delivered || so.SubOrderId == subOrderId))
+                {
+                    parentOrder.Status = OrderStatus.Completed;
+                    parentOrder.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.OrderRepository.Update(parentOrder);
+
+                    var pointsPerCurrency = Convert.ToDecimal(_config["Loyalty:PointsPerCurrencyUnit"] ?? "10");
+                    var pointsEarned = (int)(parentOrder.TotalAmount * pointsPerCurrency);
+                    if (pointsEarned > 0)
+                    {
+                        await _unitOfWork.LoyaltyPointRepository.Add(new LoyaltyPoint
+                        {
+                            UserId = parentOrder.UserId,
+                            Points = pointsEarned,
+                            Reason = $"Earned on completing Order #{parentOrder.OrderId}",
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
             }
 
             await _unitOfWork.NotificationRepository.Add(new Notification
             {
                 UserId = subOrder.Order.UserId,
-                Message = $"Your order from {subOrder.SellerProfile.StoreName} is now {newStatus}.",
+                Message = $"Your order from {subOrder.SellerProfile.StoreName} is now {newStatus}. <a href=\"/orders/{subOrder.OrderId}\">View Details</a>.",
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             });
@@ -417,6 +505,76 @@ namespace Application.Services
                 throw new Exception($"Invalid transition: {current} → {next}.");
         }
 
+        public async Task ProcessPaymentWebhookAsync(PaymentWebhookDto webhookData, string rawBody, string signature)
+        {
+            var isSigValid = await _paymentGatewayService.VerifyWebhookSignatureAsync(rawBody, signature);
+            if (!isSigValid)
+                throw new UnauthorizedAccessException("Invalid webhook signature.");
+
+            var order = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(webhookData.OrderId);
+            if (order == null)
+                throw new KeyNotFoundException($"Order with ID {webhookData.OrderId} not found.");
+
+            if (webhookData.Status.Equals("Succeeded", StringComparison.OrdinalIgnoreCase))
+            {
+                order.PaymentStatus = OrderPaymentStatus.Paid;
+                order.Status = OrderStatus.Confirmed;
+                order.UpdatedAt = DateTime.UtcNow;
+
+                var payment = new Payment
+                {
+                    OrderId = order.OrderId,
+                    Amount = webhookData.Amount,
+                    Currency = "EGP",
+                    Method = "Card",
+                    Status = PaymentStatus.Succeeded,
+                    TransactionId = webhookData.TransactionId,
+                    PaidAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.PaymentRepository.Add(payment);
+
+                // Notify buyer
+                await _unitOfWork.NotificationRepository.Add(new Notification
+                {
+                    UserId = order.UserId,
+                    Message = $"Your payment of {webhookData.Amount:C} for <a href=\"/orders/{order.OrderId}\">Order #{order.OrderId}</a> has been processed successfully.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                order.PaymentStatus = OrderPaymentStatus.Failed;
+                order.UpdatedAt = DateTime.UtcNow;
+
+                var payment = new Payment
+                {
+                    OrderId = order.OrderId,
+                    Amount = webhookData.Amount,
+                    Currency = "EGP",
+                    Method = "Card",
+                    Status = PaymentStatus.Failed,
+                    TransactionId = webhookData.TransactionId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.PaymentRepository.Add(payment);
+
+                // Notify buyer of failure
+                await _unitOfWork.NotificationRepository.Add(new Notification
+                {
+                    UserId = order.UserId,
+                    Message = $"Your payment of {webhookData.Amount:C} for <a href=\"/orders/{order.OrderId}\">Order #{order.OrderId}</a> has failed. Please try again.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _unitOfWork.CompleteAsync();
+        }
+
         // ── Mappers ────────────────────────────────────────────────────────────
         private static OrderConfirmationResponseDto MapOrderToDto(Order order) => new()
         {
@@ -434,6 +592,7 @@ namespace Application.Services
             SellerId = s.SellerId,
             StoreName = s.SellerProfile?.StoreName ?? string.Empty,
             Status = s.Status.ToString(),
+            ShippingCost = s.ShippingCost,
             Items = s.OrderItems.Select(i => new OrderItemDto
             {
                 OrderItemId = i.OrderItemId,
