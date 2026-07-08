@@ -20,6 +20,9 @@ namespace Application.DTOs.ProductDtos
 
         public int? CategoryId { get; set; }
 
+        [MaxLength(500)]
+        public string? MainImageUrl { get; set; }
+
         public List<string>? ProductImages { get; set; }
 
         // Optional: pass variants to add or update

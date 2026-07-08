@@ -26,7 +26,7 @@ namespace Application.DTOs.ProductDtos
         public decimal Price { get; set; }
 
         [MaxLength(500)]
-        public string? ImageUrl { get; set; }
+        public string? MainImageUrl { get; set; }
 
         public List<string>? VariantImages { get; set; } = new();
     }

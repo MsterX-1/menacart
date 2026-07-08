@@ -156,13 +156,14 @@ graph TD
 ## 7. Database Design
 
 ### Key Entities:
-1. **Order**: The parent record. Represents the buyer's single transaction and total payment.
-2. **SubOrder**: The seller's fulfillment record. Linked to an `Order` and a `SellerId`. Unique constraint on `(OrderId, SellerId)`.
-3. **OrderItem**: The actual product variant purchased, linked to a `SubOrder`. Locks in the `PriceAtPurchase`.
-4. **ProductVariant**: Holds `StockQuantity` and `RowVersion` (Timestamp) to prevent overselling. Keeps a main thumbnail `ImageUrl`.
-5. **ProductImage**: Stores image URLs linked to a `Product`. Optionally linked to a specific `ProductVariant` via `ProductVariantId` for color/size specific galleries.
-6. **SellerCommission**: Tracks platform fees per `OrderItem`.
-7. **RefreshToken**: Tracks active and revoked sessions for security.
+1. **Product**: The core catalog entity. Stores name, description, brand, and a flat `MainImageUrl` for optimized search listings without table joins.
+2. **Order**: The parent record. Represents the buyer's single transaction and total payment.
+3. **SubOrder**: The seller's fulfillment record. Linked to an `Order` and a `SellerId`. Unique constraint on `(OrderId, SellerId)`.
+4. **OrderItem**: The actual product variant purchased, linked to a `SubOrder`. Locks in the `PriceAtPurchase`.
+5. **ProductVariant**: Holds `StockQuantity` and `RowVersion` (Timestamp) to prevent overselling. Keeps a main thumbnail `MainImageUrl`.
+6. **ProductImage**: Stores image URLs linked to a `Product`. Optionally linked to a specific `ProductVariant` via `ProductVariantId` for color/size specific galleries.
+7. **SellerCommission**: Tracks platform fees per `OrderItem`.
+8. **RefreshToken**: Tracks active and revoked sessions for security.
 
 ### Business Rules via Schema:
 - **Soft Delete**: `Product` and `Address` use `IsActive` flags. Hard deletes are forbidden to protect historical order records.

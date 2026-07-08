@@ -44,6 +44,7 @@ namespace Application.Services
                 BasePrice = request.BasePrice,
                 Brand = request.Brand,
                 ApprovalStatus = ApprovalStatus.Pending,
+                MainImageUrl = request.MainImageUrl,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -69,7 +70,7 @@ namespace Application.Services
                     Size = v.Size,
                     StockQuantity = v.StockQuantity,
                     Price = v.Price,
-                    ImageUrl = v.ImageUrl ?? string.Empty,
+                    MainImageUrl = v.MainImageUrl ?? string.Empty,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -112,6 +113,7 @@ namespace Application.Services
             if (request.BasePrice.HasValue) product.BasePrice = request.BasePrice.Value;
             if (request.Brand != null) product.Brand = request.Brand;
             if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
+            if (request.MainImageUrl != null) product.MainImageUrl = request.MainImageUrl;
             product.UpdatedAt = DateTime.UtcNow;
 
             // Keep the same ApprovalStatus when updating (do not reset to Pending per blueprint)
@@ -160,7 +162,7 @@ namespace Application.Services
                         if (vDto.Size != null) existing.Size = vDto.Size;
                         if (vDto.StockQuantity.HasValue) existing.StockQuantity = vDto.StockQuantity.Value;
                         if (vDto.Price.HasValue) existing.Price = vDto.Price.Value;
-                        if (vDto.ImageUrl != null) existing.ImageUrl = vDto.ImageUrl;
+                        if (vDto.MainImageUrl != null) existing.MainImageUrl = vDto.MainImageUrl;
                         existing.UpdatedAt = DateTime.UtcNow;
 
                         // Sync variant-specific images
@@ -198,7 +200,7 @@ namespace Application.Services
                             Size = vDto.Size,
                             StockQuantity = vDto.StockQuantity ?? 0,
                             Price = vDto.Price ?? product.BasePrice,
-                            ImageUrl = vDto.ImageUrl ?? string.Empty,
+                            MainImageUrl = vDto.MainImageUrl ?? string.Empty,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
                         };
@@ -330,6 +332,7 @@ namespace Application.Services
             CategoryName = p.Category?.Name ?? string.Empty,
             SellerId = p.SellerId,
             StoreName = p.SellerProfile?.StoreName ?? string.Empty,
+            MainImageUrl = p.MainImageUrl,
             CreatedAt = p.CreatedAt,
             ProductImages = p.ProductImages?.Where(pi => pi.ProductVariantId == null).Select(pi => pi.ImageUrl).ToList() ?? new(),
             Variants = p.ProductVariants?.Select(v => new VariantResponseDto
@@ -340,7 +343,7 @@ namespace Application.Services
                 Size = v.Size,
                 StockQuantity = v.StockQuantity,
                 Price = v.Price,
-                ImageUrl = v.ImageUrl,
+                MainImageUrl = v.MainImageUrl,
                 VariantImages = v.Images?.Select(vi => vi.ImageUrl).ToList() ?? new()
             }).ToList() ?? new()
         };

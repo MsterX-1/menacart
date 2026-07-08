@@ -182,7 +182,7 @@ namespace Application.Services
                     ProductName = product?.Name ?? string.Empty,
                     Color = variant?.Color,
                     Size = variant?.Size,
-                    ImageUrl = variant?.ImageUrl,
+                    MainImageUrl = variant?.MainImageUrl,
                     UnitPrice = variant?.Price ?? 0,
                     Quantity = ci.Quantity,
                     StockQuantity = variant?.StockQuantity ?? 0

@@ -16,6 +16,7 @@ namespace Application.DTOs.ProductDtos
         public int ReviewCount { get; set; }
         public bool IsActive { get; set; }
         public string? RejectionReason { get; set; }
+        public string? MainImageUrl { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public int SellerId { get; set; }

@@ -10,7 +10,7 @@ namespace Application.DTOs.CartDtos
         public string ProductName { get; set; } = string.Empty;
         public string? Color { get; set; }
         public string? Size { get; set; }
-        public string? ImageUrl { get; set; }
+        public string? MainImageUrl { get; set; }
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal LineTotal => UnitPrice * Quantity;

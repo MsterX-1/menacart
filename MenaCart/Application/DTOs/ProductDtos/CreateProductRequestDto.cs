@@ -24,6 +24,9 @@ namespace Application.DTOs.ProductDtos
         [Required]
         public int CategoryId { get; set; }
 
+        [MaxLength(500)]
+        public string? MainImageUrl { get; set; }
+
         public List<string>? ProductImages { get; set; } = new();
 
         [Required]
