@@ -275,6 +275,11 @@ You cannot calculate a 14-day return window from an integer status flag. A concr
 - `GET /api/seller/suborders`: View seller's orders (Seller).
 - `PATCH /api/seller/suborders/{id}/status`: Fulfill order (Seller).
 - `POST /api/payouts/request`: Request commission payout (Seller).
+- `GET /api/addresses`: Get saved addresses (Authenticated).
+- `POST /api/addresses`: Save a new address (Authenticated).
+- `PUT /api/addresses/{id}`: Update an address (Authenticated).
+- `DELETE /api/addresses/{id}`: Soft-delete an address (Authenticated).
+- `PATCH /api/addresses/{id}/default`: Set address as default (Authenticated).
 
 ---
 

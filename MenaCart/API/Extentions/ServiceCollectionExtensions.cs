@@ -56,6 +56,7 @@ namespace API.Extensions
             services.AddScoped<IPayoutService, PayoutService>();
             services.AddScoped<ILoyaltyService, LoyaltyService>();
             services.AddScoped<ICouponService, CouponService>();
+            services.AddScoped<IAddressService, AddressService>();
 
 
             return services;
