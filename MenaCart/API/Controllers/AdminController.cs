@@ -101,50 +101,6 @@ namespace API.Controllers
             }
         }
 
-        // ── Coupons ────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Get all coupons.
-        /// </summary>
-        [HttpGet("coupons")]
-        public async Task<IActionResult> GetAllCoupons()
-        {
-            var result = await _adminService.GetAllCouponsAsync();
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Create a new platform coupon.
-        /// </summary>
-        [HttpPost("coupons")]
-        public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponDto request)
-        {
-            try
-            {
-                var result = await _adminService.CreateCouponAsync(request);
-                return CreatedAtAction(nameof(GetAllCoupons), result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Delete a coupon.
-        /// </summary>
-        [HttpDelete("coupons/{couponId}")]
-        public async Task<IActionResult> DeleteCoupon(int couponId)
-        {
-            try
-            {
-                await _adminService.DeleteCouponAsync(couponId);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
     }
 }
