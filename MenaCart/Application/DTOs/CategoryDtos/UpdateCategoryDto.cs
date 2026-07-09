@@ -8,6 +8,9 @@ namespace Application.DTOs.CategoryDtos
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
+        [MaxLength(500)]
+        public string? ImageUrl { get; set; }
+
         public int? ParentCategoryId { get; set; }
     }
 }

@@ -8,42 +8,10 @@ import { useCategoriesTree } from '../hooks/useCategories';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { useToast } from '../../../components/Toast';
+import { ImageUpload } from '../../../components/ImageUpload/ImageUpload';
+import { MultiImageUpload, ImageItem } from '../../../components/ImageUpload/MultiImageUpload';
 import './SellerProductFormPage.css';
 
-const uploadImage = async (file: File): Promise<string> => {
-  if (!import.meta.env.PROD) {
-    // Development fallback: Use base64 data URL
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Production: Cloudinary Unsigned Upload
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-
-  if (!uploadPreset || !cloudName) {
-    throw new Error('Cloudinary environment variables (VITE_CLOUDINARY_UPLOAD_PRESET or VITE_CLOUDINARY_CLOUD_NAME) are missing.');
-  }
-
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', uploadPreset);
-
-  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error('Image upload failed');
-  }
-
-  const data = await response.json();
-  return data.secure_url;
-};
 
 // Schema validation
 const variantSchema = z.object({
@@ -171,40 +139,26 @@ export const SellerProductFormPage: React.FC = () => {
     }
   };
 
-  const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index?: number) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      // toastInfo('Uploading image...'); // could add a toast here
-      const url = await uploadImage(file);
-      if (typeof index === 'number') {
-        // Variant image
-        setValue(`variants.${index}.mainImageUrl`, url, { shouldDirty: true });
-      } else {
-        // Main product image
-        setValue('mainImageUrl', url, { shouldDirty: true });
-      }
-      toastSuccess('Image uploaded successfully');
-    } catch (err) {
-      toastError('Failed to upload image');
+  const getCombinedImages = (): ImageItem[] => {
+    const mainImageUrl = control._formValues.mainImageUrl;
+    const productImages = control._formValues.productImages || [];
+    
+    const items: ImageItem[] = [];
+    if (mainImageUrl) {
+      items.push({ url: mainImageUrl, isMain: true });
     }
+    productImages.forEach(url => {
+      items.push({ url, isMain: false });
+    });
+    return items;
   };
 
-  const handleMultipleImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    try {
-      const uploadPromises = Array.from(files).map(uploadImage);
-      const urls = await Promise.all(uploadPromises);
-      
-      const currentImages = control._formValues.productImages || [];
-      setValue('productImages', [...currentImages, ...urls], { shouldDirty: true });
-      toastSuccess('Images uploaded successfully');
-    } catch (err) {
-      toastError('Failed to upload images');
-    }
+  const handleCombinedImagesChange = (newImages: ImageItem[]) => {
+    const mainImg = newImages.find(img => img.isMain)?.url || '';
+    const otherImgs = newImages.filter(img => !img.isMain).map(img => img.url);
+    
+    setValue('mainImageUrl', mainImg, { shouldDirty: true });
+    setValue('productImages', otherImgs, { shouldDirty: true });
   };
 
   if (isEditMode && isLoadingProduct) {
@@ -274,45 +228,12 @@ export const SellerProductFormPage: React.FC = () => {
                 {...register('basePrice', { valueAsNumber: true })}
               />
 
-              <div className="input-group">
-                <Input
-                  label="Main Image URL"
-                  type="text"
-                  placeholder="https://example.com/image.jpg"
-                  error={errors.mainImageUrl?.message}
-                  {...register('mainImageUrl')}
-                />
-                <div style={{ marginTop: '0.5rem' }}>
-                  <label className="input-label" style={{ fontSize: '0.85rem' }}>Or Upload File</label>
-                  <input type="file" accept="image/*" onChange={(e) => handleMainImageUpload(e)} />
-                </div>
-              </div>
-
               <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-                <label className="input-label">Additional Product Images</label>
-                <div style={{ marginTop: '0.5rem' }}>
-                  <input type="file" accept="image/*" multiple onChange={handleMultipleImagesUpload} />
-                </div>
-                {control._formValues.productImages && control._formValues.productImages.length > 0 && (
-                  <div className="product-images-preview" style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                    {control._formValues.productImages.map((url: string, i: number) => (
-                      <div key={i} style={{ position: 'relative' }}>
-                        <img src={url} alt={`Preview ${i}`} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newImages = [...control._formValues.productImages!];
-                            newImages.splice(i, 1);
-                            setValue('productImages', newImages, { shouldDirty: true });
-                          }}
-                          style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <MultiImageUpload
+                  label="Product Images"
+                  images={getCombinedImages()}
+                  onChange={handleCombinedImagesChange}
+                />
               </div>
             </div>
 
@@ -406,17 +327,11 @@ export const SellerProductFormPage: React.FC = () => {
                   </div>
 
                   <div className="input-group">
-                    <Input
-                      label="Variant Image URL"
-                      type="text"
-                      placeholder="https://example.com/variant-image.jpg"
-                      error={errors.variants?.[index]?.mainImageUrl?.message}
-                      {...register(`variants.${index}.mainImageUrl` as const)}
+                    <ImageUpload
+                      label="Variant Image (Optional)"
+                      value={control._formValues.variants?.[index]?.mainImageUrl}
+                      onChange={(url) => setValue(`variants.${index}.mainImageUrl`, url, { shouldDirty: true })}
                     />
-                    <div style={{ marginTop: '0.5rem' }}>
-                      <label className="input-label" style={{ fontSize: '0.85rem' }}>Or Upload File</label>
-                      <input type="file" accept="image/*" onChange={(e) => handleMainImageUpload(e, index)} />
-                    </div>
                   </div>
                 </div>
               ))}

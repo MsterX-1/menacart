@@ -51,6 +51,7 @@ namespace Application.Services
             var category = new Category
             {
                 Name = request.Name,
+                ImageUrl = request.ImageUrl,
                 ParentCategoryId = request.ParentCategoryId
             };
 
@@ -92,6 +93,7 @@ namespace Application.Services
             }
 
             category.Name = request.Name;
+            category.ImageUrl = request.ImageUrl;
             category.ParentCategoryId = request.ParentCategoryId;
 
             await _unitOfWork.CategoryRepository.Update(category);
@@ -128,6 +130,7 @@ namespace Application.Services
             {
                 CategoryId = c.CategoryId,
                 Name = c.Name,
+                ImageUrl = c.ImageUrl,
                 ParentCategoryId = c.ParentCategoryId,
                 ParentCategoryName = c.ParentCategory?.Name
             };

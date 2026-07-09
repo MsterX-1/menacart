@@ -3,6 +3,7 @@ import { useCategoriesTree, useCreateCategory, useUpdateCategory, useDeleteCateg
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { useToast } from '../../../components/Toast';
+import { ImageUpload } from '../../../components/ImageUpload/ImageUpload';
 import type { Category } from '../../../types/category';
 import './AdminCategoryListPage.css';
 
@@ -18,6 +19,7 @@ export const AdminCategoryListPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState('');
+  const [categoryImageUrl, setCategoryImageUrl] = useState('');
   const [parentCategoryId, setParentCategoryId] = useState<number | undefined>(undefined);
 
   // Flattened categories for the dropdown select (excluding current category in edit mode)
@@ -38,6 +40,7 @@ export const AdminCategoryListPage: React.FC = () => {
   const handleOpenCreate = () => {
     setEditingCategory(null);
     setCategoryName('');
+    setCategoryImageUrl('');
     setParentCategoryId(undefined);
     setIsModalOpen(true);
   };
@@ -45,6 +48,7 @@ export const AdminCategoryListPage: React.FC = () => {
   const handleOpenEdit = (category: Category) => {
     setEditingCategory(category);
     setCategoryName(category.name);
+    setCategoryImageUrl(category.imageUrl || '');
     setParentCategoryId(category.parentCategoryId || undefined);
     setIsModalOpen(true);
   };
@@ -59,6 +63,7 @@ export const AdminCategoryListPage: React.FC = () => {
           id: editingCategory.categoryId,
           data: {
             name: categoryName.trim(),
+            imageUrl: categoryImageUrl.trim() || null,
             parentCategoryId: parentCategoryId || undefined,
           },
         });
@@ -66,6 +71,7 @@ export const AdminCategoryListPage: React.FC = () => {
       } else {
         await createMutation.mutateAsync({
           name: categoryName.trim(),
+          imageUrl: categoryImageUrl.trim() || null,
           parentCategoryId: parentCategoryId || undefined,
         });
         toastSuccess('Category created successfully');
@@ -93,8 +99,11 @@ export const AdminCategoryListPage: React.FC = () => {
     return (
       <div key={node.categoryId} className="tree-node-wrapper" style={{ marginLeft: `${depth * 24}px` }}>
         <div className="tree-node">
-          <div className="tree-node-info">
+          <div className="tree-node-info" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="tree-node-bullet">↳</span>
+            {node.imageUrl && (
+              <img src={node.imageUrl} alt={node.name} style={{ width: '24px', height: '24px', borderRadius: '4px', objectFit: 'cover' }} />
+            )}
             <span className="tree-node-name">{node.name}</span>
             {node.parentCategoryName && (
               <span className="tree-node-parent-badge">sub of {node.parentCategoryName}</span>
@@ -178,6 +187,14 @@ export const AdminCategoryListPage: React.FC = () => {
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
               />
+
+              <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                <ImageUpload
+                  label="Category Image (Optional)"
+                  value={categoryImageUrl}
+                  onChange={setCategoryImageUrl}
+                />
+              </div>
 
               <div className="input-group" style={{ marginTop: '16px', marginBottom: '24px' }}>
                 <label className="input-label">Parent Category (Optional)</label>

@@ -4,6 +4,7 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { useToast } from '../../components/Toast';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
+import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 
 export const SellerSettingsPage: React.FC = () => {
   const { success: toastSuccess, error: toastError } = useToast();
@@ -114,31 +115,19 @@ export const SellerSettingsPage: React.FC = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div>
-              <Input
-                label="Store Logo URL"
-                type="url"
+              <ImageUpload
+                label="Store Logo Image (Optional)"
                 value={storeLogoUrl}
-                onChange={(e) => setStoreLogoUrl(e.target.value)}
+                onChange={setStoreLogoUrl}
               />
-              {storeLogoUrl && (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <img src={storeLogoUrl} alt="Logo Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '50%', border: '2px solid var(--border-color)' }} />
-                </div>
-              )}
             </div>
 
             <div>
-              <Input
-                label="Store Banner URL"
-                type="url"
+              <ImageUpload
+                label="Store Banner Image (Optional)"
                 value={storeBannerUrl}
-                onChange={(e) => setStoreBannerUrl(e.target.value)}
+                onChange={setStoreBannerUrl}
               />
-              {storeBannerUrl && (
-                <div style={{ marginTop: '0.5rem' }}>
-                  <img src={storeBannerUrl} alt="Banner Preview" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
-                </div>
-              )}
             </div>
           </div>
 

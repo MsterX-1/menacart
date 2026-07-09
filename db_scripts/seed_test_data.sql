@@ -81,40 +81,40 @@ DECLARE @CatDresses INT = 5;
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatMen)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
-    VALUES (@CatMen, 'Men''s Clothing', NULL);
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, ImageUrl)
+    VALUES (@CatMen, 'Men''s Clothing', NULL, 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500');
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatWomen)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
-    VALUES (@CatWomen, 'Women''s Clothing', NULL);
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, ImageUrl)
+    VALUES (@CatWomen, 'Women''s Clothing', NULL, 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=500');
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatShirts)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
-    VALUES (@CatShirts, 'Shirts', @CatMen);
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, ImageUrl)
+    VALUES (@CatShirts, 'Shirts', @CatMen, 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500');
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatPants)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
-    VALUES (@CatPants, 'Pants', @CatMen);
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, ImageUrl)
+    VALUES (@CatPants, 'Pants', @CatMen, 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=500');
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatDresses)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
-    VALUES (@CatDresses, 'Dresses', @CatWomen);
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, ImageUrl)
+    VALUES (@CatDresses, 'Dresses', @CatWomen, 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=500');
     SET IDENTITY_INSERT Categories OFF;
 END
 

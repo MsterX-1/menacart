@@ -4,6 +4,7 @@ import { useMySellerProfile, useApplyAsSeller, useUpdateSellerProfile } from './
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { useToast } from '../../components/Toast';
+import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import './ApplySellerPage.css';
 
@@ -200,23 +201,23 @@ export const ApplySellerPage: React.FC = () => {
               required
             />
 
-            <Input
-              label="Logo Image URL (Optional)"
-              type="url"
-              placeholder="https://..."
-              value={storeLogoUrl}
-              onChange={(e) => setStoreLogoUrl(e.target.value)}
-            />
+            <div style={{ marginTop: '16px' }}>
+              <ImageUpload
+                label="Store Logo Image (Optional)"
+                value={storeLogoUrl}
+                onChange={setStoreLogoUrl}
+              />
+            </div>
           </div>
 
-          <Input
-            label="Store Banner URL (Optional)"
-            type="url"
-            placeholder="https://..."
-            value={storeBannerUrl}
-            onChange={(e) => setStoreBannerUrl(e.target.value)}
-            helperText="Banner dimensions should be roughly 1200x300 for optimal viewing."
-          />
+          <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+            <ImageUpload
+              label="Store Banner Image (Optional)"
+              value={storeBannerUrl}
+              onChange={setStoreBannerUrl}
+            />
+            <p className="upload-hint" style={{ marginTop: '4px' }}>Banner dimensions should be roughly 1200x300 for optimal viewing.</p>
+          </div>
 
           <div style={{ marginTop: '12px' }}>
             <Button
