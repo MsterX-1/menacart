@@ -1,8 +1,8 @@
 import { apiClient } from '../../../api/client';
-import type { 
-  CreateReviewRequest, 
-  Review, 
-  CreateSellerReviewRequest, 
+import type {
+  CreateReviewRequest,
+  Review,
+  CreateSellerReviewRequest,
   SellerReview
 } from '../../../types/review';
 
