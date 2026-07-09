@@ -15,6 +15,9 @@ export interface SellerProfile {
   status: SellerProfileStatus;
   rejectionReason: string | null;
   stripeAccountId: string | null;
+  commissionRate: number | null;
+  baseShippingCost: number | null;
+  freeShippingThreshold: number | null;
   createdAt: string;
 }
 
@@ -36,6 +39,8 @@ export interface ApplySellerRequest {
   storeAddress: string;
   phone: string;
   stripeAccountId?: string | null;
+  baseShippingCost?: number | null;
+  freeShippingThreshold?: number | null;
 }
 
 export interface ReviewSellerDocumentRequest {
@@ -55,5 +60,24 @@ export interface SellerResponse {
   email: string;
   status: SellerProfileStatus;
   isVerified: boolean;
+  commissionRate: number | null;
   createdAt: string;
+}
+
+export interface PublicSellerProfile {
+  sellerId: number;
+  storeName: string;
+  storeDescription: string;
+  storeLogoUrl: string;
+  storeBannerUrl: string;
+  rating: number;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+export interface PublicSellerListResponse {
+  items: PublicSellerProfile[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
 }

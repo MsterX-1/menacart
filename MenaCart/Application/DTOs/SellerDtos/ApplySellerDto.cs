@@ -25,5 +25,8 @@ namespace Application.DTOs.SellerDtos
 
         [MaxLength(100)]
         public string? StripeAccountId { get; set; }
+
+        public decimal? BaseShippingCost { get; set; }
+        public decimal? FreeShippingThreshold { get; set; }
     }
 }

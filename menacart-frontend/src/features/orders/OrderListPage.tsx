@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMyOrders } from './hooks/useOrders';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
+import { getDisplayStatus } from '../../utils/orderStatus';
 import './OrderListPage.css';
 
 export const OrderListPage: React.FC = () => {
@@ -101,8 +102,8 @@ export const OrderListPage: React.FC = () => {
                     <div className="order-status-row">
                       <div className="status-indicator">
                         <span className="status-label">Status:</span>
-                        <span className={`status-badge-text status-${order.status.toLowerCase()}`}>
-                          {order.status}
+                        <span className={`status-badge-text status-${getDisplayStatus(order).toLowerCase().replace(' ', '-')}`}>
+                          {getDisplayStatus(order)}
                         </span>
                       </div>
                       <div className="status-indicator">

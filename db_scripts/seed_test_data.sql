@@ -59,8 +59,8 @@ DECLARE @SellerProfileId INT = 1;
 IF NOT EXISTS (SELECT 1 FROM SellerProfiles WHERE SellerId = @SellerProfileId)
 BEGIN
     SET IDENTITY_INSERT SellerProfiles ON;
-    INSERT INTO SellerProfiles (SellerId, UserId, StoreName, StoreDescription, StoreLogoUrl, StoreBannerUrl, StoreAddress, Phone, Rating, Status, IsVerified, CreatedAt, UpdatedAt)
-    VALUES (@SellerProfileId, @SellerUserId, 'Epic Threads Store', 'High-quality modern fashion and streetwear.', '', '', 'Cairo, Egypt', '01000000000', 0.0, 'Active', 1, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO SellerProfiles (SellerId, UserId, StoreName, StoreDescription, StoreLogoUrl, StoreBannerUrl, StoreAddress, Phone, Rating, Status, IsVerified, CreatedAt, UpdatedAt, CommissionRate, BaseShippingCost, FreeShippingThreshold)
+    VALUES (@SellerProfileId, @SellerUserId, 'Epic Threads Store', 'High-quality modern fashion and streetwear.', '', '', 'Cairo, Egypt', '01000000000', 0.0, 'Active', 1, GETUTCDATE(), GETUTCDATE(), 5.0, 30.0, 200.0);
     SET IDENTITY_INSERT SellerProfiles OFF;
 END
 

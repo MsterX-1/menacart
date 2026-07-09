@@ -165,6 +165,21 @@
   color: var(--color-error);
 }
 
+.status-confirmed {
+  background-color: oklch(0.96 0.04 35);
+  color: var(--color-primary);
+}
+
+.status-completed {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.status-partially-shipped {
+  background-color: oklch(0.95 0.04 280);
+  color: oklch(0.50 0.18 280);
+}
+
 /* Payment Statuses */
 .payment-pending {
   background-color: var(--color-warning-bg);

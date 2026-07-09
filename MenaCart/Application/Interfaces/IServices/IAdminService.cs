@@ -8,7 +8,8 @@ namespace Application.Interfaces.IServices
         Task<SellerResponseDto> UpdateSellerStatusAsync(int sellerId, UpdateSellerStatusDto request);
         Task BanSellerEmailAsync(int sellerId, BanSellerEmailDto request);
         Task SendWarningAsync(int sellerId, SendWarningDto request);
-        Task<IEnumerable<SellerResponseDto>> GetAllSellersAsync(string? status, int page, int pageSize);
+        Task<AdminSellersPagedResponseDto> GetAllSellersAsync(string? status, int page, int pageSize);
+        Task UpdateSellerCommissionAsync(int sellerId, decimal? commissionRate);
 
         // Coupons
         Task<CouponResponseDto> CreateCouponAsync(CreateCouponDto request);

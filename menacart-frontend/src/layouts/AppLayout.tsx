@@ -56,6 +56,9 @@ export const AppLayout: React.FC = () => {
             <Link to="/products" className={`nav-link ${isActiveRoute('/products')}`} onClick={() => setMobileMenuOpen(false)}>
               Browse Catalog
             </Link>
+            <Link to="/sellers" className={`nav-link ${isActiveRoute('/sellers')}`} onClick={() => setMobileMenuOpen(false)}>
+              Sellers
+            </Link>
 
             {/* Role-Specific Navigation (Absent if not authorized) */}
             {isAuthenticated && isCustomer && (
@@ -65,6 +68,9 @@ export const AppLayout: React.FC = () => {
                 </Link>
                 <Link to="/orders" className={`nav-link ${isActiveRoute('/orders')}`} onClick={() => setMobileMenuOpen(false)}>
                   My Orders
+                </Link>
+                <Link to="/returns" className={`nav-link ${isActiveRoute('/returns')}`} onClick={() => setMobileMenuOpen(false)}>
+                  My Returns
                 </Link>
                 <Link to="/wishlist" className={`nav-link ${isActiveRoute('/wishlist')}`} onClick={() => setMobileMenuOpen(false)}>
                   Wishlist
@@ -83,11 +89,17 @@ export const AppLayout: React.FC = () => {
                 <Link to="/seller/dashboard" className={`nav-link ${isActiveRoute('/seller/dashboard')}`} onClick={() => setMobileMenuOpen(false)}>
                   Seller Dashboard
                 </Link>
+                <Link to="/seller/settings" className={`nav-link ${isActiveRoute('/seller/settings')}`} onClick={() => setMobileMenuOpen(false)}>
+                  Store Settings
+                </Link>
                 <Link to="/seller/products" className={`nav-link ${isActiveRoute('/seller/products')}`} onClick={() => setMobileMenuOpen(false)}>
                   My Products
                 </Link>
                 <Link to="/seller/orders" className={`nav-link ${isActiveRoute('/seller/orders')}`} onClick={() => setMobileMenuOpen(false)}>
                   Fulfill Orders
+                </Link>
+                <Link to="/seller/returns" className={`nav-link ${isActiveRoute('/seller/returns')}`} onClick={() => setMobileMenuOpen(false)}>
+                  Manage Returns
                 </Link>
                 <Link to="/seller/payouts" className={`nav-link ${isActiveRoute('/seller/payouts')}`} onClick={() => setMobileMenuOpen(false)}>
                   Payouts
@@ -98,22 +110,25 @@ export const AppLayout: React.FC = () => {
             {isAuthenticated && isAdmin && (
               <>
                 <Link to="/admin/dashboard" className={`nav-link ${isActiveRoute('/admin/dashboard')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Dashboard
-                </Link>
-                <Link to="/admin/users" className={`nav-link ${isActiveRoute('/admin/users')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Users
+                  Admin Dashboard
                 </Link>
                 <Link to="/admin/products" className={`nav-link ${isActiveRoute('/admin/products')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Product Approval
+                  Review Products
                 </Link>
                 <Link to="/admin/sellers" className={`nav-link ${isActiveRoute('/admin/sellers')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Seller Verification
-                </Link>
-                <Link to="/admin/payouts" className={`nav-link ${isActiveRoute('/admin/payouts')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Payouts
+                  Verify Sellers
                 </Link>
                 <Link to="/admin/categories" className={`nav-link ${isActiveRoute('/admin/categories')}`} onClick={() => setMobileMenuOpen(false)}>
                   Categories
+                </Link>
+                <Link to="/admin/users" className={`nav-link ${isActiveRoute('/admin/users')}`} onClick={() => setMobileMenuOpen(false)}>
+                  Manage Users
+                </Link>
+                <Link to="/admin/coupons" className={`nav-link ${isActiveRoute('/admin/coupons')}`} onClick={() => setMobileMenuOpen(false)}>
+                  Coupons
+                </Link>
+                <Link to="/admin/payouts" className={`nav-link ${isActiveRoute('/admin/payouts')}`} onClick={() => setMobileMenuOpen(false)}>
+                  Payouts
                 </Link>
               </>
             )}

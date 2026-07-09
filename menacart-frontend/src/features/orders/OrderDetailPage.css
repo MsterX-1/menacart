@@ -341,3 +341,67 @@
   color: var(--color-primary-contrast);
 }
 
+.status-badge-text {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+/* Status colors */
+.status-placed {
+  background-color: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.status-processing {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.status-shipped {
+  background-color: oklch(0.95 0.03 200);
+  color: oklch(0.45 0.15 200);
+}
+
+.status-delivered {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.status-cancelled {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.status-confirmed {
+  background-color: oklch(0.96 0.04 35);
+  color: var(--color-primary);
+}
+
+.status-completed {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.status-partially-shipped {
+  background-color: oklch(0.95 0.04 280);
+  color: oklch(0.50 0.18 280);
+}
+
+/* Payment Statuses */
+.payment-pending {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.payment-paid {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.payment-failed {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+

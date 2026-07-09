@@ -8,6 +8,7 @@ import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
 import { useToast } from '../../components/Toast';
 import type { OrderItem } from '../../types/order';
+import { getDisplayStatus } from '../../utils/orderStatus';
 import './OrderDetailPage.css';
 
 export const OrderDetailPage: React.FC = () => {
@@ -143,6 +144,11 @@ export const OrderDetailPage: React.FC = () => {
                 </div>
 
                 <div className="package-items-table">
+                  {(subOrder.status === 'Shipped' || subOrder.status === 'Delivered') && subOrder.carrier && subOrder.trackingNumber && (
+                    <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-bg-subtle)', borderBottom: '1px solid var(--color-border-subtle)', fontSize: '0.9rem' }}>
+                      <strong>Shipping via {subOrder.carrier}</strong> - Tracking: {subOrder.trackingNumber}
+                    </div>
+                  )}
                   {subOrder.items.map((item) => {
                     const returnRequest = myReturns?.find((r) => r.orderItemId === item.orderItemId);
                     return (
@@ -215,8 +221,8 @@ export const OrderDetailPage: React.FC = () => {
 
             <div className="summary-section-row">
               <span className="row-label">Order Status</span>
-              <span className={`status-badge-text status-${order.status.toLowerCase()}`}>
-                {order.status}
+              <span className={`status-badge-text status-${getDisplayStatus(order).toLowerCase().replace(' ', '-')}`}>
+                {getDisplayStatus(order)}
               </span>
             </div>
 
@@ -231,12 +237,16 @@ export const OrderDetailPage: React.FC = () => {
 
             <div className="total-calculation-details">
               <div className="calc-row-detail">
-                <span>Subtotal</span>
-                <span>{order.totalAmount.toFixed(2)} EGP</span>
+                <span>Items Subtotal</span>
+                <span>{(order.subOrders.reduce((sum, sub) => sum + sub.items.reduce((s, i) => s + (i.priceAtPurchase * i.quantity), 0), 0)).toFixed(2)} EGP</span>
               </div>
               <div className="calc-row-detail">
                 <span>Shipping</span>
-                <span className="free-shipping">FREE</span>
+                <span>
+                  {order.subOrders.reduce((sum, sub) => sum + sub.shippingCost, 0) === 0 
+                    ? <span className="free-shipping">FREE</span> 
+                    : `${order.subOrders.reduce((sum, sub) => sum + sub.shippingCost, 0).toFixed(2)} EGP`}
+                </span>
               </div>
               <div className="calc-row-detail total-highlight">
                 <span>Total Amount</span>

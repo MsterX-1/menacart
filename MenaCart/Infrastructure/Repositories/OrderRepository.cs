@@ -65,6 +65,7 @@ namespace Infrastructure.Repository
                 .CountAsync(sp => sp.Status == SellerPayoutStatus.Pending);
 
             var platformCommissionProfit = await _context.SellerCommissions
+                .Where(sc => sc.Status == SellerCommissionStatus.Settled)
                 .SumAsync(sc => (decimal?)sc.CommissionAmount) ?? 0m;
 
             // Top Selling Products
@@ -91,7 +92,7 @@ namespace Infrastructure.Repository
                     SellerId = sp.SellerId,
                     StoreName = sp.StoreName,
                     TotalRevenue = _context.SellerCommissions
-                        .Where(sc => sc.SellerId == sp.SellerId)
+                        .Where(sc => sc.SellerId == sp.SellerId && sc.Status == SellerCommissionStatus.Settled)
                         .Sum(sc => (decimal?)sc.SaleAmount) ?? 0m,
                     PendingPayoutBalance = _context.SellerPayouts
                         .Where(p => p.SellerId == sp.SellerId && (p.Status == SellerPayoutStatus.Pending || p.Status == SellerPayoutStatus.Processing))

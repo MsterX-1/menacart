@@ -22,12 +22,23 @@ namespace Application.Services
         // SELLER MANAGEMENT
         // ══════════════════════════════════════════════════════════════════════
 
-        public async Task<IEnumerable<SellerResponseDto>> GetAllSellersAsync(
+        public async Task<AdminSellersPagedResponseDto> GetAllSellersAsync(
             string? status, int page, int pageSize)
         {
-            var sellers = await _unitOfWork.SellerRepository
+            var (sellers, totalCount) = await _unitOfWork.SellerRepository
                 .GetAllWithUserAsync(status, page, pageSize);
-            return sellers.Select(MapSellerToDto);
+
+            var items = sellers.Select(MapSellerToDto).ToList();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            return new AdminSellersPagedResponseDto
+            {
+                Items = items,
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
         }
 
         public async Task<SellerResponseDto> UpdateSellerStatusAsync(
@@ -129,6 +140,19 @@ namespace Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task UpdateSellerCommissionAsync(int sellerId, decimal? commissionRate)
+        {
+            var seller = await _unitOfWork.SellerRepository.GetByIdWithUserAsync(sellerId);
+            if (seller == null)
+                throw new KeyNotFoundException("Seller not found.");
+
+            seller.CommissionRate = commissionRate;
+            seller.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SellerRepository.Update(seller);
+            await _unitOfWork.CompleteAsync();
+        }
+
         // ══════════════════════════════════════════════════════════════════════
         // COUPONS
         // ══════════════════════════════════════════════════════════════════════
@@ -201,6 +225,7 @@ namespace Application.Services
             Email = s.User?.Email ?? string.Empty,
             Status = s.Status.ToString(),
             IsVerified = s.IsVerified,
+            CommissionRate = s.CommissionRate,
             CreatedAt = s.CreatedAt
         };
 

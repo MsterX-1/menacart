@@ -65,8 +65,9 @@ apiClient.interceptors.response.use(
 
       try {
         // Attempt token rotation. The backend reads HTTP-only cookies and sets new ones.
+        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
         const response = await axios.post<{ token: string; tokenExpiresOn: string; roles: string[] }>(
-          '/api/auth/RefreshToken',
+          `${apiBaseUrl}/Auth/RefreshToken`,
           {},
           { withCredentials: true }
         );

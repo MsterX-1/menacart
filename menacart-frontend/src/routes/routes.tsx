@@ -35,12 +35,16 @@ import { AdminPayoutsPage } from '../features/payouts/AdminPayoutsPage';
 import { AdminDashboardPage } from '../features/admin/AdminDashboardPage';
 import { AdminUsersPage } from '../features/admin/AdminUsersPage';
 import {
-  HomePlaceholder,
   WishlistPlaceholder,
   SellerDashboardPlaceholder,
   ForbiddenPage,
   NotFoundPage
 } from '../pages/Placeholders';
+
+import { HomePage } from '../features/home/HomePage';
+import { SellersListPage } from '../features/sellers/SellersListPage';
+import { SellerProfilePage } from '../features/sellers/SellerProfilePage';
+import { SellerSettingsPage } from '../features/sellers/SellerSettingsPage';
 
 export const router = createBrowserRouter([
   {
@@ -49,7 +53,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePlaceholder />,
+        element: <HomePage />,
       },
       {
         path: 'products',
@@ -58,6 +62,14 @@ export const router = createBrowserRouter([
       {
         path: 'products/:productId',
         element: <ProductDetailPage />,
+      },
+      {
+        path: 'sellers',
+        element: <SellersListPage />,
+      },
+      {
+        path: 'seller/:id',
+        element: <SellerProfilePage />,
       },
       {
         path: 'forbidden',
@@ -211,6 +223,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute>
             <RoleRoute allowedRoles={['Seller']}>
               <SellerDashboardPlaceholder />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'seller/settings',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Seller']}>
+              <SellerSettingsPage />
             </RoleRoute>
           </ProtectedRoute>
         ),

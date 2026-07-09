@@ -15,13 +15,15 @@ export interface SubOrder {
   storeName: string;
   status: 'Placed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   shippingCost: number;
+  carrier?: string | null;
+  trackingNumber?: string | null;
   items: OrderItem[];
 }
 
 export interface Order {
   orderId: number;
   totalAmount: number;
-  status: 'Placed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Placed' | 'Confirmed' | 'Cancelled' | 'Completed';
   paymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded';
   paymentUrl: string;
   sessionId: string;

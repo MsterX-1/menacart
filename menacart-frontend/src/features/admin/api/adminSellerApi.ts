@@ -42,6 +42,14 @@ export const adminBanSeller = async (
   return response.data;
 };
 
+export const adminUpdateSellerCommission = async (
+  sellerId: number,
+  commissionRate: number | null
+): Promise<{ message: string }> => {
+  const response = await apiClient.put<{ message: string }>(`/admin/sellers/${sellerId}/commission`, { commissionRate });
+  return response.data;
+};
+
 export const adminWarnSeller = async (
   sellerId: number,
   warningMessage: string

@@ -5,6 +5,6 @@ namespace Application.Interfaces.IServices
 {
     public interface IShippingService
     {
-        Task<decimal> CalculateShippingCostAsync(Address address);
+        Task<decimal> CalculateShippingCostAsync(Address address, int sellerId, decimal subtotal);
     }
 }

@@ -19,6 +19,8 @@ namespace Application.DTOs.OrderDtos
         public string StoreName { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public decimal ShippingCost { get; set; }
+        public string? Carrier { get; set; }
+        public string? TrackingNumber { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
     }
 

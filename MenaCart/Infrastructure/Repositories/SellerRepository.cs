@@ -25,7 +25,7 @@ namespace Infrastructure.Repository
                 .FirstOrDefaultAsync(s => s.SellerId == sellerId);
         }
 
-        public async Task<IEnumerable<SellerProfile>> GetAllWithUserAsync(
+        public async Task<(IEnumerable<SellerProfile> Items, int TotalCount)> GetAllWithUserAsync(
             string? statusFilter, int page, int pageSize)
         {
             var query = _dbSet
@@ -38,11 +38,15 @@ namespace Infrastructure.Repository
                 query = query.Where(s => s.Status == parsed);
             }
 
-            return await query
+            var totalCount = await query.CountAsync();
+
+            var items = await query
                 .OrderByDescending(s => s.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            return (items, totalCount);
         }
         public async Task<SellerDashboardStatsDto> GetSellerDashboardStatsAsync(int sellerId)
         {
@@ -53,7 +57,7 @@ namespace Infrastructure.Repository
                 .CountAsync(p => p.SellerId == sellerId);
 
             var commissions = await _context.SellerCommissions
-                .Where(sc => sc.SellerId == sellerId)
+                .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Settled)
                 .ToListAsync();
 
             var totalRevenue = commissions.Sum(c => c.SaleAmount);
@@ -91,6 +95,27 @@ namespace Infrastructure.Repository
                 PendingPayoutBalance = pendingPayoutBalance,
                 TopProducts = topProducts
             };
+        }
+        public async Task<(IEnumerable<SellerProfile> Items, int TotalCount)> GetActiveSellersAsync(string? search, int page, int pageSize)
+        {
+            var query = _dbSet
+                .Where(s => s.Status == SellerStatus.Active);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(s => s.StoreName.Contains(search) || s.StoreDescription.Contains(search));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(s => s.Rating)
+                .ThenByDescending(s => s.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
         }
     }
 }

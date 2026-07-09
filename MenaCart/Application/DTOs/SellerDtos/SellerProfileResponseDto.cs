@@ -17,6 +17,9 @@ namespace Application.DTOs.SellerDtos
         public string Status { get; set; } = string.Empty;
         public string? RejectionReason { get; set; }
         public string? StripeAccountId { get; set; }
+        public decimal? CommissionRate { get; set; }
+        public decimal? BaseShippingCost { get; set; }
+        public decimal? FreeShippingThreshold { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

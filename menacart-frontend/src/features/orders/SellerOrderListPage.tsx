@@ -7,6 +7,14 @@ import { useToast } from '../../components/Toast';
 import type { SubOrder } from '../../types/order';
 import './SellerOrderListPage.css';
 
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  Placed: ['Placed', 'Processing', 'Cancelled'],
+  Processing: ['Processing', 'Shipped', 'Cancelled'],
+  Shipped: ['Shipped', 'Delivered'],
+  Delivered: ['Delivered'],
+  Cancelled: ['Cancelled'],
+};
+
 export const SellerOrderListPage: React.FC = () => {
   const { error: toastError, success: toastSuccess } = useToast();
   
@@ -166,13 +174,17 @@ export const SellerOrderListPage: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleOpenStatusModal(subOrder)}
-                        >
-                          Update Status
-                        </Button>
+                        {subOrder.status !== 'Delivered' && subOrder.status !== 'Cancelled' ? (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenStatusModal(subOrder)}
+                          >
+                            Update Status
+                          </Button>
+                        ) : (
+                          <span style={{ color: 'var(--color-text-disabled)', paddingLeft: '8px' }}>—</span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -217,11 +229,11 @@ export const SellerOrderListPage: React.FC = () => {
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
                 >
-                  <option value="Placed">Placed</option>
-                  <option value="Processing">Processing</option>
-                  <option value="Shipped">Shipped</option>
-                  <option value="Delivered">Delivered</option>
-                  <option value="Cancelled">Cancelled</option>
+                  {(ALLOWED_TRANSITIONS[selectedSubOrder.status] || [selectedSubOrder.status]).map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
                 </select>
               </div>
 

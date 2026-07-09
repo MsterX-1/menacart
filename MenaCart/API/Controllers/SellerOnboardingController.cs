@@ -100,5 +100,26 @@ namespace API.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Get a paginated list of active sellers (public).
+        /// </summary>
+        [HttpGet("public-list")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPublicSellers(
+            [FromQuery] string? search = null,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var result = await _onboardingService.GetActiveSellersAsync(search, page, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

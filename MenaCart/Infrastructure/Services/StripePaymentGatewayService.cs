@@ -35,7 +35,7 @@ namespace Infrastructure.Services
         public async Task<PaymentSessionResponseDto> CreateSessionAsync(Order order)
         {
             var successUrl = _configuration["Stripe:SuccessUrl"] ?? "http://localhost:5173/payment/processing/{orderId}?session_id={CHECKOUT_SESSION_ID}";
-            var cancelUrl = _configuration["Stripe:CancelUrl"] ?? "http://localhost:5173/checkout";
+            var cancelUrl = _configuration["Stripe:CancelUrl"] ?? "http://localhost:5173/payment/cancelled?orderId={orderId}";
 
             // Replace dynamic placeholders
             successUrl = successUrl.Replace("{orderId}", order.OrderId.ToString());

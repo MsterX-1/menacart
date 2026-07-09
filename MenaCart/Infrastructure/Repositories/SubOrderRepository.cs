@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories;
 using Domain.Models;
 using Infrastructure.Database;
 using Infrastructure.Repositories;
@@ -13,6 +13,7 @@ namespace Infrastructure.Repository
         public async Task<SubOrder?> GetByIdWithDetailsAsync(int subOrderId)
         {
             return await _dbSet
+                .Include(s => s.Order)
                 .Include(s => s.SellerProfile)
                 .Include(s => s.OrderItems)
                     .ThenInclude(i => i.ProductVariant)
@@ -25,7 +26,7 @@ namespace Infrastructure.Repository
             int sellerId, string? statusFilter, int page, int pageSize)
         {
             var query = _dbSet
-                .Where(s => s.SellerId == sellerId)
+                .Where(s => s.SellerId == sellerId && s.Order.PaymentStatus == OrderPaymentStatus.Paid)
                 .Include(s => s.SellerProfile)
                 .Include(s => s.OrderItems)
                     .ThenInclude(i => i.ProductVariant)

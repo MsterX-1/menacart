@@ -295,7 +295,7 @@ export const SellerProductFormPage: React.FC = () => {
                 </div>
                 {control._formValues.productImages && control._formValues.productImages.length > 0 && (
                   <div className="product-images-preview" style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                    {control._formValues.productImages.map((url, i) => (
+                    {control._formValues.productImages.map((url: string, i: number) => (
                       <div key={i} style={{ position: 'relative' }}>
                         <img src={url} alt={`Preview ${i}`} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
                         <button

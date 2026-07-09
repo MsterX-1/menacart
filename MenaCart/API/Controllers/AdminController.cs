@@ -102,6 +102,29 @@ namespace API.Controllers
         }
 
         /// <summary>
+        /// Update a seller's commission rate.
+        /// </summary>
+        [HttpPut("sellers/{sellerId}/commission")]
+        public async Task<IActionResult> UpdateSellerCommission(
+            int sellerId,
+            [FromBody] UpdateCommissionDto request)
+        {
+            try
+            {
+                await _adminService.UpdateSellerCommissionAsync(sellerId, request.CommissionRate);
+                return Ok(new { message = "Commission rate updated successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Get aggregated dashboard statistics for administration.
         /// </summary>
         [HttpGet("dashboard-stats")]

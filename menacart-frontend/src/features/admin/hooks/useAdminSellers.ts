@@ -7,6 +7,7 @@ import {
   adminGetSellerDocuments,
   adminReviewSellerDocument,
   adminGetSellerProfile,
+  adminUpdateSellerCommission,
 } from '../api/adminSellerApi';
 import type { UpdateSellerStatusRequest, ReviewSellerDocumentRequest } from '../../../types/seller';
 
@@ -83,5 +84,17 @@ export const useAdminSellerProfile = (sellerId: number) => {
     queryKey: adminSellerKeys.profile(sellerId),
     queryFn: () => adminGetSellerProfile(sellerId),
     enabled: !!sellerId && !isNaN(sellerId),
+  });
+};
+
+export const useAdminUpdateSellerCommission = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sellerId, commissionRate }: { sellerId: number; commissionRate: number | null }) =>
+      adminUpdateSellerCommission(sellerId, commissionRate),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: adminSellerKeys.all });
+      queryClient.invalidateQueries({ queryKey: adminSellerKeys.profile(variables.sellerId) });
+    },
   });
 };

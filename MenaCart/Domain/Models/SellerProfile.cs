@@ -57,6 +57,15 @@ namespace Domain.Models
         [MaxLength(100)]
         public string? StripeAccountId { get; set; }
 
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? CommissionRate { get; set; }
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? BaseShippingCost { get; set; }
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? FreeShippingThreshold { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

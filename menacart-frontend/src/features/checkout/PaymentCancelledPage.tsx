@@ -25,7 +25,7 @@ export const PaymentCancelledPage: React.FC = () => {
         <p className="description">
           {isTimeout
             ? "We couldn't verify your payment within the expected time. If your payment went through, please check your Order History shortly."
-            : 'The payment process was cancelled or didn\'t complete. Don\'t worry, your items are still saved, and your order has not been placed.'}
+            : 'The payment process was cancelled or did not complete. Your order has been saved in a pending state. You can complete your payment anytime from your Order Details page.'}
         </p>
 
         {orderId && (
@@ -35,11 +35,17 @@ export const PaymentCancelledPage: React.FC = () => {
         )}
 
         <div className="action-row">
-          <Button variant="secondary" onClick={() => navigate('/cart')}>
-            Return to Cart
-          </Button>
-          <Button onClick={() => navigate('/checkout')}>
-            Try Checkout Again
+          {orderId ? (
+            <Button onClick={() => navigate(`/orders/${orderId}`)}>
+              View Order Details
+            </Button>
+          ) : (
+            <Button onClick={() => navigate('/orders')}>
+              Go to Order History
+            </Button>
+          )}
+          <Button variant="secondary" onClick={() => navigate('/products')}>
+            Continue Shopping
           </Button>
         </div>
       </div>

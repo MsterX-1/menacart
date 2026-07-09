@@ -120,7 +120,8 @@ namespace Application.Services
             var shippingCosts = new Dictionary<int, decimal>();
             foreach (var sellerGroup in grouped)
             {
-                var cost = await _shippingService.CalculateShippingCostAsync(address);
+                var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                var cost = await _shippingService.CalculateShippingCostAsync(address, sellerGroup.Key, sellerSubtotal);
                 shippingCosts[sellerGroup.Key] = cost;
                 totalShippingCost += cost;
             }
@@ -143,7 +144,7 @@ namespace Application.Services
                 }
             }
 
-            var commissionRate = Convert.ToDecimal(_config["Commission:DefaultRatePercent"] ?? "10");
+            var defaultCommissionRate = Convert.ToDecimal(_config["Commission:DefaultRatePercent"] ?? "10");
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -195,13 +196,16 @@ namespace Application.Services
                         await _unitOfWork.OrderItemRepository.Add(orderItem);
 
                         var saleAmount = cartItem.Quantity * variant.Price;
+                        var sellerProfile = variant.Product.SellerProfile;
+                        var appliedCommissionRate = sellerProfile.CommissionRate ?? defaultCommissionRate;
+
                         await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
                         {
                             SellerId = sellerGroup.Key,
                             OrderItem = orderItem,
                             SaleAmount = saleAmount,
-                            CommissionRate = commissionRate,
-                            CommissionAmount = saleAmount * commissionRate / 100,
+                            CommissionRate = appliedCommissionRate,
+                            CommissionAmount = saleAmount * appliedCommissionRate / 100,
                             Status = SellerCommissionStatus.Pending,
                             CreatedAt = DateTime.UtcNow
                         });
@@ -396,6 +400,9 @@ namespace Application.Services
 
             if (!isAdmin && subOrder.SellerId != seller!.SellerId)
                 throw new UnauthorizedAccessException("You do not own this SubOrder.");
+
+            if (subOrder.Order.PaymentStatus != OrderPaymentStatus.Paid)
+                throw new Exception("Cannot process this package because the parent order has not been paid yet.");
 
             if (!Enum.TryParse<SubOrderStatus>(request.Status, ignoreCase: true, out var newStatus))
                 throw new Exception($"Invalid status '{request.Status}'.");
@@ -632,6 +639,8 @@ namespace Application.Services
             StoreName = s.SellerProfile?.StoreName ?? string.Empty,
             Status = s.Status.ToString(),
             ShippingCost = s.ShippingCost,
+            Carrier = s.Shipping?.Carrier,
+            TrackingNumber = s.Shipping?.TrackingNumber,
             Items = s.OrderItems.Select(i => new OrderItemDto
             {
                 OrderItemId = i.OrderItemId,

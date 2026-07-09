@@ -1,0 +1,33 @@
+.sellers-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sellers-header {
+  margin-bottom: 1rem;
+}
+
+.sellers-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.sellers-subtitle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.sellers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.sellers-loading, .sellers-empty {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-muted);
+}

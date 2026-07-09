@@ -90,7 +90,10 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ on
                 onClick={() => handleNotificationClick(n.notificationId, n.isRead, n.linkUrl)}
               >
                 <div className="notification-content-wrap">
-                  <p className="notification-message-text">{n.message}</p>
+                  <p 
+                    className="notification-message-text" 
+                    dangerouslySetInnerHTML={{ __html: n.message }}
+                  ></p>
                   <span className="notification-time-label">{formatTime(n.createdAt)}</span>
                 </div>
                 {!n.isRead && <span className="unread-indicator-dot"></span>}

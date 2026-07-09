@@ -7,7 +7,8 @@ import {
   useAdminWarnSeller,
   useAdminSellerDocuments,
   useAdminReviewSellerDocument,
-  useAdminSellerProfile
+  useAdminSellerProfile,
+  useAdminUpdateSellerCommission
 } from './hooks/useAdminSellers';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
@@ -33,6 +34,7 @@ export const AdminSellersPage: React.FC = () => {
   const [statusReason, setStatusReason] = useState('');
   const [warningMsg, setWarningMsg] = useState('');
   const [banReason, setBanReason] = useState('');
+  const [commissionRate, setCommissionRate] = useState('');
 
   // KYC Review Modal State
   const [kycSeller, setKycSeller] = useState<SellerResponse | null>(null);
@@ -41,6 +43,7 @@ export const AdminSellersPage: React.FC = () => {
   const updateStatusMutation = useAdminUpdateSellerStatus();
   const banMutation = useAdminBanSeller();
   const warnMutation = useAdminWarnSeller();
+  const commissionMutation = useAdminUpdateSellerCommission();
 
   const handleOpenModerate = (seller: SellerResponse) => {
     setSelectedSeller(seller);
@@ -48,6 +51,7 @@ export const AdminSellersPage: React.FC = () => {
     setStatusReason('');
     setWarningMsg('');
     setBanReason('');
+    setCommissionRate(seller.commissionRate ? seller.commissionRate.toString() : '');
     setIsModerateModalOpen(true);
   };
 
@@ -89,6 +93,21 @@ export const AdminSellersPage: React.FC = () => {
       setWarningMsg('');
     } catch (err: any) {
       toastError(err.response?.data?.message || err.message || 'Failed to send warning.');
+    }
+  };
+
+  const handleUpdateCommission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedSeller) return;
+
+    try {
+      await commissionMutation.mutateAsync({
+        sellerId: selectedSeller.sellerId,
+        commissionRate: commissionRate.trim() ? parseFloat(commissionRate) : null,
+      });
+      toastSuccess('Commission rate updated successfully.');
+    } catch (err: any) {
+      toastError(err.response?.data?.message || err.message || 'Failed to update commission.');
     }
   };
 
@@ -314,6 +333,26 @@ export const AdminSellersPage: React.FC = () => {
 
               <hr className="modal-divider-row" />
 
+              {/* Commission Form */}
+              <form onSubmit={handleUpdateCommission} className="moderation-section-form">
+                <h4>Update Commission Rate</h4>
+                <Input
+                  label="Commission Rate (%)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  placeholder="e.g. 10 (Leave empty for default)"
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(e.target.value)}
+                />
+                <Button type="submit" isLoading={commissionMutation.isPending}>
+                  Apply Commission Update
+                </Button>
+              </form>
+
+              <hr className="modal-divider-row" />
+
               {/* Warning Form */}
               <form onSubmit={handleSendWarning} className="moderation-section-form">
                 <h4>Send Warning Warning</h4>
@@ -404,7 +443,22 @@ const KYCDocumentsReviewModal: React.FC<KYCDocumentsReviewModalProps> = ({ selle
 
         {/* Profile Meta */}
         {profile && (
-          <div className="kyc-review-seller-profile-summary">
+          <div className="kyc-review-seller-profile-summary" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {profile.storeBannerUrl && (
+              <div>
+                <strong>Store Banner:</strong>
+                <img src={profile.storeBannerUrl} alt="Banner" style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px', marginTop: '5px' }} />
+              </div>
+            )}
+            {profile.storeLogoUrl && (
+              <div>
+                <strong>Store Logo:</strong>
+                <img src={profile.storeLogoUrl} alt="Logo" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%', marginTop: '5px', display: 'block' }} />
+              </div>
+            )}
+            <div>
+              <strong>Store Description:</strong> {profile.storeDescription || 'Not Provided'}
+            </div>
             <div>
               <strong>Shop Address:</strong> {profile.storeAddress || 'Not Provided'}
             </div>

@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
