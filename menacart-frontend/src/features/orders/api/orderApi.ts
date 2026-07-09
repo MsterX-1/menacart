@@ -14,6 +14,12 @@ export const getOrderById = async (orderId: number): Promise<Order> => {
   return response.data;
 };
 
+export const verifyPayment = async (orderId: number, sessionId: string): Promise<void> => {
+  await apiClient.post(`/orders/${orderId}/verify-payment`, null, {
+    params: { sessionId }
+  });
+};
+
 export const getMyOrders = async (page = 1, pageSize = 20): Promise<Order[]> => {
   const response = await apiClient.get<Order[]>('/orders/myOrders', {
     params: { page, pageSize },

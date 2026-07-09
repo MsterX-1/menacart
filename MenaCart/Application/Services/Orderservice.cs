@@ -577,6 +577,43 @@ namespace Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task VerifyPaymentSessionAsync(string sessionId)
+        {
+            var webhookData = await _paymentGatewayService.VerifySessionAsync(sessionId);
+            if (webhookData == null) return;
+
+            var order = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(webhookData.OrderId);
+            if (order == null || order.PaymentStatus == OrderPaymentStatus.Paid) return;
+
+            order.PaymentStatus = OrderPaymentStatus.Paid;
+            order.Status = OrderStatus.Confirmed;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            var payment = new Payment
+            {
+                OrderId = order.OrderId,
+                Amount = webhookData.Amount,
+                Currency = "EGP",
+                Method = "Card",
+                Status = PaymentStatus.Succeeded,
+                TransactionId = webhookData.TransactionId,
+                PaidAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.PaymentRepository.Add(payment);
+
+            await _unitOfWork.NotificationRepository.Add(new Notification
+            {
+                UserId = order.UserId,
+                Message = $"Your payment of {webhookData.Amount:C} for <a href=\"/orders/{order.OrderId}\">Order #{order.OrderId}</a> has been verified successfully.",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _unitOfWork.CompleteAsync();
+        }
+
         // ── Mappers ────────────────────────────────────────────────────────────
         private static OrderConfirmationResponseDto MapOrderToDto(Order order) => new()
         {

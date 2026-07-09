@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   useAdminSellers, 
   useAdminUpdateSellerStatus,
@@ -18,7 +19,8 @@ import './AdminSellersPage.css';
 export const AdminSellersPage: React.FC = () => {
   const { success: toastSuccess, error: toastError } = useToast();
   
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState<string | null>(searchParams.get('status'));
   const [page, setPage] = useState(1);
   const pageSize = 15;
 

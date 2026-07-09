@@ -42,7 +42,7 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !product) {
+  if (error || !product || !product.isActive) {
     return (
       <div className="product-detail-error">
         <h2>Product not found</h2>

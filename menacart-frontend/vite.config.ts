@@ -11,6 +11,11 @@ export default defineConfig({
         target: 'https://localhost:7210',
         changeOrigin: true,
         secure: false, // Dev SSL certificates
+      },
+      '/uploads': {
+        target: 'https://localhost:7210',
+        changeOrigin: true,
+        secure: false, // Dev SSL certificates
       }
     }
   }

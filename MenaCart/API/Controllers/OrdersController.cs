@@ -105,5 +105,34 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Manually verify payment session status with Stripe (useful for frontend success callback without webhooks).
+        /// </summary>
+        [HttpPost("{orderId}/verify-payment")]
+        public async Task<IActionResult> VerifyPayment(int orderId, [FromQuery] string sessionId)
+        {
+            try
+            {
+                // We verify that the user owns the order
+                var userId = User.GetUserId();
+                var order = await _orderService.GetOrderAsync(userId, orderId); // Will throw if not authorized/not found
+                
+                await _orderService.VerifyPaymentSessionAsync(sessionId);
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

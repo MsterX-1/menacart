@@ -8,6 +8,7 @@ namespace Application.Interfaces.IServices
     {
         Task<PaymentSessionResponseDto> CreateSessionAsync(Order order);
         Task<PaymentWebhookDto?> ProcessWebhookAsync(string payload, string signature);
+        Task<PaymentWebhookDto?> VerifySessionAsync(string sessionId);
         Task<string> CreateTransferAsync(string destinationAccountId, decimal amount, string description);
     }
 }

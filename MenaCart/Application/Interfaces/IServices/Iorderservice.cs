@@ -16,5 +16,6 @@ namespace Application.Interfaces.IServices
         Task UpdateSubOrderStatusAsync(string userId, int subOrderId, UpdateSubOrderStatusRequestDto request);
         // Webhook
         Task ProcessPaymentWebhookAsync(string rawBody, string signature);
+        Task VerifyPaymentSessionAsync(string sessionId);
     }
 }

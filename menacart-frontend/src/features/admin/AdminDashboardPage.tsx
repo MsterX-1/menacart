@@ -82,7 +82,7 @@ export const AdminDashboardPage: React.FC = () => {
           {stats.pendingSellerApplications > 0 && (
             <button 
               className="dashboard-badge-action-btn badge-warning" 
-              onClick={() => navigate('/admin/sellers')}
+              onClick={() => navigate('/admin/sellers?status=Pending')}
             >
               ⚠️ {stats.pendingSellerApplications} Pending Sellers
             </button>

@@ -34,8 +34,8 @@ namespace Infrastructure.Services
 
         public async Task<PaymentSessionResponseDto> CreateSessionAsync(Order order)
         {
-            var successUrl = _configuration["Stripe:SuccessUrl"] ?? "http://localhost:5173/payment/processing/{orderId}";
-            var cancelUrl = _configuration["Stripe:CancelUrl"] ?? "http://localhost:5173/payment/cancelled?orderId={orderId}";
+            var successUrl = _configuration["Stripe:SuccessUrl"] ?? "http://localhost:5173/payment/processing/{orderId}?session_id={CHECKOUT_SESSION_ID}";
+            var cancelUrl = _configuration["Stripe:CancelUrl"] ?? "http://localhost:5173/checkout";
 
             // Replace dynamic placeholders
             successUrl = successUrl.Replace("{orderId}", order.OrderId.ToString());
@@ -129,6 +129,23 @@ namespace Infrastructure.Services
             {
                 throw new UnauthorizedAccessException("Stripe signature verification failed.", ex);
             }
+        }
+
+        public async Task<PaymentWebhookDto?> VerifySessionAsync(string sessionId)
+        {
+            StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
+            var service = new SessionService();
+            var session = await service.GetAsync(sessionId);
+
+            if (session.PaymentStatus != "paid") return null;
+
+            return new PaymentWebhookDto
+            {
+                OrderId = int.Parse(session.Metadata["OrderId"]),
+                Status = "Succeeded",
+                Amount = session.AmountTotal.HasValue ? session.AmountTotal.Value / 100m : 0,
+                TransactionId = session.PaymentIntentId ?? session.Id
+            };
         }
 
         public async Task<string> CreateTransferAsync(string destinationAccountId, decimal amount, string description)

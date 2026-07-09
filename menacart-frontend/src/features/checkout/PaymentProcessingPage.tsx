@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useOrderDetails } from '../orders/hooks/useOrders';
+import { verifyPayment } from '../orders/api/orderApi';
 import { Button } from '../../components/Button';
 import './PaymentProcessingPage.css';
 
@@ -8,9 +9,19 @@ export const PaymentProcessingPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const parsedOrderId = orderId ? parseInt(orderId, 10) : 0;
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
   const [attempts, setAttempts] = useState(0);
 
   const { data: order, error, refetch } = useOrderDetails(parsedOrderId);
+
+  useEffect(() => {
+    if (parsedOrderId && sessionId) {
+      verifyPayment(parsedOrderId, sessionId)
+        .then(() => refetch())
+        .catch(console.error);
+    }
+  }, [parsedOrderId, sessionId, refetch]);
 
   // Poll order details to check payment status
   useEffect(() => {

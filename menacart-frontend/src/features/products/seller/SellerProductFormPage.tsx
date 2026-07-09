@@ -63,6 +63,7 @@ const productSchema = z.object({
   brand: z.string().max(100).optional().or(z.literal('')),
   categoryId: z.number().min(1, 'Please select a category'),
   mainImageUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  productImages: z.array(z.string()).optional(),
   variants: z.array(variantSchema).min(1, 'At least one variant is required'),
 });
 
@@ -87,6 +88,7 @@ export const SellerProductFormPage: React.FC = () => {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -97,6 +99,7 @@ export const SellerProductFormPage: React.FC = () => {
       brand: '',
       categoryId: 0,
       mainImageUrl: '',
+      productImages: [],
       variants: [{ sku: '', color: '', size: '', stockQuantity: 10, price: 29.99, mainImageUrl: '' }],
     },
   });
@@ -116,6 +119,7 @@ export const SellerProductFormPage: React.FC = () => {
         brand: product.brand || '',
         categoryId: product.categoryId,
         mainImageUrl: product.mainImageUrl || '',
+        productImages: product.productImages || [],
         variants: product.variants.map((v) => ({
           variantId: v.variantId,
           sku: v.sku,
@@ -150,7 +154,7 @@ export const SellerProductFormPage: React.FC = () => {
         brand: data.brand || undefined,
         categoryId: data.categoryId,
         mainImageUrl: data.mainImageUrl || undefined,
-        productImages: [],
+        productImages: data.productImages || [],
         variants: formattedVariants,
       };
 
@@ -176,16 +180,30 @@ export const SellerProductFormPage: React.FC = () => {
       const url = await uploadImage(file);
       if (typeof index === 'number') {
         // Variant image
-        const currentVariants = control._formValues.variants;
-        currentVariants[index].mainImageUrl = url;
-        reset({ ...control._formValues, variants: currentVariants });
+        setValue(`variants.${index}.mainImageUrl`, url, { shouldDirty: true });
       } else {
         // Main product image
-        reset({ ...control._formValues, mainImageUrl: url });
+        setValue('mainImageUrl', url, { shouldDirty: true });
       }
       toastSuccess('Image uploaded successfully');
     } catch (err) {
       toastError('Failed to upload image');
+    }
+  };
+
+  const handleMultipleImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      const uploadPromises = Array.from(files).map(uploadImage);
+      const urls = await Promise.all(uploadPromises);
+      
+      const currentImages = control._formValues.productImages || [];
+      setValue('productImages', [...currentImages, ...urls], { shouldDirty: true });
+      toastSuccess('Images uploaded successfully');
+    } catch (err) {
+      toastError('Failed to upload images');
     }
   };
 
@@ -268,6 +286,33 @@ export const SellerProductFormPage: React.FC = () => {
                   <label className="input-label" style={{ fontSize: '0.85rem' }}>Or Upload File</label>
                   <input type="file" accept="image/*" onChange={(e) => handleMainImageUpload(e)} />
                 </div>
+              </div>
+
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label className="input-label">Additional Product Images</label>
+                <div style={{ marginTop: '0.5rem' }}>
+                  <input type="file" accept="image/*" multiple onChange={handleMultipleImagesUpload} />
+                </div>
+                {control._formValues.productImages && control._formValues.productImages.length > 0 && (
+                  <div className="product-images-preview" style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                    {control._formValues.productImages.map((url, i) => (
+                      <div key={i} style={{ position: 'relative' }}>
+                        <img src={url} alt={`Preview ${i}`} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newImages = [...control._formValues.productImages!];
+                            newImages.splice(i, 1);
+                            setValue('productImages', newImages, { shouldDirty: true });
+                          }}
+                          style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', borderRadius: '50%', width: '20px', height: '20px', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
