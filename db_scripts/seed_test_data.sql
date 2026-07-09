@@ -30,9 +30,9 @@ IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE Id = @CustomerRoleId)
 DECLARE @PasswordHash NVARCHAR(MAX);
 SELECT TOP 1 @PasswordHash = PasswordHash FROM AspNetUsers WHERE Email = 'admin@system.com';
 
--- Fallback hash for 'Password123!' if admin hash is not found
+-- Fallback hash for 'Admin@123' if admin hash is not found
 IF @PasswordHash IS NULL
-    SET @PasswordHash = 'AQAAAAIAAYagAAAAEGlrP1L2V3W4X5Y6Z7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3==';
+    SET @PasswordHash = 'AQAAAAIAAYagAAAAEB2hMal/Y20f91aFmr8/JGHbpfiEzKKUL44OXOdzthXzhf89UA/YC9yfqKb2Mvn4AQ==';
 
 -- 3. Create Test Customer
 DECLARE @CustomerId NVARCHAR(450) = 'test-customer-id';
