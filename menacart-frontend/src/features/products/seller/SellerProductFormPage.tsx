@@ -221,7 +221,7 @@ export const SellerProductFormPage: React.FC = () => {
 
             <div className="form-row-grid">
               <Input
-                label="Base Price ($)"
+                label="Base Price (EGP)"
                 type="number"
                 step="0.01"
                 error={errors.basePrice?.message}
@@ -293,7 +293,7 @@ export const SellerProductFormPage: React.FC = () => {
                     />
 
                     <Input
-                      label="Price ($)"
+                      label="Price (EGP)"
                       type="number"
                       step="0.01"
                       error={errors.variants?.[index]?.price?.message}

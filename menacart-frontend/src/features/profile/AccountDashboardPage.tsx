@@ -32,7 +32,7 @@ export const AccountDashboardPage: React.FC = () => {
 
   if (error || !profileUser) {
     return (
-      <div className="profile-error-state glass-card" style={{ padding: '20px', textAlign: 'center' }}>
+      <div className="profile-error-state " style={{ padding: '20px', textAlign: 'center' }}>
         <p className="error-text">Failed to load profile details. Please try again later.</p>
       </div>
     );

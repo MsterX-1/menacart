@@ -131,7 +131,7 @@ export const AdminCouponsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="admin-coupons-container error glass-card">
+      <div className="admin-coupons-container error ">
         <p className="error-message">Error loading coupons: {(error as any).message}</p>
         <Button onClick={() => window.location.reload()}>Retry</Button>
       </div>
@@ -149,13 +149,13 @@ export const AdminCouponsPage: React.FC = () => {
       </div>
 
       {coupons && coupons.length === 0 ? (
-        <div className="coupons-empty glass-card">
+        <div className="coupons-empty ">
           <h2>No Coupons Found</h2>
           <p>Create discount campaigns to engage shoppers.</p>
           <Button onClick={handleOpenCreate}>Create First Coupon</Button>
         </div>
       ) : (
-        <div className="coupons-table-wrapper glass-card">
+        <div className="coupons-table-wrapper ">
           <table className="coupons-table">
             <thead>
               <tr>
@@ -228,7 +228,7 @@ export const AdminCouponsPage: React.FC = () => {
       {/* Create / Edit Modal */}
       {isModalOpen && (
         <div className="modal-backdrop fade-in" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content glass-card slide-up" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
                 {selectedCoupon ? 'Edit Coupon' : 'Create New Coupon'}

@@ -12,7 +12,7 @@ export const AccountLayout: React.FC = () => {
     <div className="account-layout-container">
       <div className="account-layout-grid">
         {/* Sidebar Nav */}
-        <aside className="account-sidebar glass-card">
+        <aside className="account-sidebar ">
           <div className="account-user-header">
             <div className="avatar-placeholder">
               {user.firstName[0]?.toUpperCase()}{user.lastName[0]?.toUpperCase()}

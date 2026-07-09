@@ -153,15 +153,18 @@
 }
 
 .doc-status-approved {
-  border-left: 4px solid var(--color-success);
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
 }
 
 .doc-status-pending {
-  border-left: 4px solid var(--color-warning);
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
 }
 
 .doc-status-rejected {
-  border-left: 4px solid var(--color-error);
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
 }
 
 .doc-card-row {

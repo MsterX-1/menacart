@@ -40,7 +40,7 @@ export const AdminUsersPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="admin-users-container error glass-card">
+      <div className="admin-users-container error ">
         <p className="error-text">Failed to load platform users: {(error as any).message}</p>
         <Button onClick={() => refetch()}>Retry</Button>
       </div>
@@ -73,7 +73,7 @@ export const AdminUsersPage: React.FC = () => {
       </div>
 
       {/* Controls Bar */}
-      <div className="admin-users-controls glass-card">
+      <div className="admin-users-controls ">
         <div className="search-input-wrapper">
           <Input
             label="Search Accounts"
@@ -100,12 +100,12 @@ export const AdminUsersPage: React.FC = () => {
       </div>
 
       {filteredUsers.length === 0 ? (
-        <div className="users-empty glass-card">
+        <div className="users-empty ">
           <h2>No matching accounts</h2>
           <p>No user records fit your query or role filter.</p>
         </div>
       ) : (
-        <div className="users-table-wrapper glass-card">
+        <div className="users-table-wrapper ">
           <table className="users-table">
             <thead>
               <tr>

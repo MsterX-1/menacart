@@ -89,16 +89,16 @@
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   text-decoration: none;
-  color: var(--text-color);
+  color: var(--color-text-main);
   transition: all 0.2s ease-out;
 }
 
 .category-card:hover {
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
 }
@@ -112,8 +112,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-body);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .category-image {
@@ -129,8 +129,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-body);
-  color: var(--primary-color);
+  background: var(--color-bg-base);
+  color: var(--color-primary);
   font-weight: 700;
 }
 
@@ -144,12 +144,12 @@
   display: flex;
   flex-direction: column;
   width: 280px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: 1rem;
   overflow: hidden;
   text-decoration: none;
-  color: var(--text-color);
+  color: var(--color-text-main);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
@@ -175,7 +175,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  border: 3px solid var(--bg-surface);
+  border: 3px solid var(--color-bg-surface);
   background: white;
   position: absolute;
   top: 68px;
@@ -201,7 +201,7 @@
 
 .seller-rating {
   font-size: 0.875rem;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
@@ -214,7 +214,7 @@
 
 .seller-desc {
   font-size: 0.875rem;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -228,7 +228,7 @@
   width: 100%;
   text-align: center;
   padding: 0.75rem;
-  background: var(--bg-body);
+  background: var(--color-bg-base);
   border-radius: 0.5rem;
   font-weight: 500;
   font-size: 0.875rem;
@@ -236,7 +236,7 @@
 }
 
 .seller-card:hover .seller-visit-btn {
-  background: var(--primary-color);
+  background: var(--color-primary);
   color: white;
 }
 

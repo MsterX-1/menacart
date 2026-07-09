@@ -60,7 +60,7 @@ export const AdminDashboardPage: React.FC = () => {
 
   if (error || !stats) {
     return (
-      <div className="admin-dashboard-container error glass-card">
+      <div className="admin-dashboard-container error ">
         <h2 className="error-title">Failed to Load Platform Analytics</h2>
         <p className="error-desc">There was an issue fetching dashboard statistics from the server.</p>
         <Button onClick={() => refetch()}>Retry Loading</Button>
@@ -100,7 +100,7 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* Core Metrics Grid */}
       <div className="stats-grid">
-        <div className="metric-card glass-card">
+        <div className="metric-card ">
           <div className="metric-icon-wrapper user-icon">👤</div>
           <div className="metric-details">
             <span className="metric-label">Registered Members</span>
@@ -108,7 +108,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="metric-card glass-card">
+        <div className="metric-card ">
           <div className="metric-icon-wrapper merchant-icon">🏪</div>
           <div className="metric-details">
             <span className="metric-label">Active Stores</span>
@@ -116,7 +116,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="metric-card glass-card">
+        <div className="metric-card ">
           <div className="metric-icon-wrapper order-icon">📦</div>
           <div className="metric-details">
             <span className="metric-label">Total Transactions</span>
@@ -124,7 +124,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="metric-card glass-card highlighted">
+        <div className="metric-card highlighted">
           <div className="metric-icon-wrapper revenue-icon">💰</div>
           <div className="metric-details">
             <span className="metric-label">Gross Platform Volume</span>
@@ -132,7 +132,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="metric-card glass-card success">
+        <div className="metric-card success">
           <div className="metric-icon-wrapper profit-icon">💵</div>
           <div className="metric-details">
             <span className="metric-label">Net Platform Profit</span>
@@ -143,7 +143,7 @@ export const AdminDashboardPage: React.FC = () => {
 
       <div className="dashboard-sections-grid">
         {/* Top Sellers / Merchant Performance Chart (Custom CSS bars) */}
-        <div className="dashboard-section-card glass-card">
+        <div className="dashboard-section-card ">
           <h3 className="section-card-title">Merchant Volume Breakdown</h3>
           <p className="section-card-subtitle">Highest grossing seller stores based on completed transactions.</p>
           
@@ -178,7 +178,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         {/* Top Selling Products */}
-        <div className="dashboard-section-card glass-card">
+        <div className="dashboard-section-card ">
           <h3 className="section-card-title">Best Sellers & Rated Products</h3>
           <p className="section-card-subtitle">Top products ranked by sales volume and review averages.</p>
 

@@ -69,7 +69,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
 
       <div className="reviews-layout-grid">
         {/* Rating Summary Card */}
-        <div className="rating-summary-card glass-card">
+        <div className="rating-summary-card ">
           <div className="big-rating-number">{averageRating}</div>
           <div className="stars-row">{renderStars(Math.round(parseFloat(averageRating)))}</div>
           <div className="rating-help-text">Based on local customer ratings</div>
@@ -78,7 +78,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
         {/* Reviews List */}
         <div className="reviews-items-container">
           {reviews.length === 0 ? (
-            <div className="reviews-empty-state glass-card">
+            <div className="reviews-empty-state ">
               <p>No reviews yet for this product. Be the first to share your experience!</p>
             </div>
           ) : (
@@ -91,7 +91,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
                 });
 
                 return (
-                  <div key={review.reviewId} className="review-item glass-card">
+                  <div key={review.reviewId} className="review-item ">
                     <div className="review-item-header">
                       <div className="reviewer-info">
                         <span className="reviewer-avatar">

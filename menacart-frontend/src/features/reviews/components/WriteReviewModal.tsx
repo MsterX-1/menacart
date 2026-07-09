@@ -75,7 +75,7 @@ export const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 
   return (
     <div className="modal-backdrop fade-in" onClick={onClose}>
-      <div className="modal-content glass-card slide-up" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content slide-up" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 className="modal-title">
             Write a Review

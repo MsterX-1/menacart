@@ -213,7 +213,13 @@
   height: 100%;
   background: var(--color-primary);
   border-radius: var(--radius-round);
-  transition: width 1s ease-out;
+  transform-origin: left;
+  animation: slideIn 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideIn {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 .chart-item-subtext {

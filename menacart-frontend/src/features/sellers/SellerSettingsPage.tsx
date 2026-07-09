@@ -72,7 +72,7 @@ export const SellerSettingsPage: React.FC = () => {
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ marginBottom: '1.5rem', fontSize: '2rem', fontWeight: 700 }}>Store Settings</h1>
       
-      <div className="glass-card" style={{ padding: '2rem' }}>
+      <div className="" style={{ padding: '2rem' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           <Input
@@ -92,7 +92,7 @@ export const SellerSettingsPage: React.FC = () => {
                 onChange={(e) => setStoreDescription(e.target.value)}
                 maxLength={500}
                 rows={4}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-input)' }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-strong)', backgroundColor: 'var(--color-bg-panel)' }}
               />
             </div>
           </div>

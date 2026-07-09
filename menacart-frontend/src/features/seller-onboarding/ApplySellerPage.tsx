@@ -88,7 +88,7 @@ export const ApplySellerPage: React.FC = () => {
   if (profile) {
     if (profile.status === 'Active') {
       return (
-        <div className="apply-seller-status-page glass-card fade-in">
+        <div className="apply-seller-status-page fade-in">
           <div className="status-badge success-badge">Active Merchant</div>
           <h2>Welcome Back, {profile.storeName}!</h2>
           <p>Your seller account is fully verified. You can manage products, track sales, and fulfill shipments via the seller dashboard.</p>
@@ -99,7 +99,7 @@ export const ApplySellerPage: React.FC = () => {
 
     if (profile.status === 'Pending') {
       return (
-        <div className="apply-seller-status-page glass-card fade-in">
+        <div className="apply-seller-status-page fade-in">
           <div className="status-badge pending-badge">Application Pending</div>
           <h2>Verification in Progress</h2>
           <p>We have received your application for <strong>{profile.storeName}</strong>. Our staff is currently reviewing your merchant credentials.</p>
@@ -114,7 +114,7 @@ export const ApplySellerPage: React.FC = () => {
 
     if (profile.status === 'Suspended') {
       return (
-        <div className="apply-seller-status-page glass-card fade-in">
+        <div className="apply-seller-status-page fade-in">
           <div className="status-badge error-badge">Account Suspended</div>
           <h2>Access Revoked</h2>
           <p>Your vendor account for <strong>{profile.storeName}</strong> has been suspended due to platform policy violations.</p>
@@ -147,7 +147,7 @@ export const ApplySellerPage: React.FC = () => {
 
       <div className="apply-layout-grid">
         {/* Onboarding Form */}
-        <form onSubmit={handleSubmit} className="apply-form-card glass-card">
+        <form onSubmit={handleSubmit} className="apply-form-card ">
           {formError && (
             <div className="password-error-alert" role="alert">
               {formError}
@@ -230,7 +230,7 @@ export const ApplySellerPage: React.FC = () => {
         </form>
 
         {/* Benefits Sidebar */}
-        <aside className="apply-benefits-sidebar glass-card">
+        <aside className="apply-benefits-sidebar ">
           <h3 className="benefits-title">Why Sell on MenaCart?</h3>
           <ul className="benefits-list">
             <li>

@@ -47,7 +47,7 @@ export const AdminSellersPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="admin-sellers-container error glass-card">
+      <div className="admin-sellers-container error ">
         <p className="error-text">Failed to load seller applications: {(error as any).message}</p>
         <Button onClick={() => refetch()}>Retry</Button>
       </div>
@@ -89,7 +89,7 @@ export const AdminSellersPage: React.FC = () => {
 
       <div className="admin-sellers-split-layout">
         {/* Left Pane: Table */}
-        <div className={`sellers-table-pane glass-card ${selectedSeller ? 'split' : 'full-width'}`}>
+        <div className={`sellers-table-pane ${selectedSeller ? 'split' : 'full-width'}`}>
           {sellers.length === 0 ? (
             <div className="sellers-empty">
               <h2>No Sellers Found</h2>
@@ -186,7 +186,7 @@ export const AdminSellersPage: React.FC = () => {
 
         {/* Right Pane: Unified Management & Control Panel */}
         {selectedSeller && (
-          <div className="seller-control-pane glass-card">
+          <div className="seller-control-pane ">
             <SellerControlCenter 
               seller={selectedSeller} 
               onClose={() => setSelectedSeller(null)}

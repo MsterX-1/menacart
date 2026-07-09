@@ -101,7 +101,7 @@
 /* Seller Row Items */
 .seller-row-item {
   cursor: pointer;
-  transition: background-color var(--transition-fast), border-left var(--transition-fast);
+  transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .seller-row-item:hover {
@@ -110,7 +110,11 @@
 
 .seller-row-item.selected-row {
   background-color: var(--color-bg-panel);
-  border-left: 3px solid var(--color-primary);
+}
+
+.seller-row-item.selected-row td {
+  font-weight: var(--font-weight-medium);
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 .store-cell-info {

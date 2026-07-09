@@ -74,7 +74,7 @@ export const SellerProfilePage: React.FC = () => {
                 ★ {seller.rating.toFixed(1)}
               </span>
               <span>Joined {new Date(seller.createdAt).getFullYear()}</span>
-              {seller.isVerified && <span style={{ color: 'var(--primary-color)' }}>✓ Verified</span>}
+              {seller.isVerified && <span style={{ color: 'var(--color-primary)' }}>✓ Verified</span>}
             </div>
             <p className="seller-profile-desc">{seller.storeDescription || 'Welcome to our store. Browse our latest fashion collection.'}</p>
           </div>

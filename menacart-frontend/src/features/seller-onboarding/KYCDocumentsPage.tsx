@@ -100,7 +100,7 @@ export const KYCDocumentsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="kyc-documents-container error glass-card">
+      <div className="kyc-documents-container error ">
         <p className="error-text">Failed to load documents: {(error as any).message}</p>
         <Button onClick={() => refetch()}>Retry</Button>
       </div>
@@ -114,7 +114,7 @@ export const KYCDocumentsPage: React.FC = () => {
 
       <div className="kyc-layout-grid">
         {/* Upload Zone Panel */}
-        <div className="kyc-upload-panel glass-card">
+        <div className="kyc-upload-panel ">
           <h3 className="panel-title">Upload New Document</h3>
           
           <form onSubmit={handleUploadSubmit} className="kyc-upload-form">
@@ -199,7 +199,7 @@ export const KYCDocumentsPage: React.FC = () => {
         </div>
 
         {/* Uploaded Documents List */}
-        <div className="kyc-list-panel glass-card">
+        <div className="kyc-list-panel ">
           <h3 className="panel-title">Uploaded Verification Files</h3>
 
           {documents && documents.length === 0 ? (

@@ -97,7 +97,7 @@ export const SellerProductListPage: React.FC = () => {
                     </div>
                   </td>
                   <td>{product.categoryName}</td>
-                  <td>${product.basePrice.toFixed(2)}</td>
+                  <td>{product.basePrice.toFixed(2)} EGP</td>
                   <td>{product.variants?.length || 0} variants</td>
                   <td>
                     <span className={`status-badge ${product.approvalStatus.toLowerCase()}`}>

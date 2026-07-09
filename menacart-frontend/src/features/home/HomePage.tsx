@@ -89,7 +89,7 @@ export const HomePage: React.FC = () => {
           sellersData?.items.map((seller) => (
             <Link to={`/seller/${seller.sellerId}`} key={seller.sellerId} className="seller-card">
               {seller.storeBannerUrl ? (
-                <img src={getOptimizedImageUrl(seller.storeBannerUrl)} alt="Banner" className="seller-banner" loading="lazy" />
+                <img src={getOptimizedImageUrl(seller.storeBannerUrl)} alt={`${seller.storeName} banner`} className="seller-banner" loading="lazy" />
               ) : (
                 <div className="seller-banner-placeholder" />
               )}
@@ -104,7 +104,7 @@ export const HomePage: React.FC = () => {
                 <h3 className="seller-name">{seller.storeName}</h3>
                 <div className="seller-rating">
                   <span className="seller-rating-star">★</span> {seller.rating.toFixed(1)}
-                  {seller.isVerified && <span style={{ color: 'var(--primary-color)', marginLeft: '4px' }}>✓</span>}
+                  {seller.isVerified && <span style={{ color: 'var(--color-primary)', marginLeft: '4px' }}>✓</span>}
                 </div>
                 <p className="seller-desc">{seller.storeDescription || 'A great fashion store.'}</p>
                 <div className="seller-visit-btn">Visit Store</div>

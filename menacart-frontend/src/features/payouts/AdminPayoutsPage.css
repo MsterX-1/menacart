@@ -159,7 +159,8 @@
 
 .inline-review-panel {
   background-color: var(--color-bg-panel);
-  border-left: 2px solid var(--color-primary); /* subtle edge indicator for context */
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
   padding: var(--space-6) var(--space-8);
   margin-bottom: var(--space-4);
 }

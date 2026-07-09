@@ -12,7 +12,7 @@
 .carousel-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--color-text-main);
   margin: 0;
 }
 
@@ -22,11 +22,11 @@
 }
 
 .carousel-btn {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  width: 36px;
-  height: 36px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-main);
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -37,9 +37,9 @@
 }
 
 .carousel-btn:hover {
-  background: var(--primary-color);
+  background: var(--color-primary);
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--color-primary);
   transform: scale(1.05);
 }
 

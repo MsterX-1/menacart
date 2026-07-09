@@ -22,7 +22,7 @@ export const LoyaltyTab: React.FC = () => {
 
   if (error || !loyalty) {
     return (
-      <div className="loyalty-tab-error glass-card">
+      <div className="loyalty-tab-error ">
         <p className="error-text">Failed to load loyalty details. Please try again later.</p>
       </div>
     );
@@ -40,7 +40,7 @@ export const LoyaltyTab: React.FC = () => {
       <p className="tab-subtitle">Earn points with every purchase and redeem them for exclusive discounts.</p>
 
       {/* Points Card */}
-      <div className="loyalty-balance-card glass-card">
+      <div className="loyalty-balance-card ">
         <div className="loyalty-points-circle">
           <span className="points-amount">{loyalty.balance}</span>
           <span className="points-label">Total Points</span>
@@ -58,7 +58,7 @@ export const LoyaltyTab: React.FC = () => {
         <h3 className="history-title">Transaction History</h3>
         
         {loyalty.ledger.length === 0 ? (
-          <div className="empty-history-card glass-card">
+          <div className="empty-history-card ">
             <p className="empty-text">No points transactions recorded yet. Place an order to earn points!</p>
           </div>
         ) : (
@@ -74,7 +74,7 @@ export const LoyaltyTab: React.FC = () => {
               });
 
               return (
-                <div key={entry.pointsId} className="timeline-item glass-card">
+                <div key={entry.pointsId} className="timeline-item ">
                   <div className="timeline-marker"></div>
                   <div className="timeline-content-row">
                     <div className="ledger-details">

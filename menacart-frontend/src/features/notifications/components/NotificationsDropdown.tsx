@@ -59,7 +59,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ on
   };
 
   return (
-    <div className="notifications-dropdown glass-card animate-fade-in" ref={dropdownRef}>
+    <div className="notifications-dropdown animate-fade-in" ref={dropdownRef}>
       <div className="notifications-dropdown-header">
         <h3 className="notifications-title">Notifications</h3>
         {notifications && notifications.some(n => !n.isRead) && (

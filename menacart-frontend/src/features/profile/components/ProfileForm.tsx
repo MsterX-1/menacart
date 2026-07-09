@@ -118,7 +118,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user }) => {
       <h2 className="tab-title">Personal Information</h2>
       <p className="tab-subtitle">Update your personal details and manage your account security.</p>
 
-      <form onSubmit={handleUpdateProfile} className="profile-form glass-card">
+      <form onSubmit={handleUpdateProfile} className="profile-form ">
         <div className="profile-grid">
           <Input
             label="First Name"
@@ -177,7 +177,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user }) => {
       {/* Change Password Modal */}
       {isPasswordModalOpen && (
         <div className="modal-backdrop fade-in" onClick={() => setIsPasswordModalOpen(false)}>
-          <div className="modal-content glass-card slide-up" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Change Password</h3>
               <button className="modal-close-btn" onClick={() => setIsPasswordModalOpen(false)}>
@@ -237,9 +237,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user }) => {
       )}
 
       {/* Danger Zone */}
-      <div className="profile-danger-zone glass-card" style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid #feb2b2', borderRadius: 'var(--radius-lg, 8px)', backgroundColor: 'rgba(254, 215, 215, 0.15)' }}>
-        <h3 className="danger-zone-title" style={{ color: '#e53e3e', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Danger Zone</h3>
-        <p className="danger-zone-desc" style={{ fontSize: '0.875rem', color: '#718096', marginBottom: '1rem' }}>
+      <div className="profile-danger-zone">
+        <h3 className="danger-zone-title">Danger Zone</h3>
+        <p className="danger-zone-desc">
           Permanently delete your account and all associated data. This action is irreversible.
         </p>
         <Button
@@ -254,7 +254,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user }) => {
       {/* Delete Account Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="modal-backdrop fade-in" onClick={() => setIsDeleteModalOpen(false)}>
-          <div className="modal-content glass-card slide-up" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ color: '#e53e3e' }}>Delete Account</h3>
               <button className="modal-close-btn" onClick={() => setIsDeleteModalOpen(false)}>

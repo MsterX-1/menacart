@@ -7,6 +7,7 @@ import { useNotifications } from '../features/notifications/hooks/useNotificatio
 import { NotificationsDropdown } from '../features/notifications/components/NotificationsDropdown';
 import { useCart } from '../features/cart/hooks/useCart';
 import { useWishlist } from '../features/wishlist/hooks/useWishlist';
+import { useTheme } from '../context/ThemeContext';
 import './AppLayout.css';
 
 export const AppLayout: React.FC = () => {
@@ -14,6 +15,7 @@ export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const isCustomer = roles.includes('Customer');
   const isSeller = roles.includes('Seller');
@@ -118,17 +120,28 @@ export const AppLayout: React.FC = () => {
           </nav>
 
           <div className="header-actions">
+            <button 
+              className="bell-toggle-btn theme-toggle-btn" 
+              onClick={toggleTheme} 
+              aria-label="Toggle theme"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              <span className="bell-icon" aria-hidden="true">
+                {theme === 'light' ? '🌙' : '☀️'}
+              </span>
+            </button>
+
             {/* Customer Quick Icon Links */}
             {isAuthenticated && isCustomer && (
               <div className="customer-header-shortcuts">
-                <Link to="/wishlist" className="header-icon-shortcut" title="Wishlist">
-                  <span className="shortcut-icon">🖤</span>
+                <Link to="/wishlist" className="header-icon-shortcut" title="Wishlist" aria-label="Wishlist">
+                  <span className="shortcut-icon" aria-hidden="true">🖤</span>
                   {wishlistCount > 0 && (
                     <span className="shortcut-badge-count">{wishlistCount}</span>
                   )}
                 </Link>
-                <Link to="/cart" className="header-icon-shortcut" title="Shopping Cart">
-                  <span className="shortcut-icon">🛒</span>
+                <Link to="/cart" className="header-icon-shortcut" title="Shopping Cart" aria-label="Shopping Cart">
+                  <span className="shortcut-icon" aria-hidden="true">🛒</span>
                   {cartCount > 0 && (
                     <span className="shortcut-badge-count">{cartCount}</span>
                   )}
@@ -159,12 +172,12 @@ export const AppLayout: React.FC = () => {
 
             {isAuthenticated && user ? (
               <div className="user-profile-dropdown">
-                <button className="profile-dropdown-trigger">
+                <button className="profile-dropdown-trigger" aria-haspopup="menu">
                   <div className="avatar-circle">
                     {user.firstName[0]?.toUpperCase()}{user.lastName[0]?.toUpperCase()}
                   </div>
                   <span className="user-firstname-text">{user.firstName}</span>
-                  <span className="dropdown-caret">▼</span>
+                  <span className="dropdown-caret" aria-hidden="true">▼</span>
                 </button>
                 
                 <div className="profile-dropdown-menu">

@@ -60,7 +60,7 @@ export const WishlistPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="wishlist-page error-state glass-card">
+      <div className="wishlist-page error-state ">
         <h2>Failed to Load Wishlist</h2>
         <p>There was a problem retrieving your wishlist items. Please try again later.</p>
         <Button onClick={() => window.location.reload()}>Retry</Button>
@@ -78,7 +78,7 @@ export const WishlistPage: React.FC = () => {
       </header>
 
       {isEmpty ? (
-        <div className="wishlist-empty glass-card">
+        <div className="wishlist-empty ">
           <div className="wishlist-empty-icon">❤️</div>
           <h2>Your wishlist is empty</h2>
           <p>Explore our products catalog and save items to buy them later.</p>
@@ -89,7 +89,7 @@ export const WishlistPage: React.FC = () => {
       ) : (
         <div className="wishlist-grid">
           {wishlistItems.map((item) => (
-            <div className="wishlist-card glass-card" key={item.wishlistId}>
+            <div className="wishlist-card " key={item.wishlistId}>
               <Link to={`/products/${item.productId}`} className="wishlist-card-image-link">
                 <div className="wishlist-card-image">
                   {item.mainImageUrl ? (
