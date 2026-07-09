@@ -38,8 +38,8 @@ IF @PasswordHash IS NULL
 DECLARE @CustomerId NVARCHAR(450) = 'test-customer-id';
 IF NOT EXISTS (SELECT 1 FROM AspNetUsers WHERE Id = @CustomerId)
 BEGIN
-    INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, FirstName, LastName, TwoFactorEnabled, PhoneNumberConfirmed, LockoutEnabled, AccessFailedCount)
-    VALUES (@CustomerId, 'customer', 'CUSTOMER', 'customer@test.com', 'CUSTOMER@TEST.COM', 1, @PasswordHash, NEWID(), NEWID(), 'John', 'Doe', 0, 0, 1, 0);
+    INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, FirstName, LastName, TwoFactorEnabled, PhoneNumberConfirmed, LockoutEnabled, AccessFailedCount, CreatedAt, UpdatedAt)
+    VALUES (@CustomerId, 'customer', 'CUSTOMER', 'customer@test.com', 'CUSTOMER@TEST.COM', 1, @PasswordHash, NEWID(), NEWID(), 'John', 'Doe', 0, 0, 1, 0, GETUTCDATE(), GETUTCDATE());
 
     INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES (@CustomerId, @CustomerRoleId);
 END
@@ -48,8 +48,8 @@ END
 DECLARE @SellerUserId NVARCHAR(450) = 'test-seller-id';
 IF NOT EXISTS (SELECT 1 FROM AspNetUsers WHERE Id = @SellerUserId)
 BEGIN
-    INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, FirstName, LastName, TwoFactorEnabled, PhoneNumberConfirmed, LockoutEnabled, AccessFailedCount)
-    VALUES (@SellerUserId, 'seller', 'SELLER', 'seller@test.com', 'SELLER@TEST.COM', 1, @PasswordHash, NEWID(), NEWID(), 'Jane', 'Smith', 0, 0, 1, 0);
+    INSERT INTO AspNetUsers (Id, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, FirstName, LastName, TwoFactorEnabled, PhoneNumberConfirmed, LockoutEnabled, AccessFailedCount, CreatedAt, UpdatedAt)
+    VALUES (@SellerUserId, 'seller', 'SELLER', 'seller@test.com', 'SELLER@TEST.COM', 1, @PasswordHash, NEWID(), NEWID(), 'Jane', 'Smith', 0, 0, 1, 0, GETUTCDATE(), GETUTCDATE());
 
     INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES (@SellerUserId, @SellerRoleId);
 END
@@ -59,16 +59,16 @@ DECLARE @SellerProfileId INT = 1;
 IF NOT EXISTS (SELECT 1 FROM SellerProfiles WHERE SellerId = @SellerProfileId)
 BEGIN
     SET IDENTITY_INSERT SellerProfiles ON;
-    INSERT INTO SellerProfiles (SellerId, UserId, StoreName, Description, Status, IsVerified, CreatedAt, UpdatedAt)
-    VALUES (@SellerProfileId, @SellerUserId, 'Epic Threads Store', 'High-quality modern fashion and streetwear.', 'Active', 1, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO SellerProfiles (SellerId, UserId, StoreName, StoreDescription, StoreLogoUrl, StoreBannerUrl, StoreAddress, Phone, Rating, Status, IsVerified, CreatedAt, UpdatedAt)
+    VALUES (@SellerProfileId, @SellerUserId, 'Epic Threads Store', 'High-quality modern fashion and streetwear.', '', '', 'Cairo, Egypt', '01000000000', 0.0, 'Active', 1, GETUTCDATE(), GETUTCDATE());
     SET IDENTITY_INSERT SellerProfiles OFF;
 END
 
 -- 6. Add Customer Address
 IF NOT EXISTS (SELECT 1 FROM Addresses WHERE UserId = @CustomerId)
 BEGIN
-    INSERT INTO Addresses (UserId, Line1, Line2, City, State, PostalCode, Country, AddressType, IsActive, CreatedAt, UpdatedAt)
-    VALUES (@CustomerId, '12 Tahrir Square', 'Apartment 4B', 'Cairo', 'Cairo', '11511', 'Egypt', 'Shipping', 1, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Addresses (UserId, AddressType, Street, City, State, Country, ZipCode, IsDefault, IsActive, CreatedAt, UpdatedAt)
+    VALUES (@CustomerId, 'Shipping', '12 Tahrir Square, Apartment 4B', 'Cairo', 'Cairo', 'Egypt', '11511', 1, 1, GETUTCDATE(), GETUTCDATE());
 END
 
 -- 7. Create Categories (Parent and Child)
@@ -81,40 +81,40 @@ DECLARE @CatDresses INT = 5;
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatMen)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, CreatedAt, UpdatedAt)
-    VALUES (@CatMen, 'Men''s Clothing', NULL, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
+    VALUES (@CatMen, 'Men''s Clothing', NULL);
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatWomen)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, CreatedAt, UpdatedAt)
-    VALUES (@CatWomen, 'Women''s Clothing', NULL, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
+    VALUES (@CatWomen, 'Women''s Clothing', NULL);
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatShirts)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, CreatedAt, UpdatedAt)
-    VALUES (@CatShirts, 'Shirts', @CatMen, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
+    VALUES (@CatShirts, 'Shirts', @CatMen);
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatPants)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, CreatedAt, UpdatedAt)
-    VALUES (@CatPants, 'Pants', @CatMen, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
+    VALUES (@CatPants, 'Pants', @CatMen);
     SET IDENTITY_INSERT Categories OFF;
 END
 
 IF NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = @CatDresses)
 BEGIN
     SET IDENTITY_INSERT Categories ON;
-    INSERT INTO Categories (CategoryId, Name, ParentCategoryId, CreatedAt, UpdatedAt)
-    VALUES (@CatDresses, 'Dresses', @CatWomen, GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Categories (CategoryId, Name, ParentCategoryId)
+    VALUES (@CatDresses, 'Dresses', @CatWomen);
     SET IDENTITY_INSERT Categories OFF;
 END
 
@@ -176,17 +176,49 @@ END
 -- 10. Create Product Reviews
 IF NOT EXISTS (SELECT 1 FROM Reviews WHERE ProductId = @ProdShirt AND UserId = @CustomerId)
 BEGIN
-    INSERT INTO Reviews (UserId, ProductId, Rating, Comment, CreatedAt, UpdatedAt)
-    VALUES (@CustomerId, @ProdShirt, 5, 'Absolutely love the fit and texture of this Oxford shirt. Highly recommended!', GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Reviews (UserId, ProductId, Rating, Comment, CreatedAt)
+    VALUES (@CustomerId, @ProdShirt, 5, 'Absolutely love the fit and texture of this Oxford shirt. Highly recommended!', GETUTCDATE());
 END
 
 IF NOT EXISTS (SELECT 1 FROM Reviews WHERE ProductId = @ProdPant AND UserId = @CustomerId)
 BEGIN
-    INSERT INTO Reviews (UserId, ProductId, Rating, Comment, CreatedAt, UpdatedAt)
-    VALUES (@CustomerId, @ProdPant, 4, 'Chinos look premium. Sizing is accurate. Lowered one star due to delayed delivery.', GETUTCDATE(), GETUTCDATE());
+    INSERT INTO Reviews (UserId, ProductId, Rating, Comment, CreatedAt)
+    VALUES (@CustomerId, @ProdPant, 4, 'Chinos look premium. Sizing is accurate. Lowered one star due to delayed delivery.', GETUTCDATE());
 END
 
--- 11. Create Coupons
+-- 11. Create Product Images (Multi-images for Product & Variants)
+DECLARE @VarBlueM INT;
+SELECT @VarBlueM = VariantId FROM ProductVariants WHERE Sku = 'SHIRT-BLU-M';
+
+DECLARE @VarWhiteM INT;
+SELECT @VarWhiteM = VariantId FROM ProductVariants WHERE Sku = 'SHIRT-WHT-M';
+
+-- General product images (VariantId is NULL)
+IF NOT EXISTS (SELECT 1 FROM ProductImages WHERE ProductId = @ProdShirt AND ProductVariantId IS NULL)
+BEGIN
+    INSERT INTO ProductImages (ProductId, ImageUrl, IsPrimary, CreatedAt, ProductVariantId)
+    VALUES 
+    (@ProdShirt, 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500', 0, GETUTCDATE(), NULL),
+    (@ProdShirt, 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=500', 0, GETUTCDATE(), NULL);
+END
+
+-- Variant-specific images
+IF (NOT @VarBlueM IS NULL) AND NOT EXISTS (SELECT 1 FROM ProductImages WHERE ProductVariantId = @VarBlueM)
+BEGIN
+    INSERT INTO ProductImages (ProductId, ImageUrl, IsPrimary, CreatedAt, ProductVariantId)
+    VALUES 
+    (@ProdShirt, 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500', 1, GETUTCDATE(), @VarBlueM),
+    (@ProdShirt, 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=500', 0, GETUTCDATE(), @VarBlueM);
+END
+
+IF (NOT @VarWhiteM IS NULL) AND NOT EXISTS (SELECT 1 FROM ProductImages WHERE ProductVariantId = @VarWhiteM)
+BEGIN
+    INSERT INTO ProductImages (ProductId, ImageUrl, IsPrimary, CreatedAt, ProductVariantId)
+    VALUES 
+    (@ProdShirt, 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500', 1, GETUTCDATE(), @VarWhiteM);
+END
+
+-- 12. Create Coupons
 IF NOT EXISTS (SELECT 1 FROM Coupons WHERE Code = 'WELCOME10')
 BEGIN
     INSERT INTO Coupons (Code, DiscountType, DiscountValue, MinOrderAmount, ExpiryDate, UsageLimit, UsedCount, CreatedAt)

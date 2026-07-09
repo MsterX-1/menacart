@@ -5,9 +5,15 @@ import './ReviewList.css';
 
 interface ReviewListProps {
   productId: number;
+  productRating?: number;
+  productReviewCount?: number;
 }
 
-export const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
+export const ReviewList: React.FC<ReviewListProps> = ({ 
+  productId,
+  productRating,
+  productReviewCount
+}) => {
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
@@ -35,9 +41,9 @@ export const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
     );
   }
 
-  const reviews = reviewsData?.items || [];
-  const totalCount = reviewsData?.totalCount || 0;
-  const totalPages = reviewsData?.totalPages || 0;
+  const reviews = Array.isArray(reviewsData) ? reviewsData : [];
+  const totalCount = productReviewCount ?? reviews.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   // Render Star Helper
   const renderStars = (rating: number) => {
@@ -51,9 +57,11 @@ export const ReviewList: React.FC<ReviewListProps> = ({ productId }) => {
   // Calculate review stats (rating breakdown)
   // Normally the backend would calculate this, but since we are showing reviews on the client side,
   // we can display a summary card. If the review count is 0, we show a clean message.
-  const averageRating = reviewsData && reviewsData.items.length > 0 
-    ? (reviewsData.items.reduce((sum, item) => sum + item.rating, 0) / reviewsData.items.length).toFixed(1)
-    : '0.0';
+  const averageRating = productRating !== undefined 
+    ? productRating.toFixed(1)
+    : (reviews.length > 0 
+        ? (reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length).toFixed(1)
+        : '0.0');
 
   return (
     <div className="product-reviews-section">

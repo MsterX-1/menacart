@@ -255,7 +255,11 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <ReviewList productId={product.productId} />
+      <ReviewList 
+        productId={product.productId} 
+        productRating={product.averageRating}
+        productReviewCount={product.reviewCount}
+      />
     </div>
   );
 };

@@ -3,8 +3,7 @@ import type {
   CreateReviewRequest, 
   Review, 
   CreateSellerReviewRequest, 
-  SellerReview,
-  PaginatedReviews
+  SellerReview
 } from '../../../types/review';
 
 export const submitProductReview = async (data: CreateReviewRequest): Promise<Review> => {
@@ -16,8 +15,8 @@ export const getProductReviews = async (
   productId: number,
   page = 1,
   pageSize = 10
-): Promise<PaginatedReviews<Review>> => {
-  const response = await apiClient.get<PaginatedReviews<Review>>(`/reviews/product/${productId}`, {
+): Promise<Review[]> => {
+  const response = await apiClient.get<Review[]>(`/reviews/product/${productId}`, {
     params: { page, pageSize },
   });
   return response.data;
@@ -32,8 +31,8 @@ export const getSellerReviews = async (
   sellerId: number,
   page = 1,
   pageSize = 10
-): Promise<PaginatedReviews<SellerReview>> => {
-  const response = await apiClient.get<PaginatedReviews<SellerReview>>(`/reviews/seller/${sellerId}`, {
+): Promise<SellerReview[]> => {
+  const response = await apiClient.get<SellerReview[]>(`/reviews/seller/${sellerId}`, {
     params: { page, pageSize },
   });
   return response.data;
