@@ -15,6 +15,7 @@ namespace Application.DTOs.CartDtos
         public int Quantity { get; set; }
         public decimal LineTotal => UnitPrice * Quantity;
         public int StockQuantity { get; set; }
+        public int SellerId { get; set; }
     }
 
     public class CartResponseDto

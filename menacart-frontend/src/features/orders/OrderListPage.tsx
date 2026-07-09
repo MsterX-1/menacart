@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMyOrders } from './hooks/useOrders';
+import { useMyOrders, useCancelOrder, usePayForOrder } from './hooks/useOrders';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
+import { useToast } from '../../components/Toast';
 import { getDisplayStatus } from '../../utils/orderStatus';
 import './OrderListPage.css';
 
@@ -11,6 +12,29 @@ export const OrderListPage: React.FC = () => {
   const pageSize = 10;
 
   const { data: orders, isLoading, error } = useMyOrders(page, pageSize);
+  const cancelOrderMutation = useCancelOrder();
+  const payForOrderMutation = usePayForOrder();
+  const { error: toastError, success: toastSuccess } = useToast();
+
+  const handleCancelOrder = async (orderId: number) => {
+    if (!window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      await cancelOrderMutation.mutateAsync(orderId);
+      toastSuccess('Order has been cancelled successfully.');
+    } catch (err: any) {
+      toastError(err.response?.data?.message || 'Failed to cancel the order.');
+    }
+  };
+
+  const handlePayOrder = async (orderId: number) => {
+    try {
+      await payForOrderMutation.mutateAsync(orderId);
+    } catch (err: any) {
+      toastError(err.response?.data?.message || 'Failed to initialize payment.');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -89,7 +113,27 @@ export const OrderListPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="order-header-actions">
+                    <div className="order-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      {order.status === 'Placed' && order.paymentStatus === 'Pending' && (
+                        <>
+                          <Button 
+                            variant="danger" 
+                            size="sm" 
+                            onClick={() => handleCancelOrder(order.orderId)}
+                            isLoading={cancelOrderMutation.isPending}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            variant="primary" 
+                            size="sm" 
+                            onClick={() => handlePayOrder(order.orderId)}
+                            isLoading={payForOrderMutation.isPending}
+                          >
+                            Pay Now
+                          </Button>
+                        </>
+                      )}
                       <Link to={`/orders/${order.orderId}`}>
                         <Button variant="secondary" size="sm">
                           Order Details

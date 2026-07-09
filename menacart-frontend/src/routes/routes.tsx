@@ -36,7 +36,6 @@ import { AdminDashboardPage } from '../features/admin/AdminDashboardPage';
 import { AdminUsersPage } from '../features/admin/AdminUsersPage';
 import {
   WishlistPlaceholder,
-  SellerDashboardPlaceholder,
   ForbiddenPage,
   NotFoundPage
 } from '../pages/Placeholders';
@@ -45,6 +44,8 @@ import { HomePage } from '../features/home/HomePage';
 import { SellersListPage } from '../features/sellers/SellersListPage';
 import { SellerProfilePage } from '../features/sellers/SellerProfilePage';
 import { SellerSettingsPage } from '../features/sellers/SellerSettingsPage';
+import { ShippingRulesPage } from '../features/sellers/ShippingRulesPage';
+import { SellerDashboardPage } from '../features/sellers/SellerDashboardPage';
 
 export const router = createBrowserRouter([
   {
@@ -222,7 +223,7 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <RoleRoute allowedRoles={['Seller']}>
-              <SellerDashboardPlaceholder />
+              <SellerDashboardPage />
             </RoleRoute>
           </ProtectedRoute>
         ),
@@ -233,6 +234,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute>
             <RoleRoute allowedRoles={['Seller']}>
               <SellerSettingsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'seller/shipping-rules',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Seller']}>
+              <ShippingRulesPage />
             </RoleRoute>
           </ProtectedRoute>
         ),

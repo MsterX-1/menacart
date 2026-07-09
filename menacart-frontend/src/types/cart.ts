@@ -12,6 +12,7 @@ export interface CartItem {
   quantity: number;
   lineTotal: number;
   stockQuantity: number;
+  sellerId: number;
 }
 
 export interface Cart {
@@ -22,4 +23,17 @@ export interface Cart {
   savedAddresses: Address[];
   defaultAddressId: number | null;
   warnings: string[];
+}
+
+export interface SellerShippingPreview {
+  sellerId: number;
+  storeName: string;
+  shippingCost: number;
+}
+
+export interface CheckoutPreview {
+  subtotal: number;
+  totalShippingCost: number;
+  totalAmount: number;
+  sellerShipping: SellerShippingPreview[];
 }

@@ -226,6 +226,15 @@ namespace Application.Services
 
                 if (ret.Type == ReturnType.Return)
                 {
+                    // Reverse seller commission
+                    var commissions = await _unitOfWork.SellerCommissionRepository.GetBySubOrderIdAsync(ret.OrderItem.SubOrderId);
+                    var commission = commissions.FirstOrDefault(c => c.OrderItemId == ret.OrderItemId);
+                    if (commission != null)
+                    {
+                        commission.Status = SellerCommissionStatus.Refunded;
+                        await _unitOfWork.SellerCommissionRepository.Update(commission);
+                    }
+
                     // Refund order and payment
                     ret.OrderItem.SubOrder.Order.PaymentStatus = OrderPaymentStatus.Refunded;
                     var payment = ret.OrderItem.SubOrder.Order.Payments?.FirstOrDefault();

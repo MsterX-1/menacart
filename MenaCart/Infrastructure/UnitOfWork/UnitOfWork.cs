@@ -4,12 +4,14 @@ using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
 using Infrastructure.Database;
 using Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
+        private IDbContextTransaction? _currentTransaction;
 
         // Public properties for custom repositories
         public IRefreshTokenRepository RefreshTokenRepository { get; }
@@ -19,8 +21,9 @@ namespace Infrastructure.UnitOfWork
         public ICouponRepository CouponRepository { get; }
         public IAddressRepository AddressRepository { get; }
         public ISellerRepository SellerRepository { get; }
-        public IWishlistRepository WishlistRepository { get; }
         public IShippingRepository ShippingRepository { get; }
+        public ISellerShippingRuleRepository SellerShippingRuleRepository { get; }
+        public IWishlistRepository WishlistRepository { get; }
         public IProductRepository ProductRepository { get; }
         public IProductVariantRepository ProductVariantRepository { get; }
         public IReturnRepository ReturnRepository { get; }
@@ -46,8 +49,9 @@ namespace Infrastructure.UnitOfWork
             ICouponRepository couponRepository,
             IAddressRepository addressRepository,
             ISellerRepository sellerRepository,
-            IWishlistRepository wishlistRepository,
             IShippingRepository shippingRepository,
+            ISellerShippingRuleRepository sellerShippingRuleRepository,
+            IWishlistRepository wishlistRepository,
             IProductRepository productRepository,
             IProductVariantRepository productVariantRepository,
             IReturnRepository returnRepository,
@@ -72,6 +76,7 @@ namespace Infrastructure.UnitOfWork
             SellerRepository = sellerRepository;
             WishlistRepository = wishlistRepository;
             ShippingRepository = shippingRepository;
+            SellerShippingRuleRepository = sellerShippingRuleRepository;
             ProductRepository = productRepository;
             ProductVariantRepository = productVariantRepository;
             ReturnRepository = returnRepository;
@@ -95,23 +100,36 @@ namespace Infrastructure.UnitOfWork
 
         public async Task BeginTransactionAsync()
         {
-            await _context.Database.BeginTransactionAsync();
+            if (_currentTransaction == null)
+            {
+                _currentTransaction = await _context.Database.BeginTransactionAsync();
+            }
         }
 
         public async Task CommitTransactionAsync()
         {
-            if (_context.Database.CurrentTransaction != null)
+            if (_currentTransaction != null)
             {
-                await _context.Database.CurrentTransaction.CommitAsync();
+                await _currentTransaction.CommitAsync();
+                await _currentTransaction.DisposeAsync();
+                _currentTransaction = null;
             }
         }
 
         public async Task RollbackTransactionAsync()
         {
-            if (_context.Database.CurrentTransaction != null)
+            try
             {
-                await _context.Database.CurrentTransaction.RollbackAsync();
-                await _context.Database.CurrentTransaction.DisposeAsync();
+                if (_currentTransaction != null)
+                {
+                    await _currentTransaction.RollbackAsync();
+                    await _currentTransaction.DisposeAsync();
+                    _currentTransaction = null;
+                }
+            }
+            catch
+            {
+                // Suppress exception if transaction is already invalid/disposed
             }
         }
     }

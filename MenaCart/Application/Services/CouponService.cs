@@ -35,6 +35,7 @@ namespace Application.Services
                 ExpiryDate = request.ExpiryDate,
                 UsageLimit = request.UsageLimit,
                 MinOrderAmount = request.MinOrderAmount,
+                SellerId = request.SellerId,
                 UsedCount = 0,
                 CreatedAt = DateTime.UtcNow
             };
@@ -65,6 +66,7 @@ namespace Application.Services
             coupon.ExpiryDate = request.ExpiryDate;
             coupon.UsageLimit = request.UsageLimit;
             coupon.MinOrderAmount = request.MinOrderAmount;
+            coupon.SellerId = request.SellerId;
 
             await _unitOfWork.CouponRepository.Update(coupon);
             await _unitOfWork.CompleteAsync();
@@ -107,7 +109,8 @@ namespace Application.Services
             ExpiryDate = c.ExpiryDate,
             UsageLimit = c.UsageLimit,
             UsedCount = c.UsedCount,
-            MinOrderAmount = c.MinOrderAmount
+            MinOrderAmount = c.MinOrderAmount,
+            SellerId = c.SellerId
         };
     }
 }

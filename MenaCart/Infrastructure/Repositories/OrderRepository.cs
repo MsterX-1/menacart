@@ -55,7 +55,7 @@ namespace Infrastructure.Repository
             var totalOrders = await _context.Orders.CountAsync();
             
             var totalRevenue = await _context.Orders
-                .Where(o => o.PaymentStatus == OrderPaymentStatus.Paid)
+                .Where(o => o.Status == OrderStatus.Completed && o.PaymentStatus == OrderPaymentStatus.Paid)
                 .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             var pendingSellerApps = await _context.SellerProfiles
@@ -64,14 +64,23 @@ namespace Infrastructure.Repository
             var pendingPayouts = await _context.SellerPayouts
                 .CountAsync(sp => sp.Status == SellerPayoutStatus.Pending);
 
-            var platformCommissionProfit = await _context.SellerCommissions
+            var totalCommissions = await _context.SellerCommissions
                 .Where(sc => sc.Status == SellerCommissionStatus.Settled)
                 .SumAsync(sc => (decimal?)sc.CommissionAmount) ?? 0m;
 
+            var totalPlatformDiscounts = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Completed && o.PaymentStatus == OrderPaymentStatus.Paid)
+                .SumAsync(o => (decimal?)o.PlatformDiscount) ?? 0m;
+
+            var platformCommissionProfit = totalCommissions - totalPlatformDiscounts;
+
             // Top Selling Products
             var topProducts = await _context.OrderItems
+                .Include(oi => oi.SubOrder)
+                    .ThenInclude(so => so.Order)
                 .Include(oi => oi.ProductVariant)
                     .ThenInclude(pv => pv.Product)
+                .Where(oi => oi.SubOrder.Order.Status == OrderStatus.Completed && oi.SubOrder.Order.PaymentStatus == OrderPaymentStatus.Paid)
                 .GroupBy(oi => oi.ProductVariant.ProductId)
                 .Select(g => new TopProductDto
                 {

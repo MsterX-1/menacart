@@ -34,8 +34,8 @@ namespace Application.Services
             if (!commissionList.Any())
                 throw new InvalidOperationException("No settled commissions available for payout.");
 
-            // Calculate total payout amount (Net Seller Funds = SaleAmount - CommissionAmount)
-            var amount = commissionList.Sum(c => c.SaleAmount - c.CommissionAmount);
+            // Calculate total payout amount (Net Seller Funds = SaleAmount - CommissionAmount - SellerDiscount)
+            var amount = commissionList.Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -88,7 +88,7 @@ namespace Application.Services
             if (!commissionList.Any())
                 return 0;
 
-            return commissionList.Sum(c => c.SaleAmount - c.CommissionAmount);
+            return commissionList.Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
         }
 
         public async Task<IEnumerable<PayoutResponseDto>> GetMyPayoutsAsync(string userId)

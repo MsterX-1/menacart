@@ -150,10 +150,15 @@ namespace Infrastructure.Services
 
         public async Task<string> CreateTransferAsync(string destinationAccountId, decimal amount, string description)
         {
+            // Since most Stripe test accounts default to USD, transferring EGP fails with "insufficient funds" 
+            // because Stripe converts incoming EGP payments to USD, leaving the EGP balance at 0.
+            // For testing purposes, we will convert the EGP amount to USD (assuming 1 USD = 50 EGP).
+            var usdAmount = amount / 50m;
+            
             var options = new TransferCreateOptions
             {
-                Amount = (long)(amount * 100), // convert to cents
-                Currency = "egp",
+                Amount = (long)(usdAmount * 100), // convert to cents
+                Currency = "usd",
                 Destination = destinationAccountId,
                 Description = description
             };

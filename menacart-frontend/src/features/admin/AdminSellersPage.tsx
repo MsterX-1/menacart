@@ -25,10 +25,8 @@ export const AdminSellersPage: React.FC = () => {
 
   const { data: sellersData, isLoading, error, refetch } = useAdminSellers(statusFilter, page, pageSize);
 
-  // Selected merchant for the split-pane view
   const [selectedSeller, setSelectedSeller] = useState<SellerResponse | null>(null);
 
-  // If filter changes, reset page and clear selection
   useEffect(() => {
     setPage(1);
     setSelectedSeller(null);
@@ -36,9 +34,9 @@ export const AdminSellersPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="admin-sellers-container loading">
-        <LoadingSkeleton variant="text" width="200px" height={32} />
-        <div style={{ marginTop: '20px' }}>
+      <div className="impeccable-admin-sellers loading-state">
+        <LoadingSkeleton variant="text" width="300px" height={40} />
+        <div style={{ marginTop: '24px' }}>
           <LoadingSkeleton variant="rect" height="400px" />
         </div>
       </div>
@@ -47,9 +45,9 @@ export const AdminSellersPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="admin-sellers-container error ">
+      <div className="impeccable-admin-sellers error-state">
         <p className="error-text">Failed to load seller applications: {(error as any).message}</p>
-        <Button onClick={() => refetch()}>Retry</Button>
+        <Button onClick={() => refetch()}>Retry Connection</Button>
       </div>
     );
   }
@@ -58,28 +56,27 @@ export const AdminSellersPage: React.FC = () => {
   const totalPages = sellersData?.totalPages || 0;
 
   return (
-    <div className="admin-sellers-container">
-      <div className="admin-sellers-header">
-        <div>
-          <h1 className="admin-sellers-title">Merchant Verification & Moderation</h1>
-          <p className="admin-sellers-subtitle">
-            Inspect onboarding profiles, verify KYC file uploads, and manage seller permissions dynamically.
+    <div className="impeccable-admin-sellers">
+      <header className="sellers-header">
+        <div className="header-content">
+          <h1 className="sellers-title">Merchant Verification</h1>
+          <p className="sellers-subtitle">
+            Inspect onboarding profiles, verify KYC documents, and manage permissions.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* Filter Tabs */}
-      <div className="seller-status-tabs">
+      <div className="sellers-status-filters">
         {([
           { label: 'All Profiles', value: null },
           { label: 'Pending Verification', value: 'Pending' },
           { label: 'Active Sellers', value: 'Active' },
-          { label: 'Suspended Accounts', value: 'Suspended' },
-          { label: 'Rejected Applicants', value: 'Rejected' }
+          { label: 'Suspended', value: 'Suspended' },
+          { label: 'Rejected', value: 'Rejected' }
         ] as const).map((tab) => (
           <button
             key={tab.label}
-            className={`status-tab-btn ${statusFilter === tab.value ? 'active' : ''}`}
+            className={`filter-pill ${statusFilter === tab.value ? 'active' : ''}`}
             onClick={() => setStatusFilter(tab.value)}
           >
             {tab.label}
@@ -87,113 +84,76 @@ export const AdminSellersPage: React.FC = () => {
         ))}
       </div>
 
-      <div className="admin-sellers-split-layout">
-        {/* Left Pane: Table */}
-        <div className={`sellers-table-pane ${selectedSeller ? 'split' : 'full-width'}`}>
+      <div className="sellers-master-detail">
+        {/* Left Pane: List */}
+        <div className={`sellers-list-pane ${selectedSeller ? 'contracted' : 'expanded'}`}>
           {sellers.length === 0 ? (
-            <div className="sellers-empty">
-              <h2>No Sellers Found</h2>
-              <p>No merchant accounts fit your current filter option.</p>
+            <div className="sellers-empty-state">
+              <h2>No Merchants Found</h2>
+              <p>Try adjusting your filter criteria to see more results.</p>
             </div>
           ) : (
-            <>
-              <table className="sellers-table">
-                <thead>
-                  <tr>
-                    <th>Store Details</th>
-                    <th>Email</th>
-                    <th>KYC</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sellers.map((seller) => {
-                    const isCurrent = selectedSeller?.sellerId === seller.sellerId;
-                    return (
-                      <tr 
-                        key={seller.sellerId}
-                        className={`seller-row-item ${isCurrent ? 'selected-row' : ''}`}
-                        onClick={() => setSelectedSeller(seller)}
-                      >
-                        <td>
-                          <div className="store-cell-info">
-                            <div className="store-avatar">
-                              {seller.storeName ? seller.storeName[0]?.toUpperCase() : 'M'}
-                            </div>
-                            <div className="store-text-meta">
-                              <strong className="seller-table-store-name">{seller.storeName}</strong>
-                              <span className="seller-table-id">ID: #{seller.sellerId}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="seller-table-email">{seller.email}</span>
-                        </td>
-                        <td>
-                          <span className={`verification-badge ${seller.isVerified ? 'verified' : 'unverified'}`}>
-                            {seller.isVerified ? 'Verified' : 'Unverified'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-badge doc-${seller.status.toLowerCase()}`}>
-                            {seller.status}
-                          </span>
-                        </td>
-                        <td>
-                          <Button 
-                            variant={isCurrent ? 'primary' : 'secondary'} 
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedSeller(seller);
-                            }}
-                          >
-                            Manage
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="sellers-list">
+              {sellers.map((seller) => {
+                const isSelected = selectedSeller?.sellerId === seller.sellerId;
+                return (
+                  <div 
+                    key={seller.sellerId}
+                    className={`seller-list-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setSelectedSeller(seller)}
+                  >
+                    <div className="seller-list-avatar">
+                      {seller.storeName ? seller.storeName[0].toUpperCase() : 'M'}
+                    </div>
+                    <div className="seller-list-details">
+                      <div className="seller-list-top">
+                        <strong className="seller-list-name">{seller.storeName}</strong>
+                        <span className={`seller-status-indicator status-${seller.status.toLowerCase()}`}>
+                          {seller.status}
+                        </span>
+                      </div>
+                      <div className="seller-list-bottom">
+                        <span className="seller-list-id">#{seller.sellerId}</span>
+                        <span className="seller-list-email">{seller.email}</span>
+                        {seller.isVerified && <span className="seller-list-verified">Verified</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="reviews-pagination">
-                  <button
-                    className="pagination-btn"
-                    disabled={page === 1}
-                    onClick={() => setPage((prev) => prev - 1)}
-                  >
-                    &larr; Prev
-                  </button>
-                  <span className="pagination-info">
-                    {page} / {totalPages}
-                  </span>
-                  <button
-                    className="pagination-btn"
-                    disabled={page === totalPages}
-                    onClick={() => setPage((prev) => prev + 1)}
-                  >
-                    Next &rarr;
-                  </button>
-                </div>
-              )}
-            </>
+          {totalPages > 1 && (
+            <div className="sellers-pagination">
+              <button
+                className="pagination-btn"
+                disabled={page === 1}
+                onClick={() => setPage((prev) => prev - 1)}
+              >
+                &larr; Prev
+              </button>
+              <span className="pagination-text">
+                {page} / {totalPages}
+              </span>
+              <button
+                className="pagination-btn"
+                disabled={page === totalPages}
+                onClick={() => setPage((prev) => prev + 1)}
+              >
+                Next &rarr;
+              </button>
+            </div>
           )}
         </div>
 
-        {/* Right Pane: Unified Management & Control Panel */}
+        {/* Right Pane: Detail View */}
         {selectedSeller && (
-          <div className="seller-control-pane ">
-            <SellerControlCenter 
+          <div className="seller-detail-pane">
+            <SellerDetailView 
               seller={selectedSeller} 
               onClose={() => setSelectedSeller(null)}
-              onRefresh={() => {
-                refetch();
-                // Optionally refresh selection details if they change status
-              }}
+              onRefresh={() => refetch()}
             />
           </div>
         )}
@@ -202,21 +162,18 @@ export const AdminSellersPage: React.FC = () => {
   );
 };
 
-// --- Subcomponent: Unified Control Center ---
-interface SellerControlCenterProps {
+interface SellerDetailViewProps {
   seller: SellerResponse;
   onClose: () => void;
   onRefresh: () => void;
 }
 
-const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClose, onRefresh }) => {
+const SellerDetailView: React.FC<SellerDetailViewProps> = ({ seller, onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'moderation'>('profile');
   
-  // Data Fetching
   const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useAdminSellerProfile(seller.sellerId);
   const { data: documents, isLoading: isDocsLoading, refetch: refetchDocs } = useAdminSellerDocuments(seller.sellerId);
   
-  // Mutations
   const updateStatusMutation = useAdminUpdateSellerStatus();
   const banMutation = useAdminBanSeller();
   const warnMutation = useAdminWarnSeller();
@@ -225,7 +182,6 @@ const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClo
   
   const { success: toastSuccess, error: toastError } = useToast();
 
-  // Local Form States
   const [updateStatusVal, setUpdateStatusVal] = useState<'Active' | 'Suspended' | 'Rejected'>('Active');
   const [statusReason, setStatusReason] = useState('');
   const [warningMsg, setWarningMsg] = useState('');
@@ -233,7 +189,6 @@ const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClo
   const [commissionRate, setCommissionRate] = useState('');
   const [rejectionReasons, setRejectionReasons] = useState<Record<number, string>>({});
 
-  // Synchronize form states on seller change
   useEffect(() => {
     setUpdateStatusVal(seller.status === 'Active' ? 'Active' : seller.status === 'Suspended' ? 'Suspended' : 'Rejected');
     setStatusReason('');
@@ -295,7 +250,7 @@ const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClo
     e.preventDefault();
     if (!banReason.trim()) return;
 
-    if (!window.confirm(`Are you absolutely sure you want to permanently BAN the seller "${seller.storeName}" and lock their email? This cannot be undone.`)) {
+    if (!window.confirm(`Are you absolutely sure you want to permanently BAN the seller "${seller.storeName}"? This cannot be undone.`)) {
       return;
     }
 
@@ -330,85 +285,73 @@ const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClo
       });
       toastSuccess(`Document verification status set to ${status}.`);
       refetchDocs();
-      refetchProfile(); // Verification status changes when docs get approved
+      refetchProfile();
     } catch (err: any) {
       toastError(err.response?.data?.message || err.message || 'Failed to review document.');
     }
   };
 
   return (
-    <div className="seller-control-center">
-      {/* Panel Header */}
-      <div className="control-center-header">
-        <div className="header-meta">
-          <h3 className="control-store-name">{seller.storeName}</h3>
-          <div className="store-subheading">
-            <span className="store-id-badge">ID: #{seller.sellerId}</span>
-            <span className={`status-badge doc-${seller.status.toLowerCase()}`}>
-              {seller.status}
-            </span>
-          </div>
+    <div className="detail-view-container">
+      <div className="detail-header">
+        <div className="detail-header-info">
+          <h3 className="detail-store-name">{seller.storeName}</h3>
+          <p className="detail-store-id">ID: {seller.sellerId} • {seller.email}</p>
         </div>
-        <button className="panel-close-btn" onClick={onClose} aria-label="Close panel">
-          &times;
-        </button>
+        <div className="detail-header-actions">
+          <Link 
+            to={`/seller/${seller.sellerId}`} 
+            target="_blank" 
+            className="detail-preview-link"
+          >
+            Public Storefront ↗
+          </Link>
+          <button className="detail-close-btn" onClick={onClose} aria-label="Close">
+            &times;
+          </button>
+        </div>
       </div>
 
-      <div className="control-actions-preview">
-        <Link 
-          to={`/seller/${seller.sellerId}`} 
-          target="_blank" 
-          className="btn-preview-link public-preview-btn"
-        >
-          View Public Storefront ↗
-        </Link>
-      </div>
-
-      {/* Tab Switcher */}
-      <div className="control-tabs">
+      <div className="detail-tabs">
         <button 
-          className={`control-tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+          className={`detail-tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
-          Profile & KYC Docs
+          Profile & KYC
         </button>
         <button 
-          className={`control-tab-btn ${activeTab === 'moderation' ? 'active' : ''}`}
+          className={`detail-tab-btn ${activeTab === 'moderation' ? 'active' : ''}`}
           onClick={() => setActiveTab('moderation')}
         >
-          Security & Moderation
+          Moderation & Settings
         </button>
       </div>
 
-      <div className="control-tab-content">
+      <div className="detail-content">
         {activeTab === 'profile' ? (
-          <div className="profile-kyc-tab">
+          <div className="profile-kyc-content">
             {isProfileLoading ? (
-              <div className="tab-loading">
-                <LoadingSkeleton variant="rect" height="150px" />
-              </div>
+              <LoadingSkeleton variant="rect" height="150px" />
             ) : profile ? (
-              <div className="seller-profile-card">
+              <div className="profile-summary">
                 {profile.storeBannerUrl && (
-                  <div className="profile-banner-container">
-                    <img src={profile.storeBannerUrl} alt="Store Banner" className="profile-banner" />
+                  <div className="profile-banner">
+                    <img src={profile.storeBannerUrl} alt="Store Banner" />
                   </div>
                 )}
-                <div className="profile-details-grid">
+                <div className="profile-meta">
                   {profile.storeLogoUrl && (
                     <img src={profile.storeLogoUrl} alt="Logo" className="profile-logo" />
                   )}
-                  <div className="profile-text-info">
+                  <div className="profile-meta-text">
                     <p><strong>Phone:</strong> {profile.phone || 'Not Provided'}</p>
                     <p><strong>Address:</strong> {profile.storeAddress || 'Not Provided'}</p>
-                    <p><strong>Commission:</strong> {profile.commissionRate != null ? `${profile.commissionRate}%` : 'Default platform rate'}</p>
-                    <p><strong>Shipping:</strong> {profile.baseShippingCost != null ? `${profile.baseShippingCost} EGP` : 'Default'} (Free threshold: {profile.freeShippingThreshold != null ? `${profile.freeShippingThreshold} EGP` : 'None'})</p>
+                    <p><strong>Commission:</strong> {profile.commissionRate != null ? `${profile.commissionRate}%` : 'Default'}</p>
                   </div>
                 </div>
                 {profile.storeDescription && (
-                  <div className="profile-desc-block">
-                    <strong>Description:</strong>
-                    <p className="profile-desc-text">{profile.storeDescription}</p>
+                  <div className="profile-description">
+                    <p>{profile.storeDescription}</p>
                   </div>
                 )}
               </div>
@@ -416,79 +359,51 @@ const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClo
               <p className="error-text">Failed to load detailed profile.</p>
             )}
 
-            <hr className="modal-divider-row" />
-
-            <div className="kyc-files-section">
-              <h4>KYC Documents</h4>
+            <div className="kyc-section">
+              <h4 className="section-heading">KYC Documents</h4>
               {isDocsLoading ? (
-                <div style={{ textAlign: 'center', padding: '15px' }}>
-                  <div className="loading-spinner"></div>
-                  <p>Loading files...</p>
-                </div>
+                <LoadingSkeleton variant="rect" height="100px" />
               ) : documents && documents.length === 0 ? (
-                <p className="no-docs-text">This merchant has not uploaded KYC documents yet.</p>
+                <p className="empty-state-text">No KYC documents uploaded.</p>
               ) : (
-                <div className="kyc-inspection-list">
+                <div className="kyc-documents-list">
                   {documents?.map((doc) => {
                     const isPdf = doc.documentUrl.toLowerCase().endsWith('.pdf');
                     return (
-                      <div key={doc.sellerDocumentId} className={`inspection-doc-card doc-status-${doc.status.toLowerCase()}`}>
-                        <div className="inspection-doc-header">
-                          <span className="inspection-doc-badge">{doc.documentType}</span>
-                          <span className={`status-badge doc-${doc.status.toLowerCase()}`}>{doc.status}</span>
+                      <div key={doc.sellerDocumentId} className={`kyc-document-item status-${doc.status.toLowerCase()}`}>
+                        <div className="kyc-item-header">
+                          <span className="kyc-item-type">{doc.documentType}</span>
+                          <span className={`kyc-item-status status-${doc.status.toLowerCase()}`}>{doc.status}</span>
                         </div>
-
-                        <div className="inspection-doc-preview-area">
+                        <div className="kyc-item-preview">
                           {isPdf ? (
-                            <div className="pdf-preview-box">
-                              <span>📄 PDF File</span>
-                              <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer" className="btn-preview-link">
-                                Open Document &rarr;
-                              </a>
-                            </div>
+                            <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer" className="kyc-preview-link">
+                              View PDF Document &rarr;
+                            </a>
                           ) : (
-                            <div className="image-preview-box">
-                              <img src={doc.documentUrl} alt={doc.documentType} className="kyc-preview-img" />
-                              <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer" className="btn-preview-link">
-                                Open Full Image &rarr;
-                              </a>
-                            </div>
+                            <a href={doc.documentUrl} target="_blank" rel="noopener noreferrer">
+                              <img src={doc.documentUrl} alt={doc.documentType} className="kyc-thumbnail" />
+                            </a>
                           )}
                         </div>
-
                         {doc.status === 'Pending' && (
-                          <div className="inspection-actions-row">
+                          <div className="kyc-item-actions">
                             <Input
                               label="Rejection Reason"
                               type="text"
-                              placeholder="Required if rejecting..."
+                              placeholder="Required for rejection..."
                               value={rejectionReasons[doc.sellerDocumentId] || ''}
-                              onChange={(e) => 
-                                setRejectionReasons(prev => ({ ...prev, [doc.sellerDocumentId]: e.target.value }))
-                              }
+                              onChange={(e) => setRejectionReasons(prev => ({ ...prev, [doc.sellerDocumentId]: e.target.value }))}
                             />
-                            <div className="actions-button-group">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleReviewDoc(doc.sellerDocumentId, 'Approved')}
-                              >
-                                Approve
-                              </Button>
-                              <Button 
-                                variant="danger" 
-                                size="sm" 
-                                onClick={() => handleReviewDoc(doc.sellerDocumentId, 'Rejected')}
-                              >
-                                Reject
-                              </Button>
+                            <div className="kyc-action-buttons">
+                              <Button variant="secondary" size="sm" onClick={() => handleReviewDoc(doc.sellerDocumentId, 'Approved')}>Approve</Button>
+                              <Button variant="danger" size="sm" onClick={() => handleReviewDoc(doc.sellerDocumentId, 'Rejected')}>Reject</Button>
                             </div>
                           </div>
                         )}
-
                         {doc.status === 'Rejected' && doc.rejectionReason && (
-                          <div className="doc-rejection-box">
-                            <strong>Rejection Reason:</strong> {doc.rejectionReason}
+                          <div className="kyc-rejection-note">
+                            <strong>Reason:</strong> {doc.rejectionReason}
                           </div>
                         )}
                       </div>
@@ -499,94 +414,77 @@ const SellerControlCenter: React.FC<SellerControlCenterProps> = ({ seller, onClo
             </div>
           </div>
         ) : (
-          <div className="moderation-tab">
-            {/* Status Update Form */}
-            <form onSubmit={handleUpdateStatusSubmit} className="moderation-section-form">
-              <h4>Update Verification Status</h4>
-              <div className="input-container">
-                <label className="input-label" htmlFor="moderate-status-select">Status</label>
-                <div className="input-wrapper">
-                  <select
-                    id="moderate-status-select"
-                    className="input-field select-field"
-                    value={updateStatusVal}
-                    onChange={(e) => setUpdateStatusVal(e.target.value as any)}
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Suspended">Suspended</option>
-                    <option value="Rejected">Rejected</option>
-                  </select>
+          <div className="moderation-content">
+            <section className="moderation-section">
+              <h4 className="section-heading">Verification Decision</h4>
+              <form onSubmit={handleUpdateStatusSubmit} className="moderation-form">
+                <div className="status-toggle-group">
+                  {['Active', 'Suspended', 'Rejected'].map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      className={`status-toggle-btn ${updateStatusVal === status ? 'active' : ''}`}
+                      onClick={() => setUpdateStatusVal(status as any)}
+                    >
+                      {status}
+                    </button>
+                  ))}
                 </div>
-              </div>
+                <Input
+                  label="Remarks (Optional)"
+                  type="text"
+                  placeholder="e.g. Identity check failed..."
+                  value={statusReason}
+                  onChange={(e) => setStatusReason(e.target.value)}
+                />
+                <Button type="submit" isLoading={updateStatusMutation.isPending}>Apply Decision</Button>
+              </form>
+            </section>
 
-              <Input
-                label="Remarks (Optional)"
-                type="text"
-                placeholder="e.g. Identity check failed..."
-                value={statusReason}
-                onChange={(e) => setStatusReason(e.target.value)}
-              />
+            <section className="moderation-section">
+              <h4 className="section-heading">Platform Commission Override</h4>
+              <form onSubmit={handleUpdateCommission} className="moderation-form">
+                <Input
+                  label="Rate (%)"
+                  type="number"
+                  step="0.01"
+                  placeholder="Leave blank for platform default"
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(e.target.value)}
+                />
+                <Button type="submit" isLoading={commissionMutation.isPending} variant="secondary">Save Override</Button>
+              </form>
+            </section>
 
-              <Button type="submit" isLoading={updateStatusMutation.isPending}>
-                Apply Status
-              </Button>
-            </form>
+            <section className="moderation-section">
+              <h4 className="section-heading">Dispatch Notice</h4>
+              <form onSubmit={handleSendWarning} className="moderation-form">
+                <Input
+                  label="Warning Message"
+                  type="text"
+                  placeholder="Describe violation rules..."
+                  value={warningMsg}
+                  onChange={(e) => setWarningMsg(e.target.value)}
+                  required
+                />
+                <Button type="submit" variant="secondary" isLoading={warnMutation.isPending}>Send Warning</Button>
+              </form>
+            </section>
 
-            <hr className="modal-divider-row" />
-
-            {/* Commission Override */}
-            <form onSubmit={handleUpdateCommission} className="moderation-section-form">
-              <h4>Platform Commission Override</h4>
-              <Input
-                label="Commission Rate (%)"
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-                placeholder="Leave blank for platform default"
-                value={commissionRate}
-                onChange={(e) => setCommissionRate(e.target.value)}
-              />
-              <Button type="submit" isLoading={commissionMutation.isPending}>
-                Save Commission Override
-              </Button>
-            </form>
-
-            <hr className="modal-divider-row" />
-
-            {/* Warning System */}
-            <form onSubmit={handleSendWarning} className="moderation-section-form">
-              <h4>Dispatch Warn Notice</h4>
-              <Input
-                label="Warning Reason / Content"
-                type="text"
-                placeholder="Describe violation rules..."
-                value={warningMsg}
-                onChange={(e) => setWarningMsg(e.target.value)}
-                required
-              />
-              <Button type="submit" variant="secondary" isLoading={warnMutation.isPending}>
-                Send Warning
-              </Button>
-            </form>
-
-            <hr className="modal-divider-row" />
-
-            {/* Permanent Exclusion */}
-            <form onSubmit={handleBanSeller} className="moderation-section-form">
-              <h4 style={{ color: 'var(--color-error)' }}>Account Permanent Exclusion</h4>
-              <Input
-                label="Exclusion Reason"
-                type="text"
-                placeholder="Describe bannable offense..."
-                value={banReason}
-                onChange={(e) => setBanReason(e.target.value)}
-                required
-              />
-              <Button type="submit" variant="danger" isLoading={banMutation.isPending}>
-                Exclude & Ban Merchant
-              </Button>
-            </form>
+            <section className="moderation-section danger-zone">
+              <h4 className="section-heading danger">Permanent Exclusion</h4>
+              <form onSubmit={handleBanSeller} className="moderation-form">
+                <Input
+                  label="Exclusion Reason"
+                  type="text"
+                  placeholder="Describe bannable offense..."
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  required
+                />
+                <Button type="submit" variant="danger" isLoading={banMutation.isPending}>Ban Merchant</Button>
+              </form>
+            </section>
           </div>
         )}
       </div>

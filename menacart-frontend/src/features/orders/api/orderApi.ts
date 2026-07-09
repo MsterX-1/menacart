@@ -28,7 +28,16 @@ export const getMyOrders = async (page = 1, pageSize = 20): Promise<Order[]> => 
 };
 
 export const cancelOrder = async (orderId: number): Promise<void> => {
-  await apiClient.delete(`/orders/Cancel${orderId}`);
+  await apiClient.delete(`/orders/${orderId}/cancel`);
+};
+
+export const payForOrder = async (orderId: number): Promise<{ paymentUrl: string }> => {
+  const response = await apiClient.post<{ paymentUrl: string }>(`/orders/${orderId}/pay`);
+  return response.data;
+};
+
+export const applyCouponToOrder = async (orderId: number, couponCode: string): Promise<void> => {
+  await apiClient.post(`/orders/${orderId}/apply-coupon`, { couponCode });
 };
 
 // Seller endpoints

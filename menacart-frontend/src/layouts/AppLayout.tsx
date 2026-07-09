@@ -105,6 +105,7 @@ export const AppLayout: React.FC = () => {
                   <>
                     <Link to="/seller/settings" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Store Settings</Link>
                     <Link to="/seller/products" className="nav-link" onClick={() => setMobileMenuOpen(false)}>My Products</Link>
+                    <Link to="/seller/shipping-rules" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Shipping Rules</Link>
                     <Link to="/seller/orders" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Fulfill Orders</Link>
                   </>
                 )}
@@ -205,6 +206,7 @@ export const AppLayout: React.FC = () => {
                       <Link to="/seller/dashboard" className="dropdown-link-item">Seller Dashboard</Link>
                       <Link to="/seller/settings" className="dropdown-link-item">Store Settings</Link>
                       <Link to="/seller/products" className="dropdown-link-item">My Products</Link>
+                      <Link to="/seller/shipping-rules" className="dropdown-link-item">Shipping Rules</Link>
                       <Link to="/seller/orders" className="dropdown-link-item">Fulfill Orders</Link>
                       <Link to="/seller/returns" className="dropdown-link-item">Manage Returns</Link>
                       <Link to="/seller/payouts" className="dropdown-link-item">Payouts</Link>

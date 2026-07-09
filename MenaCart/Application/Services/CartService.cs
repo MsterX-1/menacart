@@ -9,10 +9,12 @@ namespace Application.Services
     public class CartService : ICartService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IShippingService _shippingService;
 
-        public CartService(IUnitOfWork unitOfWork)
+        public CartService(IUnitOfWork unitOfWork, IShippingService shippingService)
         {
             _unitOfWork = unitOfWork;
+            _shippingService = shippingService;
         }
 
         public async Task<CartResponseDto> GetCartAsync(string userId)
@@ -149,6 +151,52 @@ namespace Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
+        public async Task<CheckoutPreviewDto> GetCheckoutPreviewAsync(string userId, int addressId)
+        {
+            var cart = await _unitOfWork.CartRepository.GetCartWithItemsByUserIdAsync(userId);
+            if (cart == null || !cart.CartItems.Any())
+                throw new Exception("Cart is empty.");
+
+            var address = await _unitOfWork.AddressRepository.GetByIdAndUserIdAsync(addressId, userId);
+            if (address == null)
+                throw new UnauthorizedAccessException("Address not found or does not belong to you.");
+
+            var activeItems = cart.CartItems
+                .Where(ci => ci.ProductVariant.Product.SellerProfile.Status == SellerStatus.Active
+                          && ci.ProductVariant.Product.ApprovalStatus == ApprovalStatus.Approved)
+                .ToList();
+
+            if (!activeItems.Any())
+                throw new Exception("No eligible items in cart.");
+
+            decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+            var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
+
+            var preview = new CheckoutPreviewDto
+            {
+                Subtotal = subtotal,
+                TotalShippingCost = 0,
+                SellerShipping = new List<SellerShippingPreviewDto>()
+            };
+
+            foreach (var sellerGroup in grouped)
+            {
+                var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                var cost = await _shippingService.CalculateShippingCostAsync(address, sellerGroup.Key, sellerSubtotal);
+                
+                preview.TotalShippingCost += cost;
+                preview.SellerShipping.Add(new SellerShippingPreviewDto
+                {
+                    SellerId = sellerGroup.Key,
+                    StoreName = sellerGroup.First().ProductVariant.Product.SellerProfile.StoreName,
+                    ShippingCost = cost
+                });
+            }
+
+            preview.TotalAmount = preview.Subtotal + preview.TotalShippingCost;
+            return preview;
+        }
+
         // ── Mapper ─────────────────────────────────────────────────────────────
         private static CartResponseDto MapToDto(Cart cart, List<Address> addresses)
         {
@@ -185,7 +233,8 @@ namespace Application.Services
                     MainImageUrl = variant?.MainImageUrl,
                     UnitPrice = variant?.Price ?? 0,
                     Quantity = ci.Quantity,
-                    StockQuantity = variant?.StockQuantity ?? 0
+                    StockQuantity = variant?.StockQuantity ?? 0,
+                    SellerId = product?.SellerId ?? 0
                 };
             }).ToList() ?? new();
 

@@ -7,7 +7,8 @@ namespace Domain.Models
     public enum SellerCommissionStatus
     {
         Pending,
-        Settled
+        Settled,
+        Refunded
     }
 
     public class SellerCommission
@@ -30,6 +31,9 @@ namespace Domain.Models
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal CommissionAmount { get; set; }
+
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal SellerDiscount { get; set; } = 0;
 
         [Required]
         public SellerCommissionStatus Status { get; set; } = SellerCommissionStatus.Pending;

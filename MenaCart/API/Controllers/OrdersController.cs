@@ -83,7 +83,7 @@ namespace API.Controllers
         /// Cancel an order. Only possible while status is Placed
         /// and no suborder has started processing.
         /// </summary>
-        [HttpDelete("Cancel{orderId}")]
+        [HttpDelete("{orderId}/cancel")]
         public async Task<IActionResult> CancelOrder(int orderId)
         {
             try
@@ -91,6 +91,63 @@ namespace API.Controllers
                 var userId = User.GetUserId();
                 await _orderService.CancelOrderAsync(userId, orderId);
                 return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        public class ApplyCouponRequest
+        {
+            public string CouponCode { get; set; } = string.Empty;
+        }
+
+        /// <summary>
+        /// Apply a coupon to an existing pending order.
+        /// </summary>
+        [HttpPost("{orderId}/apply-coupon")]
+        public async Task<IActionResult> ApplyCoupon(int orderId, [FromBody] ApplyCouponRequest request)
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                await _orderService.ApplyCouponToOrderAsync(userId, orderId, request.CouponCode);
+                return Ok(new { message = "Coupon applied successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Generates a new payment session for a pending order.
+        /// </summary>
+        [HttpPost("{orderId}/pay")]
+        public async Task<IActionResult> PayForOrder(int orderId)
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                var paymentUrl = await _orderService.GeneratePaymentSessionAsync(userId, orderId);
+                return Ok(new { paymentUrl });
             }
             catch (KeyNotFoundException ex)
             {

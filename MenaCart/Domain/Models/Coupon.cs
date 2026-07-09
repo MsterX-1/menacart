@@ -16,6 +16,8 @@ namespace Domain.Models
         [Key]
         public int CouponId { get; set; }
 
+        public int? SellerId { get; set; }
+
         [Required]
         [MaxLength(50)]
         public string Code { get; set; }
@@ -40,6 +42,9 @@ namespace Domain.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation
+        [ForeignKey(nameof(SellerId))]
+        public SellerProfile SellerProfile { get; set; }
+
         public ICollection<Order> Orders { get; set; }
         public ICollection<UserCouponUsage> UserCouponUsages { get; set; }
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../cart/hooks/useCart';
+import { useCart, useCheckoutPreview } from '../cart/hooks/useCart';
 import { useAddresses } from '../addresses/hooks/useAddresses';
 import { AddressFormModal } from '../addresses/components/AddressFormModal';
 import { usePlaceOrder, useCoupon, useLoyalty } from '../orders/hooks/useOrders';
@@ -18,11 +18,15 @@ export const CheckoutPage: React.FC = () => {
   const { data: addresses, isLoading: addrLoading, refetch: refetchAddresses } = useAddresses();
   const { data: loyalty, isLoading: loyaltyLoading } = useLoyalty();
 
+  // States
+  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
+
+  // Preview Query
+  const { data: checkoutPreview, isLoading: previewLoading } = useCheckoutPreview(selectedAddressId);
+
   // Mutations
   const placeOrderMutation = usePlaceOrder();
 
-  // States
-  const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [couponInput, setCouponInput] = useState('');
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [redeemPoints, setRedeemPoints] = useState(false);
@@ -141,24 +145,40 @@ export const CheckoutPage: React.FC = () => {
   // Assume: 1 Point = 1 EGP discount for the sake of presentation
   const userPoints = loyalty?.balance || 0;
   const pointsValue = userPoints; // 1:1 ratio
-  const cartSubtotal = cart.grandTotal;
+  
+  // Use preview data if available, otherwise fallback to cart subtotal
+  const cartSubtotal = checkoutPreview ? checkoutPreview.subtotal : cart.grandTotal;
+  const totalShippingCost = checkoutPreview ? checkoutPreview.totalShippingCost : 0;
 
   // Coupon discount calculation
   let couponDiscount = 0;
   if (coupon && appliedCode) {
+    let applicableSubtotal = cartSubtotal;
+
+    if (coupon.sellerId) {
+      // Calculate subtotal only for this seller's items
+      applicableSubtotal = cart.items
+        .filter(item => item.sellerId === coupon.sellerId)
+        .reduce((sum, item) => sum + item.lineTotal, 0);
+    }
+
     if (coupon.discountType === 'Percentage') {
-      couponDiscount = cartSubtotal * (coupon.discountValue / 100);
+      couponDiscount = applicableSubtotal * (coupon.discountValue / 100);
     } else {
+      // For fixed discounts, we just apply it, but it cannot exceed the applicable subtotal
       couponDiscount = coupon.discountValue;
     }
-    // Cannot exceed subtotal
-    couponDiscount = Math.min(couponDiscount, cartSubtotal);
+    
+    // Cannot exceed applicable subtotal
+    couponDiscount = Math.min(couponDiscount, applicableSubtotal);
   }
 
   // Points discount calculation
   const subtotalAfterCoupon = cartSubtotal - couponDiscount;
   const pointsDiscount = redeemPoints ? Math.min(pointsValue, subtotalAfterCoupon) : 0;
-  const grandTotal = Math.max(0, subtotalAfterCoupon - pointsDiscount);
+  
+  // Final calculation including shipping
+  const grandTotal = Math.max(0, subtotalAfterCoupon - pointsDiscount) + totalShippingCost;
 
   // Address rendering lists
   const shippingAddresses = addresses?.filter((a) => a.addressType === 'Shipping') || [];
@@ -332,8 +352,26 @@ export const CheckoutPage: React.FC = () => {
 
                 <div className="calc-row shipping-row">
                   <span>Shipping</span>
-                  <span className="free-shipping">FREE</span>
+                  {previewLoading ? (
+                    <span className="calculating-text">Calculating...</span>
+                  ) : totalShippingCost > 0 ? (
+                    <span>{totalShippingCost.toFixed(2)} EGP</span>
+                  ) : (
+                    <span className="free-shipping">FREE</span>
+                  )}
                 </div>
+
+                {checkoutPreview && checkoutPreview.sellerShipping.length > 1 && (
+                  <div className="shipping-breakdown">
+                    <p className="shipping-breakdown-title">Shipping Breakdown:</p>
+                    {checkoutPreview.sellerShipping.map((s, idx) => (
+                      <div key={idx} className="calc-row discount-row shipping-detail-row">
+                        <span>{s.storeName}</span>
+                        <span>{s.shippingCost > 0 ? `${s.shippingCost.toFixed(2)} EGP` : 'FREE'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="calc-row total-row">
                   <span>Total Amount</span>

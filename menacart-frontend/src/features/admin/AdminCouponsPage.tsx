@@ -31,6 +31,7 @@ export const AdminCouponsPage: React.FC = () => {
   const [expiryDate, setExpiryDate] = useState('');
   const [usageLimit, setUsageLimit] = useState<number | ''>('');
   const [minOrderAmount, setMinOrderAmount] = useState<number | ''>('');
+  const [sellerId, setSellerId] = useState<number | ''>('');
   const [formError, setFormError] = useState('');
 
   const handleOpenCreate = () => {
@@ -41,6 +42,7 @@ export const AdminCouponsPage: React.FC = () => {
     setExpiryDate('');
     setUsageLimit('');
     setMinOrderAmount('');
+    setSellerId('');
     setFormError('');
     setIsModalOpen(true);
   };
@@ -57,6 +59,7 @@ export const AdminCouponsPage: React.FC = () => {
     setExpiryDate(localISOTime);
     setUsageLimit(coupon.usageLimit !== null ? coupon.usageLimit : '');
     setMinOrderAmount(coupon.minOrderAmount !== null ? coupon.minOrderAmount : '');
+    setSellerId(coupon.sellerId !== null && coupon.sellerId !== undefined ? coupon.sellerId : '');
     setFormError('');
     setIsModalOpen(true);
   };
@@ -99,6 +102,7 @@ export const AdminCouponsPage: React.FC = () => {
       expiryDate: new Date(expiryDate).toISOString(),
       usageLimit: usageLimit === '' ? null : Number(usageLimit),
       minOrderAmount: minOrderAmount === '' ? null : Number(minOrderAmount),
+      sellerId: sellerId === '' ? null : Number(sellerId),
     };
 
     try {
@@ -164,6 +168,7 @@ export const AdminCouponsPage: React.FC = () => {
                 <th>Expiry Date</th>
                 <th>Usage Limit</th>
                 <th>Min Order</th>
+                <th>Seller ID</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -201,6 +206,11 @@ export const AdminCouponsPage: React.FC = () => {
                       {coupon.minOrderAmount !== null 
                         ? `${coupon.minOrderAmount.toFixed(2)} EGP` 
                         : 'None'}
+                    </td>
+                    <td>
+                      {coupon.sellerId !== null && coupon.sellerId !== undefined
+                        ? `#${coupon.sellerId}` 
+                        : <span className="platform-badge" style={{fontSize: '0.75rem', backgroundColor: 'var(--color-bg-surface)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)'}}>Platform</span>}
                     </td>
                     <td>
                       <div className="coupon-table-actions">
@@ -313,6 +323,15 @@ export const AdminCouponsPage: React.FC = () => {
                   helperText="EGP threshold to apply."
                 />
               </div>
+
+              <Input
+                label="Seller ID (Optional)"
+                type="number"
+                placeholder="Leave blank for Platform-wide"
+                value={sellerId}
+                onChange={(e) => setSellerId(e.target.value === '' ? '' : Number(e.target.value))}
+                helperText="Assign to a Seller (Seller absorbs cost). Blank = Admin absorbs cost."
+              />
 
               <div className="modal-actions">
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>

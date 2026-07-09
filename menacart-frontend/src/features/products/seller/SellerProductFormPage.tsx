@@ -8,7 +8,6 @@ import { useCategoriesTree } from '../hooks/useCategories';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { useToast } from '../../../components/Toast';
-import { ImageUpload } from '../../../components/ImageUpload/ImageUpload';
 import { MultiImageUpload, type ImageItem } from '../../../components/ImageUpload/MultiImageUpload';
 import './SellerProductFormPage.css';
 
@@ -22,6 +21,7 @@ const variantSchema = z.object({
   stockQuantity: z.number().min(0, 'Stock cannot be negative'),
   price: z.number().min(0.01, 'Price must be at least 0.01'),
   mainImageUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  variantImages: z.array(z.string()).optional(),
 });
 
 const productSchema = z.object({
@@ -57,6 +57,7 @@ export const SellerProductFormPage: React.FC = () => {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -68,7 +69,7 @@ export const SellerProductFormPage: React.FC = () => {
       categoryId: 0,
       mainImageUrl: '',
       productImages: [],
-      variants: [{ sku: '', color: '', size: '', stockQuantity: 10, price: 29.99, mainImageUrl: '' }],
+      variants: [{ sku: '', color: '', size: '', stockQuantity: 10, price: 29.99, mainImageUrl: '', variantImages: [] }],
     },
   });
 
@@ -96,6 +97,7 @@ export const SellerProductFormPage: React.FC = () => {
           stockQuantity: v.stockQuantity,
           price: v.price,
           mainImageUrl: v.mainImageUrl || '',
+          variantImages: v.variantImages || [],
         })),
       });
     }
@@ -112,7 +114,7 @@ export const SellerProductFormPage: React.FC = () => {
         stockQuantity: v.stockQuantity,
         price: v.price,
         mainImageUrl: v.mainImageUrl || undefined,
-        variantImages: [],
+        variantImages: v.variantImages || [],
       }));
 
       const payload = {
@@ -139,9 +141,13 @@ export const SellerProductFormPage: React.FC = () => {
     }
   };
 
+  const watchedMainImage = watch('mainImageUrl');
+  const watchedProductImages = watch('productImages');
+  const watchedVariants = watch('variants');
+
   const getCombinedImages = (): ImageItem[] => {
-    const mainImageUrl = control._formValues.mainImageUrl;
-    const productImages = control._formValues.productImages || [];
+    const mainImageUrl = watchedMainImage;
+    const productImages = watchedProductImages || [];
     
     const items: ImageItem[] = [];
     if (mainImageUrl) {
@@ -151,6 +157,28 @@ export const SellerProductFormPage: React.FC = () => {
       items.push({ url, isMain: false });
     });
     return items;
+  };
+
+  const getCombinedVariantImages = (index: number): ImageItem[] => {
+    const mainImageUrl = watchedVariants?.[index]?.mainImageUrl;
+    const variantImages = watchedVariants?.[index]?.variantImages || [];
+    
+    const items: ImageItem[] = [];
+    if (mainImageUrl) {
+      items.push({ url: mainImageUrl, isMain: true });
+    }
+    variantImages.forEach((url: string) => {
+      items.push({ url, isMain: false });
+    });
+    return items;
+  };
+
+  const handleCombinedVariantImagesChange = (index: number, newImages: ImageItem[]) => {
+    const mainImg = newImages.find(img => img.isMain)?.url || '';
+    const otherImgs = newImages.filter(img => !img.isMain).map(img => img.url);
+    
+    setValue(`variants.${index}.mainImageUrl`, mainImg, { shouldDirty: true });
+    setValue(`variants.${index}.variantImages`, otherImgs, { shouldDirty: true });
   };
 
   const handleCombinedImagesChange = (newImages: ImageItem[]) => {
@@ -257,7 +285,7 @@ export const SellerProductFormPage: React.FC = () => {
                 variant="secondary"
                 size="sm"
                 onClick={() =>
-                  append({ sku: '', color: '', size: '', stockQuantity: 5, price: 29.99, mainImageUrl: '' })
+                  append({ sku: '', color: '', size: '', stockQuantity: 5, price: 29.99, mainImageUrl: '', variantImages: [] })
                 }
               >
                 + Add Variant
@@ -326,11 +354,11 @@ export const SellerProductFormPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="input-group">
-                    <ImageUpload
-                      label="Variant Image (Optional)"
-                      value={control._formValues.variants?.[index]?.mainImageUrl}
-                      onChange={(url) => setValue(`variants.${index}.mainImageUrl`, url, { shouldDirty: true })}
+                  <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                    <MultiImageUpload
+                      label="Variant Images"
+                      images={getCombinedVariantImages(index)}
+                      onChange={(newImages) => handleCombinedVariantImagesChange(index, newImages)}
                     />
                   </div>
                 </div>

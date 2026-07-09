@@ -18,26 +18,19 @@ namespace Application.Services
 
         public async Task<decimal> CalculateShippingCostAsync(Address address, int sellerId, decimal subtotal)
         {
-            var seller = await _unitOfWork.SellerRepository.GetById(sellerId);
-            
-            if (seller != null && seller.FreeShippingThreshold.HasValue && subtotal >= seller.FreeShippingThreshold.Value)
+            var rule = await _unitOfWork.SellerShippingRuleRepository.GetRuleAsync(sellerId, address.City, address.Country);
+
+            if (rule == null)
             {
-                return 0m; // Free shipping
+                throw new Exception($"Seller does not deliver to this location ({address.City}, {address.Country}). Please remove their items from your cart.");
             }
 
-            if (seller != null && seller.BaseShippingCost.HasValue)
+            if (rule.FreeShippingAbove.HasValue && subtotal >= rule.FreeShippingAbove.Value)
             {
-                return seller.BaseShippingCost.Value;
+                return 0m;
             }
 
-            // Read default shipping cost from appsettings (fallback to 50 if not specified)
-            var defaultCostStr = _configuration["Shipping:DefaultCost"];
-            if (decimal.TryParse(defaultCostStr, out var cost))
-            {
-                return cost;
-            }
-
-            return 50m;
+            return rule.ShippingCost;
         }
     }
 }

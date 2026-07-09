@@ -26,8 +26,9 @@ namespace API.Extensions
             services.AddScoped<IAddressRepository, AddressRepository>();
             services.AddScoped<ICouponRepository, CouponRepository>();
            
-            services.AddScoped<IShippingRepository, ShippingRepository>();
             services.AddScoped<ISellerRepository, SellerRepository>();
+            services.AddScoped<IShippingRepository, ShippingRepository>();
+            services.AddScoped<ISellerShippingRuleRepository, SellerShippingRuleRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             services.AddScoped<IReturnRepository, ReturnRepository>();

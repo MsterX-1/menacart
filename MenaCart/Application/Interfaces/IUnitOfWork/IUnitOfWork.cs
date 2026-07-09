@@ -21,6 +21,7 @@ namespace Application.Interfaces.IUnitOfWork
         IWishlistRepository WishlistRepository { get; }
         ISellerRepository SellerRepository { get; }
         IShippingRepository ShippingRepository { get; }
+        ISellerShippingRuleRepository SellerShippingRuleRepository { get; }
         IProductRepository ProductRepository { get; }
         IProductVariantRepository ProductVariantRepository { get; }
         IReturnRepository ReturnRepository { get; }

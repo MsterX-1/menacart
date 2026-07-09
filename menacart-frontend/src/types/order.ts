@@ -23,10 +23,11 @@ export interface SubOrder {
 export interface Order {
   orderId: number;
   totalAmount: number;
-  status: 'Placed' | 'Confirmed' | 'Cancelled' | 'Completed';
-  paymentStatus: 'Pending' | 'Paid' | 'Failed' | 'Refunded';
-  paymentUrl: string;
-  sessionId: string;
+  status: string;
+  paymentStatus: string;
+  paymentUrl?: string;
+  sessionId?: string;
+  couponId?: number | null;
   createdAt: string;
   subOrders: SubOrder[];
 }

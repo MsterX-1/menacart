@@ -32,6 +32,7 @@ namespace Application.DTOs.OrderDtos
         public string PaymentStatus { get; set; } = string.Empty;
         public string PaymentUrl { get; set; } = string.Empty;
         public string SessionId { get; set; } = string.Empty;
+        public int? CouponId { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<SubOrderDto> SubOrders { get; set; } = new();
     }

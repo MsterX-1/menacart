@@ -51,7 +51,7 @@ namespace Infrastructure.Repository
         public async Task<SellerDashboardStatsDto> GetSellerDashboardStatsAsync(int sellerId)
         {
             var totalOrders = await _context.SubOrders
-                .CountAsync(so => so.SellerId == sellerId && so.Order.PaymentStatus == OrderPaymentStatus.Paid);
+                .CountAsync(so => so.SellerId == sellerId && so.Order.Status == OrderStatus.Completed && so.Order.PaymentStatus == OrderPaymentStatus.Paid);
 
             var totalProducts = await _context.Products
                 .CountAsync(p => p.SellerId == sellerId);
@@ -69,9 +69,11 @@ namespace Infrastructure.Repository
                 .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
             var topProducts = await _context.OrderItems
+                .Include(oi => oi.SubOrder)
+                    .ThenInclude(so => so.Order)
                 .Include(oi => oi.ProductVariant)
                     .ThenInclude(pv => pv.Product)
-                .Where(oi => oi.ProductVariant.Product.SellerId == sellerId)
+                .Where(oi => oi.ProductVariant.Product.SellerId == sellerId && oi.SubOrder.Order.Status == OrderStatus.Completed && oi.SubOrder.Order.PaymentStatus == OrderPaymentStatus.Paid)
                 .GroupBy(oi => oi.ProductVariant.ProductId)
                 .Select(g => new TopSellerProductDto
                 {

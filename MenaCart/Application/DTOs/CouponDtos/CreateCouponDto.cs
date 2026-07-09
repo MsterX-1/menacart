@@ -23,5 +23,7 @@ namespace Application.DTOs.CouponDtos
         public int? UsageLimit { get; set; }
 
         public decimal? MinOrderAmount { get; set; }
+        
+        public int? SellerId { get; set; }
     }
 }

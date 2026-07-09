@@ -9,5 +9,6 @@ namespace Application.Interfaces.IServices
         Task<CartResponseDto> UpdateItemAsync(string userId, int cartItemId, UpdateCartItemDto request);
         Task RemoveItemAsync(string userId, int cartItemId);
         Task ClearCartAsync(string userId);
+        Task<CheckoutPreviewDto> GetCheckoutPreviewAsync(string userId, int addressId);
     }
 }

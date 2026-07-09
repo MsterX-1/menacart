@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useOrderDetails, useCancelOrder } from './hooks/useOrders';
+import { useOrderDetails, useCancelOrder, usePayForOrder, useApplyCouponToOrder } from './hooks/useOrders';
 import { useMyReturns } from '../returns/hooks/useReturns';
 import { ReturnRequestModal } from '../returns/components/ReturnRequestModal';
 import { WriteReviewModal } from '../reviews/components/WriteReviewModal';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
+import { Input } from '../../components/Input';
 import { useToast } from '../../components/Toast';
 import type { OrderItem } from '../../types/order';
 import { getDisplayStatus } from '../../utils/orderStatus';
@@ -27,6 +28,20 @@ export const OrderDetailPage: React.FC = () => {
   const { data: order, isLoading, error, refetch } = useOrderDetails(parsedOrderId);
   const { data: myReturns, refetch: refetchReturns } = useMyReturns();
   const cancelOrderMutation = useCancelOrder();
+  const payForOrderMutation = usePayForOrder();
+  const applyCouponMutation = useApplyCouponToOrder();
+  const [couponCode, setCouponCode] = useState('');
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    try {
+      await applyCouponMutation.mutateAsync({ orderId: parsedOrderId, couponCode });
+      toastSuccess('Coupon applied successfully.');
+      setCouponCode('');
+    } catch (err: any) {
+      toastError(err.response?.data?.message || 'Failed to apply coupon.');
+    }
+  };
 
   const handleCancelOrder = async () => {
     if (!window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
@@ -38,6 +53,14 @@ export const OrderDetailPage: React.FC = () => {
       toastSuccess('Order has been cancelled successfully.');
     } catch (err: any) {
       toastError(err.response?.data?.message || 'Failed to cancel the order.');
+    }
+  };
+
+  const handlePayOrder = async () => {
+    try {
+      await payForOrderMutation.mutateAsync(parsedOrderId);
+    } catch (err: any) {
+      toastError(err.response?.data?.message || 'Failed to initialize payment.');
     }
   };
 
@@ -254,10 +277,43 @@ export const OrderDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {order.paymentStatus === 'Pending' && order.paymentUrl && (
-              <a href={order.paymentUrl} className="pay-now-button-link">
-                <Button className="pay-now-btn">Complete Payment</Button>
-              </a>
+            {order.paymentStatus === 'Pending' && !order.couponId && (
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                <Input
+                  label="Coupon Code"
+                  placeholder="Enter Coupon"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <Button
+                  variant="secondary"
+                  isLoading={applyCouponMutation.isPending}
+                  onClick={handleApplyCoupon}
+                  disabled={!couponCode.trim()}
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+
+            {order.paymentStatus === 'Pending' && order.couponId && (
+              <div style={{ marginTop: '1rem', padding: '0.5rem', backgroundColor: 'var(--color-bg-subtle)', borderRadius: '4px', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-success)' }}>
+                  ✓ Coupon applied successfully
+                </span>
+              </div>
+            )}
+
+            {order.paymentStatus === 'Pending' && (
+              <Button 
+                className="pay-now-btn"
+                isLoading={payForOrderMutation.isPending}
+                onClick={handlePayOrder}
+                style={{ width: '100%', marginTop: '1rem' }}
+              >
+                Complete Payment
+              </Button>
             )}
           </div>
         </div>

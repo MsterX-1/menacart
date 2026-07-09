@@ -33,18 +33,26 @@ export const SellerPayoutsPage: React.FC = () => {
 
     try {
       await updateProfileMutation.mutateAsync({
-        storeName: profile.storeName,
-        storeDescription: profile.storeDescription,
-        storeAddress: profile.storeAddress,
-        phone: profile.phone,
-        storeLogoUrl: profile.storeLogoUrl,
-        storeBannerUrl: profile.storeBannerUrl,
+        storeName: profile.storeName || 'My Store',
+        storeDescription: profile.storeDescription || '',
+        storeAddress: profile.storeAddress || '',
+        phone: profile.phone || '0000000000',
+        storeLogoUrl: profile.storeLogoUrl || '',
+        storeBannerUrl: profile.storeBannerUrl || '',
         stripeAccountId: stripeAccountId.trim(),
+        baseShippingCost: profile.baseShippingCost,
+        freeShippingThreshold: profile.freeShippingThreshold,
       });
       toastSuccess('Stripe Account linked successfully!');
       setIsEditingStripe(false);
     } catch (err: any) {
-      toastError(err.response?.data?.message || 'Failed to update Stripe Account ID.');
+      const data = err.response?.data;
+      if (data?.errors) {
+        const firstError = Object.values(data.errors)[0] as string[];
+        toastError(firstError[0] || 'Validation failed.');
+      } else {
+        toastError(data?.message || 'Failed to update Stripe Account ID.');
+      }
     }
   };
 

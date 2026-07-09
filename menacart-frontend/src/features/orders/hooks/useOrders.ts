@@ -6,6 +6,8 @@ import {
   cancelOrder,
   getCouponByCode,
   getLoyaltyBalance,
+  payForOrder,
+  applyCouponToOrder,
 } from '../api/orderApi';
 import type { CreateOrderRequest } from '../../../types/order';
 
@@ -50,6 +52,26 @@ export const useCancelOrder = () => {
   return useMutation({
     mutationFn: (orderId: number) => cancelOrder(orderId),
     onSuccess: (_, orderId) => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+    },
+  });
+};
+
+export const usePayForOrder = () => {
+  return useMutation({
+    mutationFn: (orderId: number) => payForOrder(orderId),
+    onSuccess: (data) => {
+      window.location.href = data.paymentUrl;
+    },
+  });
+};
+
+export const useApplyCouponToOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, couponCode }: { orderId: number; couponCode: string }) => applyCouponToOrder(orderId, couponCode),
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
     },

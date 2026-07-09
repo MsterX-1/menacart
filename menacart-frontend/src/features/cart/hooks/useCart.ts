@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCart, addCartItem, updateCartItem, removeCartItem, clearCart } from '../api/cartApi';
+import { getCart, addCartItem, updateCartItem, removeCartItem, clearCart, getCheckoutPreview } from '../api/cartApi';
 
 export const cartKeys = {
   all: ['cart'] as const,
@@ -55,5 +55,17 @@ export const useClearCart = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartKeys.all });
     },
+  });
+};
+
+export const useCheckoutPreview = (addressId: number | null) => {
+  return useQuery({
+    queryKey: [...cartKeys.all, 'preview', addressId],
+    queryFn: () => {
+      if (!addressId) throw new Error('Address ID is required');
+      return getCheckoutPreview(addressId);
+    },
+    enabled: !!addressId,
+    staleTime: 1000 * 60 * 5, // Cache for 5 mins
   });
 };

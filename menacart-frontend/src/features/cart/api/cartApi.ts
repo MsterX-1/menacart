@@ -23,3 +23,10 @@ export const removeCartItem = async (cartItemId: number): Promise<void> => {
 export const clearCart = async (): Promise<void> => {
   await apiClient.delete('/cart');
 };
+
+export const getCheckoutPreview = async (addressId: number): Promise<import('../../../types/cart').CheckoutPreview> => {
+  const response = await apiClient.get<import('../../../types/cart').CheckoutPreview>('/cart/checkout-preview', {
+    params: { addressId }
+  });
+  return response.data;
+};
