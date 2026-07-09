@@ -228,7 +228,7 @@ END
 IF NOT EXISTS (SELECT 1 FROM Coupons WHERE Code = 'FLAT100')
 BEGIN
     INSERT INTO Coupons (Code, DiscountType, DiscountValue, MinOrderAmount, ExpiryDate, UsageLimit, UsedCount, CreatedAt)
-    VALUES ('FLAT100', 'FixedAmount', 100.00, 500.00, DATEADD(year, 5, GETUTCDATE()), 50, 0, GETUTCDATE());
+    VALUES ('FLAT100', 'Fixed', 100.00, 500.00, DATEADD(year, 5, GETUTCDATE()), 50, 0, GETUTCDATE());
 END
 
 -- Re-enable constraints

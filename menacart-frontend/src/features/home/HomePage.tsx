@@ -56,8 +56,19 @@ export const HomePage: React.FC = () => {
           ) : (
             categories?.slice(0, 6).map((cat) => (
               <Link to={`/products?categoryId=${cat.categoryId}`} key={cat.categoryId} className="category-card">
-                <div className="category-icon">
-                  {cat.name.charAt(0).toUpperCase()}
+                <div className="category-image-wrapper">
+                  {cat.imageUrl ? (
+                    <img 
+                      src={getOptimizedImageUrl(cat.imageUrl)} 
+                      alt={cat.name} 
+                      className="category-image" 
+                      loading="lazy" 
+                    />
+                  ) : (
+                    <div className="category-icon">
+                      {cat.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <span className="category-name">{cat.name}</span>
               </Link>

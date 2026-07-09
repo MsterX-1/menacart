@@ -9,7 +9,7 @@ import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { useToast } from '../../../components/Toast';
 import { ImageUpload } from '../../../components/ImageUpload/ImageUpload';
-import { MultiImageUpload, ImageItem } from '../../../components/ImageUpload/MultiImageUpload';
+import { MultiImageUpload, type ImageItem } from '../../../components/ImageUpload/MultiImageUpload';
 import './SellerProductFormPage.css';
 
 
@@ -147,7 +147,7 @@ export const SellerProductFormPage: React.FC = () => {
     if (mainImageUrl) {
       items.push({ url: mainImageUrl, isMain: true });
     }
-    productImages.forEach(url => {
+    productImages.forEach((url: string) => {
       items.push({ url, isMain: false });
     });
     return items;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useBrowseProducts } from './hooks/useProducts';
 import { useCategoriesTree } from './hooks/useCategories';
@@ -24,7 +24,7 @@ export const ProductListPage: React.FC = () => {
   const categoryId = searchParams.get('categoryId') ? Number(searchParams.get('categoryId')) : undefined;
   const search = searchParams.get('search') || undefined;
 
-  const { data: products, isLoading, error } = useBrowseProducts({
+  const { data: products, isLoading, isFetching, error } = useBrowseProducts({
     search,
     categoryId,
     page: currentPage,
@@ -40,17 +40,23 @@ export const ProductListPage: React.FC = () => {
     return flatten(categories);
   }, [categories]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams(searchParams);
-    if (searchInput.trim()) {
-      params.set('search', searchInput.trim());
-    } else {
-      params.delete('search');
-    }
-    params.set('page', '1');
-    setSearchParams(params);
-  };
+  // Debounced search on character change
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        if (searchInput.trim()) {
+          params.set('search', searchInput.trim());
+        } else {
+          params.delete('search');
+        }
+        params.set('page', '1');
+        return params;
+      }, { replace: true }); // Replace state to keep back history clean
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchInput, setSearchParams]);
 
   const handleCategoryChange = (catId: string) => {
     const params = new URLSearchParams(searchParams);
@@ -60,17 +66,17 @@ export const ProductListPage: React.FC = () => {
       params.delete('categoryId');
     }
     params.set('page', '1');
-    setSearchParams(params);
+    setSearchParams(params, { replace: true });
   };
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', String(newPage));
-    setSearchParams(params);
+    setSearchParams(params, { replace: true });
   };
 
   const clearFilters = () => {
-    setSearchParams({});
+    setSearchParams({}, { replace: true });
     setSearchInput('');
   };
 
@@ -98,7 +104,8 @@ export const ProductListPage: React.FC = () => {
       </header>
 
       <div className="catalog-toolbar">
-        <form className="search-form" onSubmit={handleSearch}>
+        <div className="search-bar-wrapper">
+          <span className="search-icon-prefix">🔍</span>
           <input
             type="text"
             className="search-input"
@@ -107,8 +114,7 @@ export const ProductListPage: React.FC = () => {
             onChange={(e) => setSearchInput(e.target.value)}
             aria-label="Search products"
           />
-          <Button type="submit" size="sm">Search</Button>
-        </form>
+        </div>
 
         <div className="filter-group">
           <select
@@ -133,7 +139,7 @@ export const ProductListPage: React.FC = () => {
         </div>
       </div>
 
-      {isLoading && (
+      {isLoading && !products && (
         <div className="product-grid">
           {Array.from({ length: 8 }).map((_, i) => (
             <div className="product-card-skeleton" key={i}>
@@ -155,7 +161,7 @@ export const ProductListPage: React.FC = () => {
         </div>
       )}
 
-      {!isLoading && !error && products && products.length === 0 && (
+      {products && products.length === 0 && !isLoading && (
         <div className="catalog-empty">
           <h2>No products found</h2>
           <p>
@@ -169,9 +175,9 @@ export const ProductListPage: React.FC = () => {
         </div>
       )}
 
-      {!isLoading && !error && products && products.length > 0 && (
+      {products && products.length > 0 && (
         <>
-          <div className="product-grid">
+          <div className={`product-grid ${isFetching ? 'catalog-fetching' : ''}`}>
             {products.map((product) => {
               const firstVariantId = product.variants[0]?.variantId;
               const isInWishlist = wishlist?.some(item => item.variantId === firstVariantId) ?? false;

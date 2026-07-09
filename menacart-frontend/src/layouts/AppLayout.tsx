@@ -5,6 +5,8 @@ import { Logo } from '../components/Logo';
 import { Button } from '../components/Button';
 import { useNotifications } from '../features/notifications/hooks/useNotifications';
 import { NotificationsDropdown } from '../features/notifications/components/NotificationsDropdown';
+import { useCart } from '../features/cart/hooks/useCart';
+import { useWishlist } from '../features/wishlist/hooks/useWishlist';
 import './AppLayout.css';
 
 export const AppLayout: React.FC = () => {
@@ -16,6 +18,13 @@ export const AppLayout: React.FC = () => {
   const isCustomer = roles.includes('Customer');
   const isSeller = roles.includes('Seller');
   const isAdmin = roles.includes('Admin');
+
+  // Fetch cart & wishlist items to compute badges
+  const { data: cart } = useCart(isAuthenticated && isCustomer);
+  const { data: wishlist } = useWishlist(isAuthenticated && isCustomer);
+
+  const cartCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const wishlistCount = wishlist?.length || 0;
 
   const [showNotifications, setShowNotifications] = useState(false);
   const { data: notifications } = useNotifications(isAuthenticated);
@@ -60,77 +69,17 @@ export const AppLayout: React.FC = () => {
               Sellers
             </Link>
 
-            {/* Role-Specific Navigation (Absent if not authorized) */}
-            {isAuthenticated && isCustomer && (
-              <>
-                <Link to="/cart" className={`nav-link ${isActiveRoute('/cart')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Cart
-                </Link>
-                <Link to="/orders" className={`nav-link ${isActiveRoute('/orders')}`} onClick={() => setMobileMenuOpen(false)}>
-                  My Orders
-                </Link>
-                <Link to="/returns" className={`nav-link ${isActiveRoute('/returns')}`} onClick={() => setMobileMenuOpen(false)}>
-                  My Returns
-                </Link>
-                <Link to="/wishlist" className={`nav-link ${isActiveRoute('/wishlist')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Wishlist
-                </Link>
-                <Link to="/account/loyalty" className={`nav-link ${isActiveRoute('/account/loyalty')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Loyalty Points
-                </Link>
-                <Link to="/account/addresses" className={`nav-link ${isActiveRoute('/account/addresses')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Address Book
-                </Link>
-              </>
-            )}
-
+            {/* Quick Links per role */}
             {isAuthenticated && isSeller && (
-              <>
-                <Link to="/seller/dashboard" className={`nav-link ${isActiveRoute('/seller/dashboard')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Seller Dashboard
-                </Link>
-                <Link to="/seller/settings" className={`nav-link ${isActiveRoute('/seller/settings')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Store Settings
-                </Link>
-                <Link to="/seller/products" className={`nav-link ${isActiveRoute('/seller/products')}`} onClick={() => setMobileMenuOpen(false)}>
-                  My Products
-                </Link>
-                <Link to="/seller/orders" className={`nav-link ${isActiveRoute('/seller/orders')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Fulfill Orders
-                </Link>
-                <Link to="/seller/returns" className={`nav-link ${isActiveRoute('/seller/returns')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Manage Returns
-                </Link>
-                <Link to="/seller/payouts" className={`nav-link ${isActiveRoute('/seller/payouts')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Payouts
-                </Link>
-              </>
+              <Link to="/seller/dashboard" className={`nav-link ${isActiveRoute('/seller/dashboard')}`} onClick={() => setMobileMenuOpen(false)}>
+                Seller Dashboard
+              </Link>
             )}
 
             {isAuthenticated && isAdmin && (
-              <>
-                <Link to="/admin/dashboard" className={`nav-link ${isActiveRoute('/admin/dashboard')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Admin Dashboard
-                </Link>
-                <Link to="/admin/products" className={`nav-link ${isActiveRoute('/admin/products')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Review Products
-                </Link>
-                <Link to="/admin/sellers" className={`nav-link ${isActiveRoute('/admin/sellers')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Verify Sellers
-                </Link>
-                <Link to="/admin/categories" className={`nav-link ${isActiveRoute('/admin/categories')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Categories
-                </Link>
-                <Link to="/admin/users" className={`nav-link ${isActiveRoute('/admin/users')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Manage Users
-                </Link>
-                <Link to="/admin/coupons" className={`nav-link ${isActiveRoute('/admin/coupons')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Coupons
-                </Link>
-                <Link to="/admin/payouts" className={`nav-link ${isActiveRoute('/admin/payouts')}`} onClick={() => setMobileMenuOpen(false)}>
-                  Payouts
-                </Link>
-              </>
+              <Link to="/admin/dashboard" className={`nav-link ${isActiveRoute('/admin/dashboard')}`} onClick={() => setMobileMenuOpen(false)}>
+                Admin Dashboard
+              </Link>
             )}
 
             {!isAuthenticated && (
@@ -138,9 +87,55 @@ export const AppLayout: React.FC = () => {
                 Sell on MenaCart
               </Link>
             )}
+
+            {/* Mobile-Only Expanded Menu for quick access */}
+            {mobileMenuOpen && isAuthenticated && (
+              <div className="mobile-role-links-section" style={{ marginTop: 'var(--space-2)', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-2)' }}>
+                {isCustomer && (
+                  <>
+                    <Link to="/account" className="nav-link" onClick={() => setMobileMenuOpen(false)}>My Account</Link>
+                    <Link to="/orders" className="nav-link" onClick={() => setMobileMenuOpen(false)}>My Orders</Link>
+                    <Link to="/wishlist" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Wishlist</Link>
+                    <Link to="/cart" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Cart</Link>
+                  </>
+                )}
+                {isSeller && (
+                  <>
+                    <Link to="/seller/settings" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Store Settings</Link>
+                    <Link to="/seller/products" className="nav-link" onClick={() => setMobileMenuOpen(false)}>My Products</Link>
+                    <Link to="/seller/orders" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Fulfill Orders</Link>
+                  </>
+                )}
+                {isAdmin && (
+                  <>
+                    <Link to="/admin/sellers" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Verify Sellers</Link>
+                    <Link to="/admin/products" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Review Products</Link>
+                    <Link to="/admin/categories" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Categories</Link>
+                  </>
+                )}
+              </div>
+            )}
           </nav>
 
           <div className="header-actions">
+            {/* Customer Quick Icon Links */}
+            {isAuthenticated && isCustomer && (
+              <div className="customer-header-shortcuts">
+                <Link to="/wishlist" className="header-icon-shortcut" title="Wishlist">
+                  <span className="shortcut-icon">🖤</span>
+                  {wishlistCount > 0 && (
+                    <span className="shortcut-badge-count">{wishlistCount}</span>
+                  )}
+                </Link>
+                <Link to="/cart" className="header-icon-shortcut" title="Shopping Cart">
+                  <span className="shortcut-icon">🛒</span>
+                  {cartCount > 0 && (
+                    <span className="shortcut-badge-count">{cartCount}</span>
+                  )}
+                </Link>
+              </div>
+            )}
+
             {isAuthenticated && user && (
               <div className="notifications-bell-container">
                 <button 
@@ -163,17 +158,65 @@ export const AppLayout: React.FC = () => {
             )}
 
             {isAuthenticated && user ? (
-              <div className="user-profile-menu">
-                <span className="user-greeting">
-                  Hello, <Link to="/account" className="user-name-link">{user.firstName}</Link>
-                </span>
-                {/* Visual indicator of highest privilege */}
-                <span className={`role-badge role-${roles[0]?.toLowerCase()}`}>
-                  {roles[0]}
-                </span>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
+              <div className="user-profile-dropdown">
+                <button className="profile-dropdown-trigger">
+                  <div className="avatar-circle">
+                    {user.firstName[0]?.toUpperCase()}{user.lastName[0]?.toUpperCase()}
+                  </div>
+                  <span className="user-firstname-text">{user.firstName}</span>
+                  <span className="dropdown-caret">▼</span>
+                </button>
+                
+                <div className="profile-dropdown-menu">
+                  <div className="dropdown-user-info">
+                    <span className="dropdown-user-name">{user.firstName} {user.lastName}</span>
+                    <span className={`dropdown-role-badge role-${roles[0]?.toLowerCase()}`}>
+                      {roles[0]}
+                    </span>
+                  </div>
+                  
+                  <div className="dropdown-divider"></div>
+                  
+                  {isCustomer && (
+                    <>
+                      <Link to="/account" className="dropdown-link-item">My Account</Link>
+                      <Link to="/orders" className="dropdown-link-item">My Orders</Link>
+                      <Link to="/returns" className="dropdown-link-item">My Returns</Link>
+                      <Link to="/account/loyalty" className="dropdown-link-item">Loyalty Points</Link>
+                      <Link to="/account/addresses" className="dropdown-link-item">Address Book</Link>
+                    </>
+                  )}
+                  
+                  {isSeller && (
+                    <>
+                      <Link to="/seller/dashboard" className="dropdown-link-item">Seller Dashboard</Link>
+                      <Link to="/seller/settings" className="dropdown-link-item">Store Settings</Link>
+                      <Link to="/seller/products" className="dropdown-link-item">My Products</Link>
+                      <Link to="/seller/orders" className="dropdown-link-item">Fulfill Orders</Link>
+                      <Link to="/seller/returns" className="dropdown-link-item">Manage Returns</Link>
+                      <Link to="/seller/payouts" className="dropdown-link-item">Payouts</Link>
+                      <Link to="/seller/documents" className="dropdown-link-item">KYC Documents</Link>
+                    </>
+                  )}
+                  
+                  {isAdmin && (
+                    <>
+                      <Link to="/admin/dashboard" className="dropdown-link-item">Admin Dashboard</Link>
+                      <Link to="/admin/sellers" className="dropdown-link-item">Verify Sellers</Link>
+                      <Link to="/admin/products" className="dropdown-link-item">Review Products</Link>
+                      <Link to="/admin/categories" className="dropdown-link-item">Categories</Link>
+                      <Link to="/admin/coupons" className="dropdown-link-item">Coupons</Link>
+                      <Link to="/admin/users" className="dropdown-link-item">Manage Users</Link>
+                      <Link to="/admin/payouts" className="dropdown-link-item">Payouts</Link>
+                    </>
+                  )}
+                  
+                  <div className="dropdown-divider"></div>
+                  
+                  <button onClick={handleLogout} className="dropdown-logout-btn">
+                    Logout
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="auth-buttons">

@@ -5,11 +5,12 @@ export const cartKeys = {
   all: ['cart'] as const,
 };
 
-export const useCart = () => {
+export const useCart = (enabled = true) => {
   return useQuery({
     queryKey: cartKeys.all,
     queryFn: getCart,
     staleTime: 1000 * 60 * 5, // Cache for 5 mins
+    enabled,
   });
 };
 
