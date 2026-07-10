@@ -1,8 +1,13 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories;
 using Domain.Models;
 using Infrastructure.Database;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Application.DTOs.UserDtos.AdminDtos;
 
 namespace Infrastructure.Repository
 {
@@ -41,6 +46,84 @@ namespace Infrastructure.Repository
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+
+        public async Task<AdminDashboardStatsDto> GetAdminDashboardStatsAsync(int totalUsersCount)
+        {
+            var totalSellers = await _context.SellerProfiles.CountAsync();
+            var totalProducts = await _context.Products.CountAsync();
+            var totalOrders = await _context.Orders.CountAsync();
+            
+            var totalRevenue = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Completed && o.PaymentStatus == OrderPaymentStatus.Paid)
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+
+            var pendingSellerApps = await _context.SellerProfiles
+                .CountAsync(sp => sp.Status == SellerStatus.Pending);
+
+            var pendingPayouts = await _context.SellerPayouts
+                .CountAsync(sp => sp.Status == SellerPayoutStatus.Pending);
+
+            var totalCommissions = await _context.SellerCommissions
+                .Where(sc => sc.Status == SellerCommissionStatus.Settled)
+                .SumAsync(sc => (decimal?)sc.CommissionAmount) ?? 0m;
+
+            var totalPlatformDiscounts = await _context.Orders
+                .Where(o => o.Status == OrderStatus.Completed && o.PaymentStatus == OrderPaymentStatus.Paid)
+                .SumAsync(o => (decimal?)o.PlatformDiscount) ?? 0m;
+
+            var platformCommissionProfit = totalCommissions - totalPlatformDiscounts;
+
+            // Top Selling Products
+            var topProducts = await _context.OrderItems
+                .Include(oi => oi.SubOrder)
+                    .ThenInclude(so => so.Order)
+                .Include(oi => oi.ProductVariant)
+                    .ThenInclude(pv => pv.Product)
+                .Where(oi => oi.SubOrder.Order.Status == OrderStatus.Completed && oi.SubOrder.Order.PaymentStatus == OrderPaymentStatus.Paid)
+                .GroupBy(oi => oi.ProductVariant.ProductId)
+                .Select(g => new TopProductDto
+                {
+                    ProductId = g.Key,
+                    Name = g.Select(oi => oi.ProductVariant.Product.Name).FirstOrDefault() ?? "Unknown Product",
+                    TotalSold = g.Sum(oi => oi.Quantity),
+                    Revenue = g.Sum(oi => oi.PriceAtPurchase * oi.Quantity),
+                    AverageRating = (double)(g.Select(oi => oi.ProductVariant.Product.AverageRating).FirstOrDefault())
+                })
+                .OrderByDescending(p => p.TotalSold)
+                .Take(5)
+                .ToListAsync();
+
+            // Seller Revenues
+            var sellerRevenues = await _context.SellerProfiles
+                .Select(sp => new SellerRevenueDto
+                {
+                    SellerId = sp.SellerId,
+                    StoreName = sp.StoreName,
+                    TotalRevenue = _context.SellerCommissions
+                        .Where(sc => sc.SellerId == sp.SellerId && sc.Status == SellerCommissionStatus.Settled)
+                        .Sum(sc => (decimal?)sc.SaleAmount) ?? 0m,
+                    PendingPayoutBalance = _context.SellerPayouts
+                        .Where(p => p.SellerId == sp.SellerId && (p.Status == SellerPayoutStatus.Pending || p.Status == SellerPayoutStatus.Processing))
+                        .Sum(p => (decimal?)p.Amount) ?? 0m
+                })
+                .OrderByDescending(sr => sr.TotalRevenue)
+                .Take(5)
+                .ToListAsync();
+
+            return new AdminDashboardStatsDto
+            {
+                TotalUsers = totalUsersCount,
+                TotalSellers = totalSellers,
+                TotalProducts = totalProducts,
+                TotalOrders = totalOrders,
+                TotalRevenue = totalRevenue,
+                PendingSellerApplications = pendingSellerApps,
+                PendingPayouts = pendingPayouts,
+                PlatformCommissionProfit = platformCommissionProfit,
+                TopProducts = topProducts,
+                SellerRevenues = sellerRevenues
+            };
         }
     }
 }

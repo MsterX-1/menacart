@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AddressDtos;
+using Application.DTOs.AddressDtos;
 
 namespace Application.DTOs.CartDtos
 {
@@ -10,11 +10,12 @@ namespace Application.DTOs.CartDtos
         public string ProductName { get; set; } = string.Empty;
         public string? Color { get; set; }
         public string? Size { get; set; }
-        public string? ImageUrl { get; set; }
+        public string? MainImageUrl { get; set; }
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal LineTotal => UnitPrice * Quantity;
         public int StockQuantity { get; set; }
+        public int SellerId { get; set; }
     }
 
     public class CartResponseDto
@@ -32,5 +33,8 @@ namespace Application.DTOs.CartDtos
 
         /// <summary>The default address ID for quick reference.</summary>
         public int? DefaultAddressId { get; set; }
+
+        /// <summary>Warnings about items in the cart (e.g. stock, approval, active status changes).</summary>
+        public List<string> Warnings { get; set; } = new();
     }
 }

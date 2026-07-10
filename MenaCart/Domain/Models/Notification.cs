@@ -16,6 +16,9 @@ namespace Domain.Models
         [MaxLength(500)]
         public string Message { get; set; }
 
+        [MaxLength(500)]
+        public string? LinkUrl { get; set; }
+
         public bool IsRead { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

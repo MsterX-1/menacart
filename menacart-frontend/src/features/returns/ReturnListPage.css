@@ -1,0 +1,215 @@
+.returns-list-page {
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--max-width-page);
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+.returns-header {
+  margin-bottom: var(--space-8);
+}
+
+.returns-title {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.returns-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.returns-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.returns-error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: var(--space-4);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.returns-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: var(--space-8);
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  max-width: 600px;
+  margin: var(--space-8) auto 0 auto;
+}
+
+.empty-returns-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-4);
+  color: var(--color-text-disabled);
+}
+
+.returns-layout-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.returns-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.return-list-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.return-list-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.return-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-bg-panel);
+  border-bottom: 1px solid var(--color-border-subtle);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.return-header-meta {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.meta-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-title {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.meta-data {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+}
+
+.type-badge {
+  color: var(--color-primary);
+}
+
+.return-card-body {
+  padding: var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.return-product-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.return-specs-row {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.return-reason-box,
+.exchange-info-box {
+  background-color: var(--color-bg-panel);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.reason-label,
+.info-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.reason-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.sku-badge {
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background-color: var(--color-bg-base);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+.refund-amount-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
+  border-top: 1px dashed var(--color-border-strong);
+  padding-top: var(--space-3);
+}
+
+.refund-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.refund-value {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-success);
+}
+
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.page-number {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+}

@@ -38,6 +38,19 @@ namespace Domain.Models
         [Required]
         public ApprovalStatus ApprovalStatus { get; set; } = Models.ApprovalStatus.Pending;
 
+        [Column(TypeName = "decimal(3,2)")]
+        public decimal AverageRating { get; set; } = 0;
+
+        public int ReviewCount { get; set; } = 0;
+
+        public bool IsActive { get; set; } = true;
+
+        [MaxLength(500)]
+        public string? RejectionReason { get; set; }
+
+        [MaxLength(500)]
+        public string? MainImageUrl { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

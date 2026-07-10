@@ -3,6 +3,7 @@ using Application.DTOs.ProductDtos;
 using Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace API.Controllers
 {
@@ -11,10 +12,12 @@ namespace API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IOutputCacheStore _cacheStore;
 
-        public ProductsController(IProductService productService)
+        public ProductsController(IProductService productService, IOutputCacheStore cacheStore)
         {
             _productService = productService;
+            _cacheStore = cacheStore;
         }
 
         // ── Public ─────────────────────────────────────────────────────────────
@@ -24,6 +27,7 @@ namespace API.Controllers
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
+        [OutputCache(Duration = 60, Tags = new[] { "products" })]
         public async Task<IActionResult> Browse(
             [FromQuery] string? search = null,
             [FromQuery] int? categoryId = null,
@@ -40,6 +44,7 @@ namespace API.Controllers
         /// </summary>
         [HttpGet("{productId}")]
         [AllowAnonymous]
+        [OutputCache(Duration = 60, Tags = new[] { "products" })]
         public async Task<IActionResult> GetById(int productId)
         {
             try
@@ -88,6 +93,8 @@ namespace API.Controllers
             {
                 var userId = User.GetUserId();
                 var result = await _productService.CreateProductAsync(userId, request);
+                // Invalidate the "products" cache so the new product is instantly visible upon approval
+                await _cacheStore.EvictByTagAsync("products", default);
                 return CreatedAtAction(nameof(GetById), new { productId = result.ProductId }, result);
             }
             catch (UnauthorizedAccessException ex)
@@ -111,6 +118,8 @@ namespace API.Controllers
             {
                 var userId = User.GetUserId();
                 var result = await _productService.UpdateProductAsync(userId, productId, request);
+                // Invalidate the "products" cache so updates reflect instantly
+                await _cacheStore.EvictByTagAsync("products", default);
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
@@ -138,6 +147,8 @@ namespace API.Controllers
             {
                 var userId = User.GetUserId();
                 await _productService.DeleteProductAsync(userId, productId);
+                // Invalidate the "products" cache so deleted items disappear instantly
+                await _cacheStore.EvictByTagAsync("products", default);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
@@ -153,6 +164,26 @@ namespace API.Controllers
         // ── Admin ──────────────────────────────────────────────────────────────
 
         /// <summary>
+        /// Get all products pending approval.
+        /// </summary>
+        [HttpGet("admin/pending")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPending(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var result = await _productService.GetPendingProductsAsync(page, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Admin approves or rejects a product.
         /// </summary>
         [HttpPatch("{productId}/approve")]
@@ -162,6 +193,8 @@ namespace API.Controllers
             try
             {
                 var result = await _productService.ApproveProductAsync(productId, request);
+                // Invalidate the "products" cache so newly approved products show up instantly on the storefront
+                await _cacheStore.EvictByTagAsync("products", default);
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)

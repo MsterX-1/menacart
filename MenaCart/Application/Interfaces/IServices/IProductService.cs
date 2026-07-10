@@ -16,5 +16,6 @@ namespace Application.Interfaces.IServices
 
         // Admin
         Task<ProductResponseDto> ApproveProductAsync(int productId, ApproveProductRequestDto request);
+        Task<IEnumerable<ProductResponseDto>> GetPendingProductsAsync(int page, int pageSize);
     }
 }

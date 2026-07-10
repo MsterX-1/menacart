@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -19,6 +19,11 @@ namespace Application.DTOs.ProductDtos
         public string? Brand { get; set; }
 
         public int? CategoryId { get; set; }
+
+        [MaxLength(500)]
+        public string? MainImageUrl { get; set; }
+
+        public List<string>? ProductImages { get; set; }
 
         // Optional: pass variants to add or update
         public List<UpdateVariantDto>? Variants { get; set; }

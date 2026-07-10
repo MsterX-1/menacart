@@ -1,0 +1,92 @@
+/* Write Review Modal Styles */
+.review-target-info {
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.target-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.target-name {
+  color: var(--color-text-main);
+  font-size: var(--font-size-sm);
+}
+
+/* Star Selector */
+.star-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) 0;
+}
+
+.star-selector-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+}
+
+.star-selector-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.star-selector-btn {
+  background: transparent;
+  border: none;
+  font-size: 2.2rem;
+  cursor: pointer;
+  color: var(--color-text-disabled);
+  transition: transform var(--transition-fast) ease, color var(--transition-fast) ease;
+  line-height: 1;
+  padding: 0 var(--space-1);
+}
+
+.star-selector-btn:hover {
+  transform: scale(1.15);
+}
+
+.star-selector-btn.selected,
+.star-selector-btn.hover {
+  color: var(--color-primary);
+}
+
+/* Textarea styling */
+.textarea-field {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color var(--transition-fast);
+}
+
+.textarea-field:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.char-counter {
+  display: block;
+  text-align: right;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}

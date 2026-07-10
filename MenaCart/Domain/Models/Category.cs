@@ -13,6 +13,9 @@ namespace Domain.Models
         [MaxLength(100)]
         public string Name { get; set; }
 
+        [MaxLength(500)]
+        public string? ImageUrl { get; set; }
+
         public int? ParentCategoryId { get; set; }
 
         // Navigation

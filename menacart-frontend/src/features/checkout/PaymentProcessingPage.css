@@ -1,0 +1,148 @@
+.payment-processing-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-12) var(--space-4);
+  min-height: 80vh;
+}
+
+.payment-processing-container.error-state .error-icon {
+  font-size: 60px;
+  color: var(--color-error);
+  margin-bottom: var(--space-4);
+  line-height: 1;
+}
+
+.status-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-10) var(--space-8);
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+}
+
+/* Premium Spinner */
+.premium-loader-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-ring {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 2px solid transparent;
+  border-top-color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin-loader 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.loader-inner-circle {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border: 2px dashed var(--color-border-subtle);
+  border-radius: 50%;
+  animation: spin-loader-reverse 3s linear infinite;
+}
+
+.loader-glow {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  opacity: 0.15;
+  filter: blur(10px);
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes spin-loader {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-loader-reverse {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.1;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 0.25;
+  }
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+  letter-spacing: -0.01em;
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  margin-top: 0;
+  margin-bottom: var(--space-6);
+  max-width: 400px;
+}
+
+.sub-details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background-color: var(--color-bg-panel);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.order-tag {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-main);
+  font-size: var(--font-size-xs);
+}
+
+.dot {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.processing-tag {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.02em;
+}

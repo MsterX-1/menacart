@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,5 +10,6 @@ namespace Application.DTOs.AuthDtos
         public DateTime TokenExpiresOn { get; set; }
         public required string RefreshToken { get; set; }
         public DateTime RefreshTokenExpiration { get; set; }
+        public List<string> Roles { get; set; } = new();
     }
 }

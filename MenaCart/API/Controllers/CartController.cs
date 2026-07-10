@@ -110,5 +110,31 @@ namespace API.Controllers
             await _cartService.ClearCartAsync(userId);
             return NoContent();
         }
+
+        /// <summary>
+        /// Get a checkout preview including calculated shipping costs per seller.
+        /// </summary>
+        [HttpGet("checkout-preview")]
+        public async Task<IActionResult> GetCheckoutPreview([FromQuery] int addressId)
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                var preview = await _cartService.GetCheckoutPreviewAsync(userId, addressId);
+                return Ok(preview);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

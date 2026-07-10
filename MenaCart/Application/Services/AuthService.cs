@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AuthDtos;
+using Application.DTOs.AuthDtos;
 using Application.Extentions;
 using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
@@ -19,15 +19,18 @@ namespace Application.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
 
         public AuthService(
             UserManager<User> userManager,
+            SignInManager<User> signInManager,
             IUnitOfWork unitOfWork,
             IConfiguration config)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
             _unitOfWork = unitOfWork;
             _config = config;
         }
@@ -36,13 +39,12 @@ namespace Application.Services
         /// Creates a JWT token with user claims and roles
         /// Token expiration is configured in appsettings.json
         /// </summary>
-        private async Task<JwtSecurityToken> CreateJwtToken(User user)
+        private async Task<JwtSecurityToken> CreateJwtToken(User user, IList<string> roles)
         {
             // Get user claims (if any custom claims exist)
             var userClaims = await _userManager.GetClaimsAsync(user);
 
             // Get user roles
-            var roles = await _userManager.GetRolesAsync(user);
             var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role)).ToList();
 
             // Standard JWT claims
@@ -105,7 +107,18 @@ namespace Application.Services
             var existingToken = await _unitOfWork.RefreshTokenRepository
                 .GetRefreshTokenByTokenAsync(token);
 
-            if (existingToken == null || !existingToken.IsActive)
+            if (existingToken == null)
+                throw new Exception("Invalid or expired refresh token.");
+
+            if (existingToken.Revoked != null)
+            {
+                // REUSE DETECTION: revoke all active refresh tokens for this user
+                await _unitOfWork.RefreshTokenRepository.RevokeAllUserRefreshTokensAsync(existingToken.UserId);
+                await _unitOfWork.CompleteAsync();
+                throw new Exception("Refresh token has already been revoked. Potential token theft detected. All sessions revoked.");
+            }
+
+            if (!existingToken.IsActive)
                 throw new Exception("Invalid or expired refresh token.");
 
             var user = await _userManager.FindByIdAsync(existingToken.UserId);
@@ -113,8 +126,10 @@ namespace Application.Services
             if (user == null)
                 throw new Exception("User not found.");
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             // Generate new JWT
-            var jwtToken = await CreateJwtToken(user);
+            var jwtToken = await CreateJwtToken(user, roles);
 
             // Generate new refresh token (ROTATION)
             var newRefreshToken = GenerateRefreshToken(user);
@@ -135,15 +150,20 @@ namespace Application.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
                 TokenExpiresOn = jwtToken.ValidTo,
                 RefreshToken = newRefreshToken.Token,
-                RefreshTokenExpiration = newRefreshToken.Expires
+                RefreshTokenExpiration = newRefreshToken.Expires,
+                Roles = roles.ToList()
             };
         }
 
         /// <summary>
         /// Registers a new user and returns JWT + Refresh Token.
         /// </summary>
-        public async Task<AuthResult> Register(RegisterDto dto)
+        public async Task<AuthResult> RegisterAsync(RegisterDto dto)
         {
+            var allowedRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Customer", "Seller" };
+            if (!allowedRoles.Contains(dto.Role))
+                throw new Exception("Invalid role.");
+
             // Check if username already exists
             if (await _userManager.FindByNameAsync(dto.UserName) != null)
                 throw new Exception("Username already exists.");
@@ -184,8 +204,11 @@ namespace Application.Services
                 });
                 await _unitOfWork.CompleteAsync();
             }
+            
+            var roles = new List<string> { dto.Role };
+
             // Generate JWT
-            var jwtToken = await CreateJwtToken(user);
+            var jwtToken = await CreateJwtToken(user, roles);
 
             // Generate refresh token
             var refreshToken = GenerateRefreshToken(user);
@@ -201,7 +224,8 @@ namespace Application.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
                 TokenExpiresOn = jwtToken.ValidTo,
                 RefreshToken = refreshToken.Token,
-                RefreshTokenExpiration = refreshToken.Expires
+                RefreshTokenExpiration = refreshToken.Expires,
+                Roles = roles
             };
         }
 
@@ -210,12 +234,22 @@ namespace Application.Services
         /// </summary>
         public async Task<AuthResult> LoginAsync(LoginDto dto)
         {
-            var user = await _userManager.FindByNameAsync(dto.Username);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
 
-            if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-                throw new Exception("Invalid username or password.");
+            if (user == null)
+                throw new Exception("Invalid email or password.");
 
-            var jwtToken = await CreateJwtToken(user);
+            var signInResult = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: true);
+
+            if (signInResult.IsLockedOut)
+                throw new Exception("Account is locked out. Please try again later.");
+
+            if (!signInResult.Succeeded)
+                throw new Exception("Invalid email or password.");
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var jwtToken = await CreateJwtToken(user, roles);
 
             var newRefreshToken = GenerateRefreshToken(user);
 
@@ -230,7 +264,8 @@ namespace Application.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
                 TokenExpiresOn = jwtToken.ValidTo,
                 RefreshToken = newRefreshToken.Token,
-                RefreshTokenExpiration = newRefreshToken.Expires
+                RefreshTokenExpiration = newRefreshToken.Expires,
+                Roles = roles.ToList()
             };
         }
 
@@ -252,6 +287,23 @@ namespace Application.Services
             await _unitOfWork.CompleteAsync();
 
             return true;
+        }
+
+        /// <summary>
+        /// Revokes a single specific refresh token.
+        /// </summary>
+        public async Task<bool> RevokeTokenAsync(string token)
+        {
+            var existingToken = await _unitOfWork.RefreshTokenRepository
+                .GetRefreshTokenByTokenAsync(token);
+
+            if (existingToken != null && existingToken.IsActive)
+            {
+                await _unitOfWork.RefreshTokenRepository.RevokeRefreshTokenAsync(token);
+                await _unitOfWork.CompleteAsync();
+            }
+
+            return true; // No-op success even if not found or already inactive
         }
     }
 }

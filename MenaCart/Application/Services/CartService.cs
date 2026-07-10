@@ -9,10 +9,12 @@ namespace Application.Services
     public class CartService : ICartService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IShippingService _shippingService;
 
-        public CartService(IUnitOfWork unitOfWork)
+        public CartService(IUnitOfWork unitOfWork, IShippingService shippingService)
         {
             _unitOfWork = unitOfWork;
+            _shippingService = shippingService;
         }
 
         public async Task<CartResponseDto> GetCartAsync(string userId)
@@ -58,6 +60,16 @@ namespace Application.Services
             var variant = await _unitOfWork.ProductVariantRepository.GetById(request.VariantId);
             if (variant == null)
                 throw new KeyNotFoundException("Product variant not found.");
+
+            var product = await _unitOfWork.ProductRepository.GetByIdWithDetailsAsync(variant.ProductId);
+            if (product == null)
+                throw new KeyNotFoundException("Product not found.");
+
+            if (product.ApprovalStatus != ApprovalStatus.Approved || !product.IsActive)
+                throw new Exception("This product is not active or approved for sale.");
+
+            if (product.SellerProfile == null || product.SellerProfile.Status != SellerStatus.Active)
+                throw new Exception("The seller of this product is not active.");
 
             if (variant.StockQuantity < request.Quantity)
                 throw new Exception($"Only {variant.StockQuantity} units available.");
@@ -139,35 +151,111 @@ namespace Application.Services
             await _unitOfWork.CompleteAsync();
         }
 
-        // ── Mapper ─────────────────────────────────────────────────────────────
-        private static CartResponseDto MapToDto(Cart cart, List<Address> addresses) => new()
+        public async Task<CheckoutPreviewDto> GetCheckoutPreviewAsync(string userId, int addressId)
         {
-            CartId = cart.CartId,
-            Items = cart.CartItems?.Select(ci => new CartItemResponseDto
+            var cart = await _unitOfWork.CartRepository.GetCartWithItemsByUserIdAsync(userId);
+            if (cart == null || !cart.CartItems.Any())
+                throw new Exception("Cart is empty.");
+
+            var address = await _unitOfWork.AddressRepository.GetByIdAndUserIdAsync(addressId, userId);
+            if (address == null)
+                throw new UnauthorizedAccessException("Address not found or does not belong to you.");
+
+            var activeItems = cart.CartItems
+                .Where(ci => ci.ProductVariant.Product.SellerProfile.Status == SellerStatus.Active
+                          && ci.ProductVariant.Product.ApprovalStatus == ApprovalStatus.Approved)
+                .ToList();
+
+            if (!activeItems.Any())
+                throw new Exception("No eligible items in cart.");
+
+            decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+            var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
+
+            var preview = new CheckoutPreviewDto
             {
-                CartItemId = ci.CartItemId,
-                VariantId = ci.VariantId,
-                ProductId = ci.ProductVariant?.ProductId ?? 0,
-                ProductName = ci.ProductVariant?.Product?.Name ?? string.Empty,
-                Color = ci.ProductVariant?.Color,
-                Size = ci.ProductVariant?.Size,
-                ImageUrl = ci.ProductVariant?.ImageUrl,
-                UnitPrice = ci.ProductVariant?.Price ?? 0,
-                Quantity = ci.Quantity,
-                StockQuantity = ci.ProductVariant?.StockQuantity ?? 0
-            }).ToList() ?? new(),
-            SavedAddresses = addresses.Select(a => new AddressResponseDto
+                Subtotal = subtotal,
+                TotalShippingCost = 0,
+                SellerShipping = new List<SellerShippingPreviewDto>()
+            };
+
+            foreach (var sellerGroup in grouped)
             {
-                AddressId = a.AddressId,
-                AddressType = a.AddressType.ToString(),
-                Street = a.Street,
-                City = a.City,
-                State = a.State,
-                Country = a.Country,
-                ZipCode = a.ZipCode,
-                IsDefault = a.IsDefault
-            }).ToList(),
-            DefaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.AddressId
-        };
+                var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                var cost = await _shippingService.CalculateShippingCostAsync(address, sellerGroup.Key, sellerSubtotal);
+                
+                preview.TotalShippingCost += cost;
+                preview.SellerShipping.Add(new SellerShippingPreviewDto
+                {
+                    SellerId = sellerGroup.Key,
+                    StoreName = sellerGroup.First().ProductVariant.Product.SellerProfile.StoreName,
+                    ShippingCost = cost
+                });
+            }
+
+            preview.TotalAmount = preview.Subtotal + preview.TotalShippingCost;
+            return preview;
+        }
+
+        // ── Mapper ─────────────────────────────────────────────────────────────
+        private static CartResponseDto MapToDto(Cart cart, List<Address> addresses)
+        {
+            var warnings = new List<string>();
+            var items = cart.CartItems?.Select(ci =>
+            {
+                var variant = ci.ProductVariant;
+                var product = variant?.Product;
+
+                if (variant != null && product != null)
+                {
+                    if (product.ApprovalStatus != ApprovalStatus.Approved || !product.IsActive)
+                    {
+                        warnings.Add($"Product '{product.Name}' is no longer available for purchase.");
+                    }
+                    else if (product.SellerProfile == null || product.SellerProfile.Status != SellerStatus.Active)
+                    {
+                        warnings.Add($"Product '{product.Name}' is no longer available because the seller is inactive.");
+                    }
+                    else if (variant.StockQuantity < ci.Quantity)
+                    {
+                        warnings.Add($"Only {variant.StockQuantity} unit(s) of '{product.Name}' are available in stock (requested {ci.Quantity}).");
+                    }
+                }
+
+                return new CartItemResponseDto
+                {
+                    CartItemId = ci.CartItemId,
+                    VariantId = ci.VariantId,
+                    ProductId = variant?.ProductId ?? 0,
+                    ProductName = product?.Name ?? string.Empty,
+                    Color = variant?.Color,
+                    Size = variant?.Size,
+                    MainImageUrl = variant?.MainImageUrl,
+                    UnitPrice = variant?.Price ?? 0,
+                    Quantity = ci.Quantity,
+                    StockQuantity = variant?.StockQuantity ?? 0,
+                    SellerId = product?.SellerId ?? 0
+                };
+            }).ToList() ?? new();
+
+            return new CartResponseDto
+            {
+                CartId = cart.CartId,
+                Items = items,
+                Warnings = warnings,
+                SavedAddresses = addresses.Select(a => new AddressResponseDto
+                {
+                    AddressId = a.AddressId,
+                    AddressType = a.AddressType.ToString(),
+                    Street = a.Street,
+                    City = a.City,
+                    State = a.State,
+                    Country = a.Country,
+                    ZipCode = a.ZipCode,
+                    IsDefault = a.IsDefault
+                }).ToList(),
+                DefaultAddressId = addresses.FirstOrDefault(a => a.IsDefault)?.AddressId
+            };
+        }
     }
 }

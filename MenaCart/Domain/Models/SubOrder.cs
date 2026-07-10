@@ -33,6 +33,9 @@ namespace Domain.Models
         [Required]
         public SubOrderStatus Status { get; set; } = SubOrderStatus.Placed;
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal ShippingCost { get; set; } = 0;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

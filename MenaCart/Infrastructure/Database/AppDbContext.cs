@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+using Domain.Models;
 using Domain.Security;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +50,25 @@ namespace Infrastructure.Database
         {
             base.OnModelCreating(builder);
 
+            // Enum-to-string conversions
+            builder.Entity<Order>().Property(o => o.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Order>().Property(o => o.PaymentStatus).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<SubOrder>().Property(so => so.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Shipping>().Property(s => s.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Return>().Property(r => r.Type).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Return>().Property(r => r.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Payment>().Property(p => p.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Product>().Property(p => p.ApprovalStatus).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<SellerProfile>().Property(sp => sp.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<SellerDocument>().Property(sd => sd.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<SellerPayout>().Property(sp => sp.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<SellerCommission>().Property(sc => sc.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Coupon>().Property(c => c.DiscountType).HasConversion<string>().HasMaxLength(20);
+            builder.Entity<Address>().Property(a => a.AddressType).HasConversion<string>().HasMaxLength(20);
+
+            // Unique commission index
+            builder.Entity<SellerCommission>().HasIndex(sc => sc.OrderItemId).IsUnique();
+
             // ---- Unique constraints ----
             builder.Entity<RefreshToken>()
                 .HasIndex(rt => rt.Token).IsUnique();
@@ -81,6 +100,15 @@ namespace Infrastructure.Database
             builder.Entity<Shipping>()
                 .HasIndex(s => s.SubOrderId).IsUnique(); // one shipment per sub-order
 
+            builder.Entity<Review>()
+                .HasIndex(r => new { r.UserId, r.ProductId }).IsUnique();
+
+            builder.Entity<SellerReview>()
+                .HasIndex(sr => new { sr.CustomerId, sr.SellerId }).IsUnique();
+
+            builder.Entity<SellerBankInfo>()
+                .HasIndex(sbi => sbi.SellerId).IsUnique();
+
             // ---- Restrict cascade delete on multi-parent / historical tables ----
             builder.Entity<SellerReview>()
                 .HasOne(sr => sr.Customer)
@@ -98,6 +126,12 @@ namespace Infrastructure.Database
                 .HasOne(o => o.Coupon)
                 .WithMany(c => c.Orders)
                 .HasForeignKey(o => o.CouponId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Order>()
+                .HasOne(o => o.Address)
+                .WithMany(a => a.Orders)
+                .HasForeignKey(o => o.AddressId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Category>()
@@ -124,7 +158,7 @@ namespace Infrastructure.Database
                 .WithMany(u => u.Addresses)
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-            // ---- Fix for OrderItems cascade path (Error 1785) ----
+            // ---- Fix for OrderItems cascade path ----
             builder.Entity<OrderItem>()
                 .HasOne(oi => oi.SubOrder) // Assumes your navigation property is named SubOrder
                 .WithMany(so => so.OrderItems) // If SubOrder doesn't have a list of items, just use .WithMany()
@@ -136,7 +170,7 @@ namespace Infrastructure.Database
                 .WithMany()
                 .HasForeignKey(oi => oi.VariantId)
                 .OnDelete(DeleteBehavior.Restrict);
-            // ---- Fix for Wishlists cascade path (Error 1785) ----
+            // ---- Fix for Wishlists cascade path ----
             builder.Entity<Wishlist>()
                 .HasOne(w => w.User)
                 .WithMany(u => u.WishlistItems)
@@ -154,14 +188,14 @@ namespace Infrastructure.Database
                 .WithMany()
                 .HasForeignKey(ci => ci.VariantId)
                 .OnDelete(DeleteBehavior.Restrict);
-            // ---> THIS IS THE FIX FOR ERROR 1785 <---
+
             builder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany(u => u.Orders)
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ---- Index for common lookup / join paths (mirrors SQL script section 10) ----
+            // ---- Index for common lookup / join paths ----
             builder.Entity<Product>().HasIndex(p => p.SellerId);
             builder.Entity<Product>().HasIndex(p => p.CategoryId);
             builder.Entity<ProductVariant>().HasIndex(pv => pv.ProductId);
@@ -173,6 +207,23 @@ namespace Infrastructure.Database
             builder.Entity<SellerCommission>().HasIndex(sc => sc.SellerId);
             builder.Entity<Review>().HasIndex(r => r.ProductId);
             builder.Entity<RefreshToken>().HasIndex(rt => rt.UserId);
+            builder.Entity<Notification>().HasIndex(n => n.UserId);
+            builder.Entity<Address>().HasIndex(a => a.UserId);
+            builder.Entity<Payment>().HasIndex(p => p.OrderId);
+            builder.Entity<Return>().HasIndex(r => r.OrderItemId);
+            builder.Entity<Return>().HasIndex(r => r.ExchangeVariantId);
+            builder.Entity<ProductImage>().HasIndex(pi => pi.ProductId);
+            builder.Entity<ProductImage>().HasIndex(pi => pi.ProductVariantId);
+
+            // Composite indexes for soft deletes & active listings
+            builder.Entity<Product>().HasIndex(p => new { p.CategoryId, p.IsActive, p.ApprovalStatus });
+            builder.Entity<Address>().HasIndex(a => new { a.UserId, a.IsActive });
+
+            builder.Entity<ProductImage>()
+                .HasOne(pi => pi.ProductVariant)
+                .WithMany(pv => pv.Images)
+                .HasForeignKey(pi => pi.ProductVariantId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }

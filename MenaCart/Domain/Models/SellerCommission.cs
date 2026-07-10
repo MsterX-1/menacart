@@ -7,7 +7,8 @@ namespace Domain.Models
     public enum SellerCommissionStatus
     {
         Pending,
-        Settled
+        Settled,
+        Refunded
     }
 
     public class SellerCommission
@@ -31,8 +32,16 @@ namespace Domain.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal CommissionAmount { get; set; }
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal SellerDiscount { get; set; } = 0;
+
         [Required]
         public SellerCommissionStatus Status { get; set; } = SellerCommissionStatus.Pending;
+
+        public int? PayoutId { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -42,5 +51,8 @@ namespace Domain.Models
 
         [ForeignKey(nameof(OrderItemId))]
         public OrderItem OrderItem { get; set; }
+
+        [ForeignKey(nameof(PayoutId))]
+        public SellerPayout? SellerPayout { get; set; }
     }
 }

@@ -1,9 +1,11 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories;
 using Application.Interfaces.IServices;
 using Application.Interfaces.IUnitOfWork;
 using Application.Services;
 using Infrastructure.Repository;
+using Infrastructure.Repositories;
 using Infrastructure.UnitOfWork;
+using Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace API.Extensions
@@ -16,6 +18,7 @@ namespace API.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Repositories
+            services.AddScoped(typeof(IGenaricRepository<>), typeof(GenaricRepository<>));
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<ISubOrderRepository, SubOrderRepository>();
@@ -23,11 +26,21 @@ namespace API.Extensions
             services.AddScoped<IAddressRepository, AddressRepository>();
             services.AddScoped<ICouponRepository, CouponRepository>();
            
-            services.AddScoped<IShippingRepository, ShippingRepository>();
             services.AddScoped<ISellerRepository, SellerRepository>();
+            services.AddScoped<IShippingRepository, ShippingRepository>();
+            services.AddScoped<ISellerShippingRuleRepository, SellerShippingRuleRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductVariantRepository, ProductVariantRepository>();
             services.AddScoped<IReturnRepository, ReturnRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ISellerDocumentRepository, SellerDocumentRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<ISellerReviewRepository, SellerReviewRepository>();
+            services.AddScoped<ISellerCommissionRepository, SellerCommissionRepository>();
+            services.AddScoped<ISellerPayoutRepository, SellerPayoutRepository>();
+            services.AddScoped<ILoyaltyPointRepository, LoyaltyPointRepository>();
+            services.AddScoped<IWishlistRepository, WishlistRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
 
 
             // Services
@@ -38,6 +51,19 @@ namespace API.Extensions
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IReturnService, ReturnService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ISellerOnboardingService, SellerOnboardingService>();
+            services.AddScoped<ISellerDocumentService, SellerDocumentService>();
+            services.AddScoped<IShippingService, ShippingService>();
+            services.AddScoped<IPaymentGatewayService, StripePaymentGatewayService>();
+            services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IPayoutService, PayoutService>();
+            services.AddScoped<ILoyaltyService, LoyaltyService>();
+            services.AddScoped<ICouponService, CouponService>();
+            services.AddScoped<IAddressService, AddressService>();
+            services.AddScoped<IWishlistService, WishlistService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<ISellerDashboardService, SellerDashboardService>();
 
 
             return services;

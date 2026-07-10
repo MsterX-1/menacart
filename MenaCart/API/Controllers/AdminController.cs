@@ -101,28 +101,22 @@ namespace API.Controllers
             }
         }
 
-        // ── Coupons ────────────────────────────────────────────────────────────
-
         /// <summary>
-        /// Get all coupons.
+        /// Update a seller's commission rate.
         /// </summary>
-        [HttpGet("coupons")]
-        public async Task<IActionResult> GetAllCoupons()
-        {
-            var result = await _adminService.GetAllCouponsAsync();
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Create a new platform coupon.
-        /// </summary>
-        [HttpPost("coupons")]
-        public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponDto request)
+        [HttpPut("sellers/{sellerId}/commission")]
+        public async Task<IActionResult> UpdateSellerCommission(
+            int sellerId,
+            [FromBody] UpdateCommissionDto request)
         {
             try
             {
-                var result = await _adminService.CreateCouponAsync(request);
-                return CreatedAtAction(nameof(GetAllCoupons), result);
+                await _adminService.UpdateSellerCommissionAsync(sellerId, request.CommissionRate);
+                return Ok(new { message = "Commission rate updated successfully." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -131,19 +125,19 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Delete a coupon.
+        /// Get aggregated dashboard statistics for administration.
         /// </summary>
-        [HttpDelete("coupons/{couponId}")]
-        public async Task<IActionResult> DeleteCoupon(int couponId)
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetDashboardStats()
         {
             try
             {
-                await _adminService.DeleteCouponAsync(couponId);
-                return NoContent();
+                var stats = await _adminService.GetDashboardStatsAsync();
+                return Ok(stats);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

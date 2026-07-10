@@ -16,9 +16,18 @@ namespace API
             builder.Services.AddAuthenticationConfig(builder.Configuration);
             builder.Services.AddSwaggerConfig();
             builder.Services.AddCorsConfig();
+            builder.Services.AddOutputCache();
 
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                });
 
-            builder.Services.AddControllers();
+            builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+            {
+                options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            });
 
             var app = builder.Build();
 
@@ -34,8 +43,11 @@ namespace API
 
             // Middleware
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
             app.UseCors("AllowFrontend"); // Use the frontend-specific policy
+            
+            app.UseOutputCache();
 
             app.UseAuthentication();
             app.UseAuthorization();

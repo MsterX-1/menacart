@@ -1,0 +1,151 @@
+/* Design Tokens */
+:root {
+  /* Brand color strategy: Committed. Crisp neutrals with a vibrant, high-chroma hot coral accent */
+  --brand-hue: 35;
+  
+  /* Primary Accent - Vibrant Hot Coral */
+  --color-primary-light: oklch(0.70 0.22 35);
+  --color-primary: oklch(0.60 0.24 35);
+  --color-primary-dark: oklch(0.50 0.20 35);
+  --color-primary-contrast: oklch(0.99 0.005 35);
+  
+  /* Neutrals - Ultra clean, slightly warm-tinted */
+  --color-bg-base: oklch(0.99 0.002 35);
+  --color-bg-surface: oklch(0.975 0.003 35);
+  --color-bg-panel: oklch(0.95 0.005 35);
+  
+  --color-text-main: oklch(0.20 0.01 35);
+  --color-text-muted: oklch(0.48 0.01 35);
+  --color-text-disabled: oklch(0.68 0.008 35);
+  
+  --color-border-subtle: oklch(0.92 0.005 35);
+  --color-border-strong: oklch(0.85 0.008 35);
+  
+  /* State Colors - Elevated chroma for premium feel */
+  --color-error-bg: oklch(0.97 0.015 20);
+  --color-error: oklch(0.58 0.20 20);
+  
+  --color-warning-bg: oklch(0.98 0.03 80);
+  --color-warning: oklch(0.70 0.16 80);
+  
+  --color-success-bg: oklch(0.97 0.02 140);
+  --color-success: oklch(0.55 0.16 140);
+  
+  --color-info-bg: oklch(0.97 0.02 240);
+  --color-info: oklch(0.58 0.16 240);
+  
+  /* Fonts */
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-md: 1.125rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2rem;
+  
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  
+  /* Layout constraints */
+  --max-width-content: 70ch;
+  --max-width-page: 1200px;
+  
+  /* Elevation / Shadows */
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.05), 0 2px 4px -2px oklch(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.05), 0 4px 6px -4px oklch(0 0 0 / 0.05);
+  
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-round: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-index */
+  --z-header: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Dark mode variants - Tinted deep rich neutrals */
+    --color-bg-base: oklch(0.12 0.005 35);
+    --color-bg-surface: oklch(0.15 0.008 35);
+    --color-bg-panel: oklch(0.18 0.01 35);
+    
+    --color-text-main: oklch(0.96 0.002 35);
+    --color-text-muted: oklch(0.75 0.005 35);
+    --color-text-disabled: oklch(0.48 0.008 35);
+    
+    --color-border-subtle: oklch(0.22 0.008 35);
+    --color-border-strong: oklch(0.32 0.012 35);
+    
+    --color-error-bg: oklch(0.20 0.04 20);
+    --color-error: oklch(0.70 0.20 20);
+    
+    --color-warning-bg: oklch(0.20 0.03 80);
+    --color-warning: oklch(0.75 0.16 80);
+    
+    --color-success-bg: oklch(0.18 0.03 140);
+    --color-success: oklch(0.70 0.16 140);
+    
+    --color-info-bg: oklch(0.18 0.03 240);
+    --color-info: oklch(0.70 0.16 240);
+    
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.5), 0 4px 6px -4px oklch(0 0 0 / 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  /* Dark mode variants - Tinted deep rich neutrals */
+  --color-bg-base: oklch(0.12 0.005 35);
+  --color-bg-surface: oklch(0.15 0.008 35);
+  --color-bg-panel: oklch(0.18 0.01 35);
+  
+  --color-text-main: oklch(0.96 0.002 35);
+  --color-text-muted: oklch(0.75 0.005 35);
+  --color-text-disabled: oklch(0.48 0.008 35);
+  
+  --color-border-subtle: oklch(0.22 0.008 35);
+  --color-border-strong: oklch(0.32 0.012 35);
+  
+  --color-error-bg: oklch(0.20 0.04 20);
+  --color-error: oklch(0.70 0.20 20);
+  
+  --color-warning-bg: oklch(0.20 0.03 80);
+  --color-warning: oklch(0.75 0.16 80);
+  
+  --color-success-bg: oklch(0.18 0.03 140);
+  --color-success: oklch(0.70 0.16 140);
+  
+  --color-info-bg: oklch(0.18 0.03 240);
+  --color-info: oklch(0.70 0.16 240);
+  
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.4), 0 2px 4px -2px oklch(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.5), 0 4px 6px -4px oklch(0 0 0 / 0.5);
+}

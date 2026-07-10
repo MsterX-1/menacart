@@ -1,9 +1,10 @@
-﻿namespace Application.DTOs.OrderDtos
+namespace Application.DTOs.OrderDtos
 {
     public class OrderItemDto
     {
         public int OrderItemId { get; set; }
         public int VariantId { get; set; }
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public string? Color { get; set; }
         public string? Size { get; set; }
@@ -17,6 +18,9 @@
         public int SellerId { get; set; }
         public string StoreName { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public decimal ShippingCost { get; set; }
+        public string? Carrier { get; set; }
+        public string? TrackingNumber { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
     }
 
@@ -26,6 +30,9 @@
         public decimal TotalAmount { get; set; }
         public string Status { get; set; } = string.Empty;
         public string PaymentStatus { get; set; } = string.Empty;
+        public string PaymentUrl { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public int? CouponId { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<SubOrderDto> SubOrders { get; set; } = new();
     }

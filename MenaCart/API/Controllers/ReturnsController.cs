@@ -88,7 +88,7 @@ namespace API.Controllers
         /// Approved  → Completed
         /// </summary>
         [HttpPatch("api/seller/returns/{returnId}/status")]
-        [Authorize(Roles = "Seller")]
+        [Authorize(Roles = "Seller,Admin")]
         public async Task<IActionResult> UpdateReturnStatus(
             int returnId,
             [FromBody] UpdateReturnStatusRequestDto request)

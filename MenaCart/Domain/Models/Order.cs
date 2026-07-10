@@ -37,6 +37,9 @@ namespace Domain.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal TotalAmount { get; set; }
 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal PlatformDiscount { get; set; } = 0;
+
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Placed;
 

@@ -1,20 +1,17 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Application.Interfaces.IRepositories;
 using Application.Interfaces.IUnitOfWork;
 using Domain.Models;
 using Infrastructure.Database;
 using Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.UnitOfWork
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-
-        // Private backing fields for the generic repositories
-        private IGenaricRepository<OrderItem>? _orderItemRepository;
-        private IGenaricRepository<SellerCommission>? _sellerCommissionRepository;
-        private IGenaricRepository<Notification>? _notificationRepository;
+        private IDbContextTransaction? _currentTransaction;
 
         // Public properties for custom repositories
         public IRefreshTokenRepository RefreshTokenRepository { get; }
@@ -25,10 +22,24 @@ namespace Infrastructure.UnitOfWork
         public IAddressRepository AddressRepository { get; }
         public ISellerRepository SellerRepository { get; }
         public IShippingRepository ShippingRepository { get; }
+        public ISellerShippingRuleRepository SellerShippingRuleRepository { get; }
+        public IWishlistRepository WishlistRepository { get; }
         public IProductRepository ProductRepository { get; }
         public IProductVariantRepository ProductVariantRepository { get; }
         public IReturnRepository ReturnRepository { get; }
+        public ICategoryRepository CategoryRepository { get; }
+        public ISellerDocumentRepository SellerDocumentRepository { get; }
+        public IReviewRepository ReviewRepository { get; }
+        public ISellerReviewRepository SellerReviewRepository { get; }
+        public ISellerCommissionRepository SellerCommissionRepository { get; }
+        public ISellerPayoutRepository SellerPayoutRepository { get; }
+        public ILoyaltyPointRepository LoyaltyPointRepository { get; }
 
+        // Generic repositories
+        public IGenaricRepository<OrderItem> OrderItemRepository { get; }
+        public INotificationRepository NotificationRepository { get; }
+        public IGenaricRepository<Payment> PaymentRepository { get; }
+ 
         public UnitOfWork(
             AppDbContext context,
             IRefreshTokenRepository refreshTokenRepository,
@@ -39,9 +50,21 @@ namespace Infrastructure.UnitOfWork
             IAddressRepository addressRepository,
             ISellerRepository sellerRepository,
             IShippingRepository shippingRepository,
+            ISellerShippingRuleRepository sellerShippingRuleRepository,
+            IWishlistRepository wishlistRepository,
             IProductRepository productRepository,
             IProductVariantRepository productVariantRepository,
-            IReturnRepository returnRepository)
+            IReturnRepository returnRepository,
+            ICategoryRepository categoryRepository,
+            ISellerDocumentRepository sellerDocumentRepository,
+            IReviewRepository reviewRepository,
+            ISellerReviewRepository sellerReviewRepository,
+            ISellerCommissionRepository sellerCommissionRepository,
+            ISellerPayoutRepository sellerPayoutRepository,
+            ILoyaltyPointRepository loyaltyPointRepository,
+            IGenaricRepository<OrderItem> orderItemRepository,
+            INotificationRepository notificationRepository,
+            IGenaricRepository<Payment> paymentRepository)
         {
             _context = context;
             RefreshTokenRepository = refreshTokenRepository;
@@ -51,25 +74,63 @@ namespace Infrastructure.UnitOfWork
             CouponRepository = couponRepository;
             AddressRepository = addressRepository;
             SellerRepository = sellerRepository;
+            WishlistRepository = wishlistRepository;
             ShippingRepository = shippingRepository;
+            SellerShippingRuleRepository = sellerShippingRuleRepository;
             ProductRepository = productRepository;
             ProductVariantRepository = productVariantRepository;
             ReturnRepository = returnRepository;
+            CategoryRepository = categoryRepository;
+            SellerDocumentRepository = sellerDocumentRepository;
+            ReviewRepository = reviewRepository;
+            SellerReviewRepository = sellerReviewRepository;
+            SellerCommissionRepository = sellerCommissionRepository;
+            SellerPayoutRepository = sellerPayoutRepository;
+            LoyaltyPointRepository = loyaltyPointRepository;
+ 
+            OrderItemRepository = orderItemRepository;
+            NotificationRepository = notificationRepository;
+            PaymentRepository = paymentRepository;
         }
-
-        // Lazy-loaded Generic Repository Properties
-        public IGenaricRepository<OrderItem> OrderItemRepository => 
-            _orderItemRepository ??= new GenaricRepository<OrderItem>(_context);
-
-        public IGenaricRepository<SellerCommission> SellerCommissionRepository => 
-            _sellerCommissionRepository ??= new GenaricRepository<SellerCommission>(_context);
-
-        public IGenaricRepository<Notification> NotificationRepository => 
-            _notificationRepository ??= new GenaricRepository<Notification>(_context);
 
         public async Task<int> CompleteAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        public async Task BeginTransactionAsync()
+        {
+            if (_currentTransaction == null)
+            {
+                _currentTransaction = await _context.Database.BeginTransactionAsync();
+            }
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            if (_currentTransaction != null)
+            {
+                await _currentTransaction.CommitAsync();
+                await _currentTransaction.DisposeAsync();
+                _currentTransaction = null;
+            }
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            try
+            {
+                if (_currentTransaction != null)
+                {
+                    await _currentTransaction.RollbackAsync();
+                    await _currentTransaction.DisposeAsync();
+                    _currentTransaction = null;
+                }
+            }
+            catch
+            {
+                // Suppress exception if transaction is already invalid/disposed
+            }
         }
     }
 }

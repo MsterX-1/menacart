@@ -1,0 +1,63 @@
+.payment-cancelled-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-12) var(--space-4);
+  min-height: 80vh;
+}
+
+.status-icon-wrapper {
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancel-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--color-error-bg);
+  border: 2px solid var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: shake-cancel 0.5s ease-in-out;
+}
+
+.cross-icon {
+  font-size: 48px;
+  color: var(--color-error);
+  font-weight: 300;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+@keyframes shake-cancel {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+.action-row {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .action-row {
+    flex-direction: column;
+  }
+  .action-row button {
+    width: 100%;
+  }
+}

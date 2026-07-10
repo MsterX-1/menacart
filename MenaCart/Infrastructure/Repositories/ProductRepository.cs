@@ -15,7 +15,9 @@ namespace Infrastructure.Repository
             return await _dbSet
                 .Include(p => p.Category)
                 .Include(p => p.SellerProfile)
+                .Include(p => p.ProductImages)
                 .Include(p => p.ProductVariants)
+                    .ThenInclude(pv => pv.Images)
                 .FirstOrDefaultAsync(p => p.ProductId == productId);
         }
 
@@ -23,10 +25,12 @@ namespace Infrastructure.Repository
             string? search, int? categoryId, int? sellerId, int page, int pageSize)
         {
             var query = _dbSet
-                .Where(p => p.ApprovalStatus == ApprovalStatus.Approved)
+                .Where(p => p.ApprovalStatus == ApprovalStatus.Approved && p.IsActive)
                 .Include(p => p.Category)
                 .Include(p => p.SellerProfile)
+                .Include(p => p.ProductImages)
                 .Include(p => p.ProductVariants)
+                    .ThenInclude(pv => pv.Images)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -54,7 +58,24 @@ namespace Infrastructure.Repository
                 .Where(p => p.SellerId == sellerId)
                 .Include(p => p.Category)
                 .Include(p => p.SellerProfile)
+                .Include(p => p.ProductImages)
                 .Include(p => p.ProductVariants)
+                    .ThenInclude(pv => pv.Images)
+                .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetPendingAsync(int page, int pageSize)
+        {
+            return await _dbSet
+                .Where(p => p.ApprovalStatus == ApprovalStatus.Pending && p.IsActive)
+                .Include(p => p.Category)
+                .Include(p => p.SellerProfile)
+                .Include(p => p.ProductImages)
+                .Include(p => p.ProductVariants)
+                    .ThenInclude(pv => pv.Images)
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

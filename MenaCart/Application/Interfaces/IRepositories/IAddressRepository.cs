@@ -1,4 +1,4 @@
-﻿using Domain.Models;
+using Domain.Models;
 
 namespace Application.Interfaces.IRepositories
 {
@@ -7,6 +7,6 @@ namespace Application.Interfaces.IRepositories
         Task<Address?> GetByIdAndUserIdAsync(int addressId, string userId);
         Task<Address?> GetDefaultByUserIdAsync(string userId);
         Task<IEnumerable<Address>> GetAllByUserIdAsync(string userId);
-        Task ClearDefaultAsync(string userId);
+        Task ClearDefaultAsync(string userId, AddressType type);
     }
 }

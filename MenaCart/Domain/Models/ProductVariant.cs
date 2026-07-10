@@ -29,7 +29,7 @@ namespace Domain.Models
         public decimal Price { get; set; }
 
         [MaxLength(500)]
-        public string ImageUrl { get; set; }
+        public string MainImageUrl { get; set; }
 
         /// <summary>Optimistic concurrency token backing SQL Server ROWVERSION.</summary>
         [Timestamp]
@@ -46,5 +46,6 @@ namespace Domain.Models
         public ICollection<Wishlist> WishlistEntries { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; }
         public ICollection<Return> ExchangeReturns { get; set; }
+        public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     }
 }

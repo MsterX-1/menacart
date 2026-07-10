@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.IRepositories;
+using Application.Interfaces.IRepositories;
 using Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -16,14 +16,25 @@ namespace Application.Interfaces.IUnitOfWork
         ICouponRepository CouponRepository { get; }
         IAddressRepository AddressRepository { get; }
         IGenaricRepository<OrderItem> OrderItemRepository { get; }
-        IGenaricRepository<SellerCommission> SellerCommissionRepository { get; }
-        IGenaricRepository<Notification> NotificationRepository { get; }
+        ISellerCommissionRepository SellerCommissionRepository { get; }
+        INotificationRepository NotificationRepository { get; }
+        IWishlistRepository WishlistRepository { get; }
         ISellerRepository SellerRepository { get; }
         IShippingRepository ShippingRepository { get; }
+        ISellerShippingRuleRepository SellerShippingRuleRepository { get; }
         IProductRepository ProductRepository { get; }
         IProductVariantRepository ProductVariantRepository { get; }
         IReturnRepository ReturnRepository { get; }
+        ICategoryRepository CategoryRepository { get; }
+        ISellerDocumentRepository SellerDocumentRepository { get; }
+        IGenaricRepository<Payment> PaymentRepository { get; }
+        IReviewRepository ReviewRepository { get; }
+        ISellerReviewRepository SellerReviewRepository { get; }
+        ISellerPayoutRepository SellerPayoutRepository { get; }
+        ILoyaltyPointRepository LoyaltyPointRepository { get; }
         Task<int> CompleteAsync();
-
+        Task BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

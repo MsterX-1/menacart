@@ -44,20 +44,48 @@ namespace Application.Services
                 BasePrice = request.BasePrice,
                 Brand = request.Brand,
                 ApprovalStatus = ApprovalStatus.Pending,
+                MainImageUrl = request.MainImageUrl,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                ProductVariants = request.Variants.Select(v => new ProductVariant
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            // Map product-level images
+            if (request.ProductImages != null)
+            {
+                product.ProductImages = request.ProductImages.Select(url => new ProductImage
+                {
+                    ImageUrl = url,
+                    IsPrimary = false,
+                    Product = product
+                }).ToList();
+            }
+
+            // Map variants and their specific images
+            product.ProductVariants = request.Variants.Select(v =>
+            {
+                var pv = new ProductVariant
                 {
                     Sku = v.Sku,
                     Color = v.Color,
                     Size = v.Size,
                     StockQuantity = v.StockQuantity,
                     Price = v.Price,
-                    ImageUrl = v.ImageUrl,
+                    MainImageUrl = v.MainImageUrl ?? string.Empty,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
-                }).ToList()
-            };
+                };
+
+                if (v.VariantImages != null)
+                {
+                    pv.Images = v.VariantImages.Select(url => new ProductImage
+                    {
+                        ImageUrl = url,
+                        Product = product
+                    }).ToList();
+                }
+
+                return pv;
+            }).ToList();
 
             await _unitOfWork.ProductRepository.Add(product);
             await _unitOfWork.CompleteAsync();
@@ -85,10 +113,29 @@ namespace Application.Services
             if (request.BasePrice.HasValue) product.BasePrice = request.BasePrice.Value;
             if (request.Brand != null) product.Brand = request.Brand;
             if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId.Value;
+            if (request.MainImageUrl != null) product.MainImageUrl = request.MainImageUrl;
             product.UpdatedAt = DateTime.UtcNow;
 
-            // Reset to Pending so admin re-approves after edits
-            product.ApprovalStatus = ApprovalStatus.Pending;
+            // Keep the same ApprovalStatus when updating (do not reset to Pending per blueprint)
+
+            // Handle product-level image updates
+            if (request.ProductImages != null)
+            {
+                var existingGeneralImages = product.ProductImages.Where(pi => pi.ProductVariantId == null).ToList();
+                foreach (var img in existingGeneralImages)
+                {
+                    product.ProductImages.Remove(img);
+                }
+
+                foreach (var url in request.ProductImages)
+                {
+                    product.ProductImages.Add(new ProductImage
+                    {
+                        ImageUrl = url,
+                        Product = product
+                    });
+                }
+            }
 
             // Handle variants
             if (request.Variants != null)
@@ -115,8 +162,27 @@ namespace Application.Services
                         if (vDto.Size != null) existing.Size = vDto.Size;
                         if (vDto.StockQuantity.HasValue) existing.StockQuantity = vDto.StockQuantity.Value;
                         if (vDto.Price.HasValue) existing.Price = vDto.Price.Value;
-                        if (vDto.ImageUrl != null) existing.ImageUrl = vDto.ImageUrl;
+                        if (vDto.MainImageUrl != null) existing.MainImageUrl = vDto.MainImageUrl;
                         existing.UpdatedAt = DateTime.UtcNow;
+
+                        // Sync variant-specific images
+                        if (vDto.VariantImages != null)
+                        {
+                            var existingVariantImages = existing.Images.ToList();
+                            foreach (var img in existingVariantImages)
+                            {
+                                product.ProductImages.Remove(img);
+                            }
+
+                            foreach (var url in vDto.VariantImages)
+                            {
+                                existing.Images.Add(new ProductImage
+                                {
+                                    ImageUrl = url,
+                                    Product = product
+                                });
+                            }
+                        }
                     }
                     else
                     {
@@ -127,17 +193,28 @@ namespace Application.Services
                         if (await _unitOfWork.ProductVariantRepository.SkuExistsAsync(vDto.Sku))
                             throw new Exception($"SKU '{vDto.Sku}' already exists.");
 
-                        product.ProductVariants.Add(new ProductVariant
+                        var newVariant = new ProductVariant
                         {
                             Sku = vDto.Sku,
                             Color = vDto.Color,
                             Size = vDto.Size,
                             StockQuantity = vDto.StockQuantity ?? 0,
                             Price = vDto.Price ?? product.BasePrice,
-                            ImageUrl = vDto.ImageUrl,
+                            MainImageUrl = vDto.MainImageUrl ?? string.Empty,
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
-                        });
+                        };
+
+                        if (vDto.VariantImages != null)
+                        {
+                            newVariant.Images = vDto.VariantImages.Select(url => new ProductImage
+                            {
+                                ImageUrl = url,
+                                Product = product
+                            }).ToList();
+                        }
+
+                        product.ProductVariants.Add(newVariant);
                     }
                 }
             }
@@ -162,7 +239,8 @@ namespace Application.Services
             if (product.SellerId != seller.SellerId)
                 throw new UnauthorizedAccessException("You do not own this product.");
 
-            await _unitOfWork.ProductRepository.Delete(productId);
+            product.IsActive = false;
+            await _unitOfWork.ProductRepository.Update(product);
             await _unitOfWork.CompleteAsync();
         }
 
@@ -210,6 +288,14 @@ namespace Application.Services
                 throw new Exception($"Invalid status '{request.Status}'.");
 
             product.ApprovalStatus = newStatus;
+            if (newStatus == ApprovalStatus.Rejected)
+            {
+                product.RejectionReason = request.RejectionReason ?? "Not specified.";
+            }
+            else
+            {
+                product.RejectionReason = null;
+            }
             product.UpdatedAt = DateTime.UtcNow;
 
             // Notify seller
@@ -229,6 +315,12 @@ namespace Application.Services
             return MapToDto(product);
         }
 
+        public async Task<IEnumerable<ProductResponseDto>> GetPendingProductsAsync(int page, int pageSize)
+        {
+            var products = await _unitOfWork.ProductRepository.GetPendingAsync(page, pageSize);
+            return products.Select(MapToDto);
+        }
+
         // ── Mapper ─────────────────────────────────────────────────────────────
         private static ProductResponseDto MapToDto(Product p) => new()
         {
@@ -238,11 +330,17 @@ namespace Application.Services
             BasePrice = p.BasePrice,
             Brand = p.Brand,
             ApprovalStatus = p.ApprovalStatus.ToString(),
+            AverageRating = p.AverageRating,
+            ReviewCount = p.ReviewCount,
+            IsActive = p.IsActive,
+            RejectionReason = p.RejectionReason,
             CategoryId = p.CategoryId,
             CategoryName = p.Category?.Name ?? string.Empty,
             SellerId = p.SellerId,
             StoreName = p.SellerProfile?.StoreName ?? string.Empty,
+            MainImageUrl = p.MainImageUrl,
             CreatedAt = p.CreatedAt,
+            ProductImages = p.ProductImages?.Where(pi => pi.ProductVariantId == null).Select(pi => pi.ImageUrl).ToList() ?? new(),
             Variants = p.ProductVariants?.Select(v => new VariantResponseDto
             {
                 VariantId = v.VariantId,
@@ -251,7 +349,8 @@ namespace Application.Services
                 Size = v.Size,
                 StockQuantity = v.StockQuantity,
                 Price = v.Price,
-                ImageUrl = v.ImageUrl
+                MainImageUrl = v.MainImageUrl,
+                VariantImages = v.Images?.Select(vi => vi.ImageUrl).ToList() ?? new()
             }).ToList() ?? new()
         };
     }

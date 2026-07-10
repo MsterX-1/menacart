@@ -19,6 +19,10 @@ namespace Infrastructure.Repository
                 .Include(r => r.OrderItem)
                     .ThenInclude(oi => oi.SubOrder)
                         .ThenInclude(s => s.Order)
+                            .ThenInclude(o => o.Payments)
+                .Include(r => r.OrderItem)
+                    .ThenInclude(oi => oi.SubOrder)
+                        .ThenInclude(s => s.Shipping)
                 .Include(r => r.ExchangeVariant)
                 .FirstOrDefaultAsync(r => r.ReturnId == returnId);
         }
@@ -55,6 +59,11 @@ namespace Infrastructure.Repository
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+        }
+
+        public async Task<bool> HasActiveReturnForOrderItemAsync(int orderItemId)
+        {
+            return await _dbSet.AnyAsync(r => r.OrderItemId == orderItemId && r.Status != ReturnStatus.Rejected);
         }
     }
 }
