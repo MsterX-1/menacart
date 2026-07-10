@@ -1,0 +1,264 @@
+.admin-tx-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.admin-tx-modal-content {
+  background: var(--color-bg-surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.admin-tx-modal-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+  z-index: 10;
+}
+
+.admin-tx-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.admin-tx-detail {
+  padding: 2rem;
+}
+
+.tx-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tx-header-left h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.tx-date {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.tx-header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.tx-summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tx-summary-card {
+  background: var(--bg-body);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.tx-summary-card h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.tx-summary-card p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.tx-summary-card strong {
+  color: var(--text-primary);
+}
+
+.coupon-tag {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tx-total-amount {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.tx-suborders-section h3 {
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+}
+
+.tx-suborders-desc {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.tx-suborder-card {
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.suborder-header {
+  background: var(--bg-body);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.store-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.store-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.suborder-id {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.suborder-items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.suborder-items-table th {
+  text-align: left;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.suborder-items-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: top;
+}
+
+.item-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.item-options {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.suborder-footer {
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shipping-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.shipping-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.shipping-value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.shipping-carrier {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.suborder-total {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.suborder-total span {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.suborder-total strong {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.admin-tx-modal-loading, .admin-tx-modal-error {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+/* Animations */
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

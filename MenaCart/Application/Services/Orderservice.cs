@@ -83,62 +83,7 @@ namespace Application.Services
             if (stockErrors.Any())
                 throw new Exception($"Stock conflict:\n{string.Join("\n", stockErrors)}");
 
-            // ── 5. Validate coupon ─────────────────────────────────────────────
-            Coupon? coupon = null;
-            decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-
-            if (!string.IsNullOrWhiteSpace(request.CouponCode))
-            {
-                coupon = await _unitOfWork.CouponRepository.GetByCodeAsync(request.CouponCode);
-
-                if (coupon == null)
-                    throw new Exception("Coupon not found.");
-                if (coupon.ExpiryDate < DateTime.UtcNow)
-                    throw new Exception("Coupon has expired.");
-                if (coupon.UsageLimit.HasValue && coupon.UsedCount >= coupon.UsageLimit)
-                    throw new Exception("Coupon usage limit reached.");
-                if (coupon.MinOrderAmount.HasValue && subtotal < coupon.MinOrderAmount)
-                    throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C}.");
-
-                var alreadyUsed = await _unitOfWork.CouponRepository
-                    .HasUserUsedCouponAsync(userId, coupon.CouponId);
-                if (alreadyUsed)
-                    throw new Exception("You have already used this coupon.");
-            }
-
-            // ── 6. Compute total ───────────────────────────────────────────────
-            decimal discount = 0;
-            decimal platformDiscount = 0;
-            Dictionary<int, decimal> sellerDiscounts = new Dictionary<int, decimal>();
-
-            if (coupon != null)
-            {
-                if (coupon.SellerId == null)
-                {
-                    discount = coupon.DiscountType == DiscountType.Percentage
-                        ? subtotal * coupon.DiscountValue / 100
-                        : coupon.DiscountValue;
-                    discount = Math.Min(discount, subtotal);
-                    platformDiscount = discount;
-                }
-                else
-                {
-                    var sellerItems = activeItems.Where(ci => ci.ProductVariant.Product.SellerId == coupon.SellerId).ToList();
-                    if (!sellerItems.Any())
-                        throw new Exception("This coupon does not apply to any items in your cart.");
-                        
-                    var sellerSubtotal = sellerItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-                    if (coupon.MinOrderAmount.HasValue && sellerSubtotal < coupon.MinOrderAmount)
-                        throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C} for seller's items.");
-
-                    discount = coupon.DiscountType == DiscountType.Percentage
-                        ? sellerSubtotal * coupon.DiscountValue / 100
-                        : coupon.DiscountValue;
-                    discount = Math.Min(discount, sellerSubtotal);
-                    sellerDiscounts[coupon.SellerId.Value] = discount;
-                }
-            }
-
+            // ── 5. Calculate Shipping First ─────────────────────────────────────────────
             var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
             decimal totalShippingCost = 0;
             var shippingCosts = new Dictionary<int, decimal>();
@@ -150,7 +95,63 @@ namespace Application.Services
                 totalShippingCost += cost;
             }
 
-            decimal totalAmount = Math.Max(0, subtotal - discount) + totalShippingCost;
+            decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+            decimal totalOrderPrice = subtotal + totalShippingCost;
+
+            // ── 6. Validate & Compute Coupon ──────────────────────────────────────────
+            Coupon? coupon = null;
+            decimal discount = 0;
+            decimal platformDiscount = 0;
+            Dictionary<int, decimal> sellerDiscounts = new Dictionary<int, decimal>();
+
+            if (!string.IsNullOrWhiteSpace(request.CouponCode))
+            {
+                coupon = await _unitOfWork.CouponRepository.GetByCodeAsync(request.CouponCode);
+
+                if (coupon == null)
+                    throw new Exception("Coupon not found.");
+                if (coupon.ExpiryDate < DateTime.UtcNow)
+                    throw new Exception("Coupon has expired.");
+                if (coupon.UsageLimit.HasValue && coupon.UsedCount >= coupon.UsageLimit)
+                    throw new Exception("Coupon usage limit reached.");
+                
+                var alreadyUsed = await _unitOfWork.CouponRepository
+                    .HasUserUsedCouponAsync(userId, coupon.CouponId);
+                if (alreadyUsed)
+                    throw new Exception("You have already used this coupon.");
+
+                if (coupon.SellerId == null)
+                {
+                    if (coupon.MinOrderAmount.HasValue && totalOrderPrice < coupon.MinOrderAmount)
+                        throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C}.");
+
+                    discount = coupon.DiscountType == DiscountType.Percentage
+                        ? totalOrderPrice * coupon.DiscountValue / 100
+                        : coupon.DiscountValue;
+                    discount = Math.Min(discount, totalOrderPrice);
+                    platformDiscount = discount;
+                }
+                else
+                {
+                    var sellerItems = activeItems.Where(ci => ci.ProductVariant.Product.SellerId == coupon.SellerId).ToList();
+                    if (!sellerItems.Any())
+                        throw new Exception("This coupon does not apply to any items in your cart.");
+                        
+                    var sellerSubtotal = sellerItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                    var sellerTotal = sellerSubtotal + shippingCosts[coupon.SellerId.Value];
+
+                    if (coupon.MinOrderAmount.HasValue && sellerTotal < coupon.MinOrderAmount)
+                        throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C} for seller's items.");
+
+                    discount = coupon.DiscountType == DiscountType.Percentage
+                        ? sellerTotal * coupon.DiscountValue / 100
+                        : coupon.DiscountValue;
+                    discount = Math.Min(discount, sellerTotal);
+                    sellerDiscounts[coupon.SellerId.Value] = discount;
+                }
+            }
+
+            decimal totalAmount = Math.Max(0, totalOrderPrice - discount);
 
             // Calculate points discount if requested
             decimal pointsDiscountAmount = 0;
@@ -205,6 +206,9 @@ namespace Application.Services
 
                     await _unitOfWork.SubOrderRepository.Add(subOrder);
 
+                    var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                    var sellerTotalWithShipping = sellerSubtotal + shippingCosts[sellerGroup.Key];
+
                     foreach (var cartItem in sellerGroup)
                     {
                         var variant = cartItem.ProductVariant;
@@ -225,42 +229,33 @@ namespace Application.Services
                         var sellerProfile = variant.Product.SellerProfile;
                         var appliedCommissionRate = sellerProfile.CommissionRate ?? defaultCommissionRate;
 
+                        // Distribute shipping cost to this item based on its sale amount ratio
+                        var itemShippingCost = sellerSubtotal > 0 ? shippingCosts[sellerGroup.Key] * (saleAmount / sellerSubtotal) : 0;
+                        var saleAmountWithShipping = saleAmount + itemShippingCost;
+
                         decimal sellerDiscountForItem = 0;
                         if (sellerDiscounts.TryGetValue(sellerGroup.Key, out var sDiscount) && sDiscount > 0)
                         {
-                            var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-                            sellerDiscountForItem = sDiscount * (saleAmount / sellerSubtotal);
+                            sellerDiscountForItem = sellerTotalWithShipping > 0 ? sDiscount * (saleAmountWithShipping / sellerTotalWithShipping) : 0;
                         }
 
-                            var discountedSaleAmount = Math.Max(0, saleAmount - sellerDiscountForItem);
-                            
-                            await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
-                            {
-                                SellerId = sellerGroup.Key,
-                                OrderItem = orderItem,
-                                SaleAmount = saleAmount,
-                                CommissionRate = appliedCommissionRate,
-                                CommissionAmount = discountedSaleAmount * appliedCommissionRate / 100,
-                                SellerDiscount = sellerDiscountForItem,
-                                Status = SellerCommissionStatus.Pending,
-                                CreatedAt = DateTime.UtcNow
-                            });
+                        var discountedSaleAmount = Math.Max(0, saleAmountWithShipping - sellerDiscountForItem);
+                        
+                        await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
+                        {
+                            SellerId = sellerGroup.Key,
+                            OrderItem = orderItem,
+                            SaleAmount = saleAmountWithShipping,
+                            CommissionRate = appliedCommissionRate,
+                            CommissionAmount = discountedSaleAmount * appliedCommissionRate / 100,
+                            SellerDiscount = sellerDiscountForItem,
+                            Status = SellerCommissionStatus.Pending,
+                            CreatedAt = DateTime.UtcNow
+                        });
                     }
                 }
 
-                // ── 9. Apply coupon usage ──────────────────────────────────────
-                if (coupon != null)
-                {
-                    coupon.UsedCount++;
-                    await _unitOfWork.CouponRepository.AddUsageAsync(new UserCouponUsage
-                    {
-                        UserId = userId,
-                        CouponId = coupon.CouponId,
-                        Coupon = coupon,
-                        Order = order,
-                        UsedAt = DateTime.UtcNow
-                    });
-                }
+                // Coupon usage is no longer incremented here. It will be incremented when payment succeeds.
 
                 // ── 10. Clear cart ─────────────────────────────────────────────
                 await _unitOfWork.CartRepository.ClearCartItemsAsync(cart.CartId);
@@ -375,6 +370,7 @@ namespace Application.Services
                 }
 
                 order.Status = OrderStatus.Cancelled;
+                order.PaymentStatus = OrderPaymentStatus.Failed;
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _unitOfWork.CompleteAsync();
@@ -594,14 +590,20 @@ namespace Application.Services
                 shipping.DeliveredAt = DateTime.UtcNow;
                 shipping.UpdatedAt = DateTime.UtcNow;
 
-                // Settle commissions
+                // Schedule commissions for settlement
                 var commissions = await _unitOfWork.SellerCommissionRepository.GetBySubOrderIdAsync(subOrderId);
-                foreach (var commission in commissions)
+                if (commissions.Any())
                 {
-                    if (commission.Status == SellerCommissionStatus.Pending)
+                    var sellerProfile = await _unitOfWork.SellerRepository.GetById(subOrder.SellerId);
+                    var returnPolicyDays = sellerProfile?.ReturnPolicyDays ?? 14;
+
+                    foreach (var commission in commissions)
                     {
-                        commission.Status = SellerCommissionStatus.Settled;
-                        await _unitOfWork.SellerCommissionRepository.Update(commission);
+                        if (commission.Status == SellerCommissionStatus.Pending)
+                        {
+                            commission.SettlesAt = DateTime.UtcNow.AddDays(returnPolicyDays);
+                            await _unitOfWork.SellerCommissionRepository.Update(commission);
+                        }
                     }
                 }
 
@@ -687,6 +689,19 @@ namespace Application.Services
 
                 await _unitOfWork.PaymentRepository.Add(payment);
 
+                if (order.CouponId.HasValue && order.Coupon != null)
+                {
+                    order.Coupon.UsedCount++;
+                    await _unitOfWork.CouponRepository.AddUsageAsync(new UserCouponUsage
+                    {
+                        UserId = order.UserId,
+                        CouponId = order.Coupon.CouponId,
+                        Coupon = order.Coupon,
+                        Order = order,
+                        UsedAt = DateTime.UtcNow
+                    });
+                }
+
                 // Notify buyer
                 await _unitOfWork.NotificationRepository.Add(new Notification
                 {
@@ -752,6 +767,19 @@ namespace Application.Services
             };
 
             await _unitOfWork.PaymentRepository.Add(payment);
+
+            if (order.CouponId.HasValue && order.Coupon != null)
+            {
+                order.Coupon.UsedCount++;
+                await _unitOfWork.CouponRepository.AddUsageAsync(new UserCouponUsage
+                {
+                    UserId = order.UserId,
+                    CouponId = order.Coupon.CouponId,
+                    Coupon = order.Coupon,
+                    Order = order,
+                    UsedAt = DateTime.UtcNow
+                });
+            }
 
             await _unitOfWork.NotificationRepository.Add(new Notification
             {

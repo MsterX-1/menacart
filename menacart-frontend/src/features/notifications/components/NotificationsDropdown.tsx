@@ -28,13 +28,27 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ on
     };
   }, [onClose]);
 
-  const handleNotificationClick = async (id: number, isRead: boolean, linkUrl?: string) => {
+  const handleNotificationClick = async (e: React.MouseEvent, id: number, isRead: boolean, linkUrl?: string, message?: string) => {
+    // If they clicked on the a tag directly, we want to intercept it and use react router
+    const target = e.target as HTMLElement;
+    let navUrl = linkUrl;
+
+    if (target.tagName.toLowerCase() === 'a') {
+      e.preventDefault(); // Prevent full page reload
+      navUrl = target.getAttribute('href') || navUrl;
+    } else if (!navUrl && message) {
+      // try to extract href from message
+      const match = message.match(/href="([^"]+)"/);
+      if (match) navUrl = match[1];
+    }
+
     if (!isRead) {
       await markAsReadMutation.mutateAsync(id);
     }
     onClose();
-    if (linkUrl) {
-      navigate(linkUrl);
+
+    if (navUrl) {
+      navigate(navUrl);
     }
   };
 
@@ -87,7 +101,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ on
               <div
                 key={n.notificationId}
                 className={`notification-item-row ${!n.isRead ? 'unread' : ''}`}
-                onClick={() => handleNotificationClick(n.notificationId, n.isRead, n.linkUrl)}
+                onClick={(e) => handleNotificationClick(e, n.notificationId, n.isRead, n.linkUrl, n.message)}
               >
                 <div className="notification-content-wrap">
                   <p 

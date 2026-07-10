@@ -23,6 +23,16 @@ namespace Infrastructure.Repository
 
         public async Task<IEnumerable<SellerCommission>> GetSettledCommissionsBySellerIdAsync(int sellerId)
         {
+            var pendingToSettle = await _dbSet
+                .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Pending && sc.SettlesAt <= System.DateTime.UtcNow)
+                .ToListAsync();
+
+            if (pendingToSettle.Any())
+            {
+                foreach (var sc in pendingToSettle) sc.Status = SellerCommissionStatus.Settled;
+                await _context.SaveChangesAsync();
+            }
+
             return await _dbSet
                 .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Settled && sc.PayoutId == null)
                 .Include(sc => sc.OrderItem)

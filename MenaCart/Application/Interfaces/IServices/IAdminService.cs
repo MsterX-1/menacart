@@ -18,5 +18,7 @@ namespace Application.Interfaces.IServices
 
         // Dashboard
         Task<AdminDashboardStatsDto> GetDashboardStatsAsync();
+        Task<AdminTransactionsPagedResponseDto> GetTransactionsAsync(int page, int pageSize);
+        Task<AdminTransactionDetailDto?> GetTransactionDetailsAsync(int orderId);
     }
 }

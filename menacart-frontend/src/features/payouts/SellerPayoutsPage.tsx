@@ -104,9 +104,18 @@ export const SellerPayoutsPage: React.FC = () => {
       <div className="payouts-grid">
         {/* Balance & Action Section */}
         <section className="balance-panel">
-          <div className="balance-display">
-            <span className="balance-label">Available Balance</span>
-            <span className="balance-amount">{availableBalance.toLocaleString('en-EG', { style: 'currency', currency: 'EGP' })}</span>
+          <div className="balance-display-container" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            <div className="balance-display">
+              <span className="balance-label">Available Balance</span>
+              <span className="balance-amount">{availableBalance.toLocaleString('en-EG', { style: 'currency', currency: 'EGP' })}</span>
+            </div>
+            
+            <div className="balance-display pending-display">
+              <span className="balance-label">Pending Balance (Held for Return Policy)</span>
+              <span className="balance-amount" style={{ color: 'var(--color-warning)' }}>
+                {(balanceData?.pendingBalance ?? 0).toLocaleString('en-EG', { style: 'currency', currency: 'EGP' })}
+              </span>
+            </div>
           </div>
 
           <div className="payout-method-selector">

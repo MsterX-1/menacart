@@ -139,6 +139,25 @@ export const ProductListPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Child Categories Sub-filters */}
+      {categoryId && categories?.find(c => c.categoryId === categoryId)?.childCategories?.length ? (
+        <div className="child-categories-pills">
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)', fontWeight: 500 }}>Subcategories:</span>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-2)' }}>
+            {categories.find(c => c.categoryId === categoryId)?.childCategories.map(child => (
+              <button
+                key={child.categoryId}
+                className="category-pill-btn"
+                onClick={() => handleCategoryChange(String(child.categoryId))}
+              >
+                {child.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+
       {isLoading && !products && (
         <div className="product-grid">
           {Array.from({ length: 8 }).map((_, i) => (

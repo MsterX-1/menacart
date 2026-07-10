@@ -66,6 +66,8 @@ namespace Domain.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal? FreeShippingThreshold { get; set; }
 
+        public int ReturnPolicyDays { get; set; } = 14;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

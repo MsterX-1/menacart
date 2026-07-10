@@ -238,9 +238,14 @@ export const SellerProductFormPage: React.FC = () => {
                 >
                   <option value={0}>Select a Category</option>
                   {categories?.map((cat) => (
-                    <option key={cat.categoryId} value={cat.categoryId}>
-                      {cat.name}
-                    </option>
+                    <optgroup key={cat.categoryId} label={cat.name}>
+                      <option value={cat.categoryId}>{cat.name} (General)</option>
+                      {cat.childCategories?.map((child) => (
+                        <option key={child.categoryId} value={child.categoryId}>
+                          {child.name}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 {errors.categoryId && <span className="input-error">{errors.categoryId.message}</span>}

@@ -34,6 +34,7 @@ import { SellerPayoutsPage } from '../features/payouts/SellerPayoutsPage';
 import { AdminPayoutsPage } from '../features/payouts/AdminPayoutsPage';
 import { AdminDashboardPage } from '../features/admin/AdminDashboardPage';
 import { AdminUsersPage } from '../features/admin/AdminUsersPage';
+import { AdminTransactionsPage } from '../features/admin/AdminTransactionsPage';
 import {
   WishlistPlaceholder,
   ForbiddenPage,
@@ -365,6 +366,16 @@ export const router = createBrowserRouter([
           <ProtectedRoute>
             <RoleRoute allowedRoles={['Admin']}>
               <AdminPayoutsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/transactions',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Admin']}>
+              <AdminTransactionsPage />
             </RoleRoute>
           </ProtectedRoute>
         ),

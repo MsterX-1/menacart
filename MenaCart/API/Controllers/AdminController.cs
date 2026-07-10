@@ -140,5 +140,41 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        /// <summary>
+        /// Get all transactions (orders) for the admin dashboard.
+        /// </summary>
+        [HttpGet("transactions")]
+        public async Task<IActionResult> GetTransactions(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            try
+            {
+                var result = await _adminService.GetTransactionsAsync(page, pageSize);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get detailed transaction info for a specific order.
+        /// </summary>
+        [HttpGet("transactions/{orderId}")]
+        public async Task<IActionResult> GetTransactionDetails(int orderId)
+        {
+            try
+            {
+                var result = await _adminService.GetTransactionDetailsAsync(orderId);
+                if (result == null) return NotFound(new { message = "Transaction not found." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

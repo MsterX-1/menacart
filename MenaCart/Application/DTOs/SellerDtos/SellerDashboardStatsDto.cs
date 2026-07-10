@@ -10,6 +10,8 @@ namespace Application.DTOs.SellerDtos
         public int TotalOrders { get; set; }
         public int TotalProducts { get; set; }
         public decimal PendingPayoutBalance { get; set; }
+        public decimal AvailableBalance { get; set; }
+        public decimal PendingBalance { get; set; }
         public List<TopSellerProductDto> TopProducts { get; set; } = new List<TopSellerProductDto>();
     }
 

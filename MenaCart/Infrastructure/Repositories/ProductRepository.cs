@@ -40,7 +40,17 @@ namespace Infrastructure.Repository
                     (p.Description != null && p.Description.Contains(search)));
 
             if (categoryId.HasValue)
-                query = query.Where(p => p.CategoryId == categoryId.Value);
+            {
+                var targetCategoryId = categoryId.Value;
+                var childCategoryIds = _context.Categories
+                    .Where(c => c.ParentCategoryId == targetCategoryId)
+                    .Select(c => c.CategoryId)
+                    .ToList();
+
+                var allTargetCategoryIds = childCategoryIds.Append(targetCategoryId).ToList();
+
+                query = query.Where(p => allTargetCategoryIds.Contains(p.CategoryId));
+            }
 
             if (sellerId.HasValue)
                 query = query.Where(p => p.SellerId == sellerId.Value);

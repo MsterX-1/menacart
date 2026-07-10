@@ -241,5 +241,24 @@ namespace Application.Services
             UsedCount = c.UsedCount,
             CreatedAt = c.CreatedAt
         };
+
+        public async Task<AdminTransactionsPagedResponseDto> GetTransactionsAsync(int page, int pageSize)
+        {
+            var (transactions, totalCount) = await _unitOfWork.OrderRepository.GetAdminTransactionsAsync(page, pageSize);
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            return new AdminTransactionsPagedResponseDto
+            {
+                Items = transactions,
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
+        }
+        public async Task<AdminTransactionDetailDto?> GetTransactionDetailsAsync(int orderId)
+        {
+            return await _unitOfWork.OrderRepository.GetAdminTransactionByIdAsync(orderId);
+        }
     }
 }
