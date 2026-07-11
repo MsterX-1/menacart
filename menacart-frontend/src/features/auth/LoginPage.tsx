@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import { Input } from '../../components/Input';
@@ -11,8 +12,8 @@ import type { LoginDto } from './api/types';
 import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
-  const { success } = useToast();
+  const { login, loginWithGoogle } = useAuth();
+  const { success, error } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -79,10 +80,42 @@ export const LoginPage: React.FC = () => {
           {...register('password')}
         />
 
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px', marginBottom: '16px' }}>
+          <Link to="/forgot-password" style={{ fontSize: '0.875rem', color: '#4f46e5', textDecoration: 'none' }}>
+            Forgot password?
+          </Link>
+        </div>
+
         <Button type="submit" isLoading={isPending} className="auth-submit-btn">
           Sign In
         </Button>
       </form>
+
+      <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+        <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
+        <span style={{ padding: '0 10px', color: '#6b7280', fontSize: '0.875rem' }}>Or continue with</span>
+        <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            if (credentialResponse.credential) {
+              try {
+                await loginWithGoogle(credentialResponse.credential);
+                success('Logged in with Google successfully.');
+                navigate(from, { replace: true });
+              } catch (err: any) {
+                error(err.response?.data?.message || 'Google login failed');
+              }
+            }
+          }}
+          onError={() => {
+            error('Google Login Failed');
+          }}
+          useOneTap
+        />
+      </div>
 
       <div className="auth-card-footer">
         <p className="auth-switch-text">

@@ -268,9 +268,9 @@ namespace Application.Services
         }
 
         public async Task<IEnumerable<ProductResponseDto>> BrowseAsync(
-            string? search, int? categoryId, int? sellerId, int page, int pageSize)
+            string? search, int? categoryId, int? sellerId, int page, int pageSize, string? excludeUserId = null)
         {
-            var products = await _unitOfWork.ProductRepository.BrowseAsync(search, categoryId, sellerId, page, pageSize);
+            var products = await _unitOfWork.ProductRepository.BrowseAsync(search, categoryId, sellerId, page, pageSize, excludeUserId);
             return products.Select(MapToDto);
         }
 

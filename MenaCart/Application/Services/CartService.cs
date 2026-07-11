@@ -71,6 +71,12 @@ namespace Application.Services
             if (product.SellerProfile == null || product.SellerProfile.Status != SellerStatus.Active)
                 throw new Exception("The seller of this product is not active.");
 
+            var currentSellerProfile = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
+            if (currentSellerProfile != null && currentSellerProfile.SellerId == product.SellerId)
+            {
+                throw new Exception("You cannot buy items from your own store.");
+            }
+
             if (variant.StockQuantity < request.Quantity)
                 throw new Exception($"Only {variant.StockQuantity} units available.");
 

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.Interfaces.IServices
 {
@@ -15,5 +16,8 @@ namespace Application.Interfaces.IServices
         public Task<AuthResult> LoginAsync(LoginDto dto);
         public Task<bool> LogoutAsync(string userId);
         public Task<bool> RevokeTokenAsync(string token);
+        Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto);
+        Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<AuthResult> GoogleLoginAsync(GoogleLoginDto dto);
     }
 }

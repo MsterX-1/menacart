@@ -7,6 +7,7 @@ namespace Application.DTOs.UserDtos.AdminDtos
         public string CustomerEmail { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }
         public decimal PlatformDiscount { get; set; }
+        public decimal CouponDiscount { get; set; }
         public string? CouponCode { get; set; }
         public string OrderStatus { get; set; } = string.Empty;
         public string PaymentStatus { get; set; } = string.Empty;

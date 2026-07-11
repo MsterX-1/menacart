@@ -17,7 +17,7 @@ export const ProductDetailPage: React.FC = () => {
   const { data: product, isLoading, error } = useProductDetail(Number(productId));
   const { error: toastError, success: toastSuccess } = useToast();
   const { roles, isAuthenticated } = useAuth();
-  const isCustomer = isAuthenticated && roles.includes('Customer');
+  const isCustomer = isAuthenticated && (roles.includes('Customer') || roles.includes('Seller'));
   const addCartItemMutation = useAddCartItem();
   
   const { data: wishlist } = useWishlist(isCustomer);
@@ -91,8 +91,8 @@ export const ProductDetailPage: React.FC = () => {
       toastError('Please sign in to add items to your cart.');
       return;
     }
-    if (!roles.includes('Customer')) {
-      toastError('Only customer accounts can add items to the cart.');
+    if (!roles.includes('Customer') && !roles.includes('Seller')) {
+      toastError('Only customer or seller accounts can add items to the cart.');
       return;
     }
     if (!activeVariant) return;

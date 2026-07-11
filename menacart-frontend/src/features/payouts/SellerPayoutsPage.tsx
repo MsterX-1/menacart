@@ -40,8 +40,9 @@ export const SellerPayoutsPage: React.FC = () => {
         storeLogoUrl: profile.storeLogoUrl || '',
         storeBannerUrl: profile.storeBannerUrl || '',
         stripeAccountId: stripeAccountId.trim(),
-        baseShippingCost: profile.baseShippingCost,
-        freeShippingThreshold: profile.freeShippingThreshold,
+        baseShippingCost: profile.baseShippingCost ?? undefined,
+        freeShippingThreshold: profile.freeShippingThreshold ?? undefined,
+        returnPolicyDays: profile.returnPolicyDays,
       });
       toastSuccess('Stripe Account linked successfully!');
       setIsEditingStripe(false);

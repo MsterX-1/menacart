@@ -22,7 +22,7 @@ namespace API.Controllers
         /// Request a return or exchange for a delivered order item.
         /// </summary>
         [HttpPost("api/returns")]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Seller")]
         public async Task<IActionResult> CreateReturn([FromBody] CreateReturnRequestDto request)
         {
             try
@@ -49,7 +49,7 @@ namespace API.Controllers
         /// Get all return requests made by the authenticated customer.
         /// </summary>
         [HttpGet("api/returns/my")]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = "Customer,Seller")]
         public async Task<IActionResult> GetMyReturns(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)

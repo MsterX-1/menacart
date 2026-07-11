@@ -91,6 +91,58 @@ namespace API.Controllers
 
         }
 
+        [HttpPost("GoogleLogin")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDto dto)
+        {
+            try
+            {
+                var result = await _authService.GoogleLoginAsync(dto);
+                SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                var response = new AuthResponseDto
+                {
+                    Token = result.Token,
+                    TokenExpiresOn = result.TokenExpiresOn,
+                    Roles = result.Roles
+                };
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+        }
+
+        [HttpPost("ForgotPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ForgotPasswordAsync(dto);
+                return Ok("If the email exists, a reset link has been sent.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("ResetPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ResetPasswordAsync(dto);
+                return Ok("Password has been reset successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         /// <summary>
         /// Refreshes the JWT access token using a valid refresh token from cookies.
         /// Implements refresh token rotation.

@@ -15,6 +15,7 @@ namespace Infrastructure.Repository
         {
             return await _dbSet
                 .Include(s => s.User)
+                .Include(s => s.SellerBankInfos)
                 .FirstOrDefaultAsync(s => s.UserId == userId);
         }
 
@@ -22,6 +23,7 @@ namespace Infrastructure.Repository
         {
             return await _dbSet
                 .Include(s => s.User)
+                .Include(s => s.SellerBankInfos)
                 .FirstOrDefaultAsync(s => s.SellerId == sellerId);
         }
 

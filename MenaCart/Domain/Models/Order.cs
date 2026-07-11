@@ -18,7 +18,8 @@ namespace Domain.Models
         Pending,
         Paid,
         Failed,
-        Refunded
+        Refunded,
+        Cancelled
     }
 
     public class Order

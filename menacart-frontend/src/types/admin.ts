@@ -10,6 +10,7 @@ export interface SellerRevenue {
   sellerId: number;
   storeName: string;
   totalRevenue: number;
+  pendingRevenue: number;
   pendingPayoutBalance: number;
 }
 
@@ -72,6 +73,7 @@ export interface AdminTransactionDetailDto {
   customerEmail: string;
   totalAmount: number;
   platformDiscount: number;
+  couponDiscount: number;
   couponCode?: string;
   orderStatus: string;
   paymentStatus: string;

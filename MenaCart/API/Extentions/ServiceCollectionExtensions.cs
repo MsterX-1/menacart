@@ -48,6 +48,7 @@ namespace API.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IReturnService, ReturnService>();

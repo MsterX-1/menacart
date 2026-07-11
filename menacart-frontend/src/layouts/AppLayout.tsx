@@ -17,7 +17,7 @@ export const AppLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
-  const isCustomer = roles.includes('Customer');
+  const isCustomer = roles.includes('Customer') || roles.includes('Seller');
   const isSeller = roles.includes('Seller');
   const isAdmin = roles.includes('Admin');
 
@@ -185,8 +185,8 @@ export const AppLayout: React.FC = () => {
                 <div className="profile-dropdown-menu">
                   <div className="dropdown-user-info">
                     <span className="dropdown-user-name">{user.firstName} {user.lastName}</span>
-                    <span className={`dropdown-role-badge role-${roles[0]?.toLowerCase()}`}>
-                      {roles[0]}
+                    <span className={`dropdown-role-badge role-${(roles.includes('Admin') ? 'Admin' : roles.includes('Seller') ? 'Seller' : roles[0] || 'Customer').toLowerCase()}`}>
+                      {roles.includes('Admin') ? 'Admin' : roles.includes('Seller') ? 'Seller' : roles[0] || 'Customer'}
                     </span>
                   </div>
                   
@@ -222,9 +222,9 @@ export const AppLayout: React.FC = () => {
                       <Link to="/admin/products" className="dropdown-link-item">Review Products</Link>
                       <Link to="/admin/categories" className="dropdown-link-item">Categories</Link>
                       <Link to="/admin/coupons" className="dropdown-link-item">Coupons</Link>
+                      <Link to="/admin/transactions" className="dropdown-link-item">Transactions</Link>
                       <Link to="/admin/users" className="dropdown-link-item">Manage Users</Link>
                       <Link to="/admin/payouts" className="dropdown-link-item">Payouts</Link>
-                      <Link to="/admin/transactions" className="dropdown-link-item">Transactions</Link>
                     </>
                   )}
                   

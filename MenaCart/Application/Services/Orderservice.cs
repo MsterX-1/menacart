@@ -16,19 +16,22 @@ namespace Application.Services
         private readonly UserManager<User> _userManager;
         private readonly IShippingService _shippingService;
         private readonly IPaymentGatewayService _paymentGatewayService;
+        private readonly IEmailService _emailService;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             IConfiguration config,
             UserManager<User> userManager,
             IShippingService shippingService,
-            IPaymentGatewayService paymentGatewayService)
+            IPaymentGatewayService paymentGatewayService,
+            IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _userManager = userManager;
             _shippingService = shippingService;
             _paymentGatewayService = paymentGatewayService;
+            _emailService = emailService;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -282,10 +285,36 @@ namespace Application.Services
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
                         UserId = sellerGroup.First().ProductVariant.Product.SellerProfile.UserId,
-                        Message = $"You have a new order: <a href=\"/seller/orders/{order.OrderId}\">Order #{order.OrderId}</a>.",
+                        Message = $"You have a new order: <a href=\"/seller/orders\">Order #{order.OrderId}</a>.",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     });
+
+                    var sellerUser = await _userManager.FindByIdAsync(sellerGroup.First().ProductVariant.Product.SellerProfile.UserId);
+                    if (sellerUser != null)
+                    {
+                        var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+                        var sellerOrderLink = $"{frontendUrl}/seller/orders/{order.OrderId}";
+                        await _emailService.SendEmailAsync(sellerUser.Email, $"New Order Received: #{order.OrderId}", 
+                            $"<h1>New Order Received!</h1><p>You have received a new order (Order #{order.OrderId}).</p><p><a href='{sellerOrderLink}'>Click here to view it in your seller dashboard.</a></p>");
+                    }
+                }
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user != null)
+                {
+                    var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+                    var orderLink = $"{frontendUrl}/orders/{order.OrderId}";
+                    
+                    var emailBody = $@"
+                        <h1>Thank you for your order!</h1>
+                        <p>Your order <strong>#{order.OrderId}</strong> has been placed successfully.</p>
+                        <p><strong>Total Amount:</strong> {order.TotalAmount:C}</p>
+                        <br/>
+                        <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background-color:#007bff;color:#fff;text-decoration:none;border-radius:5px;'>View Order Status</a></p>
+                    ";
+
+                    await _emailService.SendEmailAsync(user.Email, $"Order Confirmation - #{order.OrderId}", emailBody);
                 }
 
                 await _unitOfWork.CompleteAsync();
@@ -363,14 +392,14 @@ namespace Application.Services
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
                         UserId = subOrder.SellerProfile.UserId,
-                        Message = $"Order <a href=\"/seller/orders/{order.OrderId}\">#{order.OrderId}</a> has been cancelled by the customer.",
+                        Message = $"Order <a href=\"/seller/orders\">#{order.OrderId}</a> has been cancelled by the customer.",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     });
                 }
 
                 order.Status = OrderStatus.Cancelled;
-                order.PaymentStatus = OrderPaymentStatus.Failed;
+                order.PaymentStatus = OrderPaymentStatus.Cancelled;
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _unitOfWork.CompleteAsync();
@@ -629,6 +658,17 @@ namespace Application.Services
                     }
                 }
             }
+            else if (newStatus == SubOrderStatus.Cancelled)
+            {
+                var parentOrder = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(subOrder.OrderId);
+                if (parentOrder != null && parentOrder.SubOrders.All(so => so.Status == SubOrderStatus.Cancelled || so.SubOrderId == subOrderId))
+                {
+                    parentOrder.Status = OrderStatus.Cancelled;
+                    parentOrder.PaymentStatus = OrderPaymentStatus.Cancelled;
+                    parentOrder.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.OrderRepository.Update(parentOrder);
+                }
+            }
 
             await _unitOfWork.NotificationRepository.Add(new Notification
             {
@@ -637,6 +677,19 @@ namespace Application.Services
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             });
+
+            var customerUser = await _userManager.FindByIdAsync(subOrder.Order.UserId);
+            if (customerUser != null)
+            {
+                var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+                var orderLink = $"{frontendUrl}/orders/{subOrder.OrderId}";
+                var emailBody = $@"
+                    <h2>Order Update</h2>
+                    <p>Your order from <strong>{subOrder.SellerProfile.StoreName}</strong> is now <strong>{newStatus}</strong>.</p>
+                    <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background-color:#007bff;color:#fff;text-decoration:none;border-radius:5px;'>View Order Details</a></p>
+                ";
+                await _emailService.SendEmailAsync(customerUser.Email, $"Order Update: {newStatus}", emailBody);
+            }
 
             await _unitOfWork.CompleteAsync();
         }

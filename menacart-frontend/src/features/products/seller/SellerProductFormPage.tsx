@@ -237,16 +237,24 @@ export const SellerProductFormPage: React.FC = () => {
                   {...register('categoryId', { valueAsNumber: true })}
                 >
                   <option value={0}>Select a Category</option>
-                  {categories?.map((cat) => (
-                    <optgroup key={cat.categoryId} label={cat.name}>
-                      <option value={cat.categoryId}>{cat.name} (General)</option>
-                      {cat.childCategories?.map((child) => (
-                        <option key={child.categoryId} value={child.categoryId}>
-                          {child.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                  {(() => {
+                    const flattenCategoriesWithDepth = (cats: any[], depth = 0): { cat: any, depth: number }[] => {
+                      let result: { cat: any, depth: number }[] = [];
+                      for (const c of cats) {
+                        result.push({ cat: c, depth });
+                        if (c.childCategories && c.childCategories.length > 0) {
+                          result = result.concat(flattenCategoriesWithDepth(c.childCategories, depth + 1));
+                        }
+                      }
+                      return result;
+                    };
+                    const flat = flattenCategoriesWithDepth(categories || []);
+                    return flat.map(({ cat, depth }) => (
+                      <option key={cat.categoryId} value={cat.categoryId}>
+                        {'\u00A0\u00A0\u00A0\u00A0'.repeat(depth)}{cat.name}
+                      </option>
+                    ));
+                  })()}
                 </select>
                 {errors.categoryId && <span className="input-error">{errors.categoryId.message}</span>}
               </div>

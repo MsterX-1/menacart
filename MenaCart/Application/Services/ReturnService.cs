@@ -105,7 +105,7 @@ namespace Application.Services
             await _unitOfWork.NotificationRepository.Add(new Notification
             {
                 UserId = subOrder.SellerProfile.UserId,
-                Message = $"A {returnType} request has been submitted for <a href=\"/seller/orders/{order.OrderId}\">Order #{order.OrderId}</a>.",
+                Message = $"A {returnType} request has been submitted for <a href=\"/seller/orders\">Order #{order.OrderId}</a>.",
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             });

@@ -15,10 +15,12 @@ namespace Application.Services
     public class UserService : IUserService
     {
         private readonly UserManager<User> _userManager;
+        private readonly Application.Interfaces.IUnitOfWork.IUnitOfWork _unitOfWork;
 
-        public UserService(UserManager<User> userManager)
+        public UserService(UserManager<User> userManager, Application.Interfaces.IUnitOfWork.IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IEnumerable<GetUserDto>> GetAllUsersAsync()
@@ -102,6 +104,17 @@ namespace Application.Services
             if (user == null)
                 throw new Exception($"User with ID {userId} not found.");
 
+            // 1. Check if user has orders or products
+            var hasHistoricalData = await _unitOfWork.HasOrdersOrProductsAsync(userId);
+            if (hasHistoricalData)
+            {
+                throw new Exception("Cannot delete account because you have historical orders or listed products. Please contact support or delete your products first.");
+            }
+
+            // 2. Clear dependent user data to avoid foreign key restrict errors
+            await _unitOfWork.ClearUserDataAsync(userId);
+
+            // 3. Delete the user
             var result = await _userManager.DeleteAsync(user);
 
             if (!result.Succeeded)

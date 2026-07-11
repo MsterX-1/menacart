@@ -75,7 +75,7 @@ export const AdminTransactionDetailModal: React.FC<AdminTransactionDetailModalPr
                 <h4>Payment Info</h4>
                 <p><strong>Method:</strong> {tx.paymentMethod}</p>
                 {tx.couponCode && (
-                  <p><strong>Coupon:</strong> <span className="coupon-tag">{tx.couponCode}</span> (-{formatCurrency(tx.platformDiscount)})</p>
+                  <p><strong>Coupon:</strong> <span className="coupon-tag">{tx.couponCode}</span> (-{formatCurrency(tx.couponDiscount ?? tx.platformDiscount ?? 0)})</p>
                 )}
                 <div className="tx-total-amount">
                   <strong>Total Paid:</strong> <span>{formatCurrency(tx.totalAmount)}</span>

@@ -30,6 +30,7 @@ namespace Application.DTOs.UserDtos.AdminDtos
         public int SellerId { get; set; }
         public string StoreName { get; set; } = string.Empty;
         public decimal TotalRevenue { get; set; }
+        public decimal PendingRevenue { get; set; }
         public decimal PendingPayoutBalance { get; set; }
     }
 }

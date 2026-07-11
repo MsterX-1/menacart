@@ -12,6 +12,15 @@ export const registerUser = async (data: RegisterRequestData): Promise<AuthRespo
   return response.data;
 };
 
+export const googleLogin = async (idToken: string): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/auth/GoogleLogin', { idToken, role: 'Customer' });
+  return response.data;
+};
+
+export const forgotPassword = async (email: string): Promise<void> => {
+  await apiClient.post('/auth/ForgotPassword', { email });
+};
+
 export const logoutUser = async (): Promise<void> => {
   await apiClient.post('/auth/Logout');
 };

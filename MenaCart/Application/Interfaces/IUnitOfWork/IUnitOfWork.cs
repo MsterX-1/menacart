@@ -36,5 +36,8 @@ namespace Application.Interfaces.IUnitOfWork
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
+
+        Task ClearUserDataAsync(string userId);
+        Task<bool> HasOrdersOrProductsAsync(string userId);
     }
 }
