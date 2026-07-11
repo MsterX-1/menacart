@@ -1,10 +1,27 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart } from './hooks/useCart';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
 import { useToast } from '../../components/Toast';
+import { AlertTriangle, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import './CartPage.css';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.2 } }
+};
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,22 +68,23 @@ export const CartPage: React.FC = () => {
     return (
       <div className="cart-page">
         <header className="cart-header">
-          <LoadingSkeleton variant="text" width="200px" height={32} />
+          <LoadingSkeleton variant="text" width="200px" height={40} />
         </header>
         <div className="cart-layout">
           <div className="cart-items-section">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="cart-item-skeleton">
-                <LoadingSkeleton variant="rect" width="80px" height="100px" />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                  <LoadingSkeleton variant="text" width="60%" />
-                  <LoadingSkeleton variant="text" width="30%" />
+                <LoadingSkeleton variant="rect" width="100px" height="120px" />
+                <div className="skeleton-details">
+                  <LoadingSkeleton variant="text" width="60%" height={24} />
+                  <LoadingSkeleton variant="text" width="30%" height={20} />
+                  <LoadingSkeleton variant="text" width="40%" height={20} />
                 </div>
               </div>
             ))}
           </div>
           <div className="cart-summary-section">
-            <LoadingSkeleton variant="rect" height="200px" />
+            <LoadingSkeleton variant="rect" height="300px" />
           </div>
         </div>
       </div>
@@ -75,140 +93,156 @@ export const CartPage: React.FC = () => {
 
   if (error || !cart) {
     return (
-      <div className="cart-error-container">
+      <motion.div className="cart-empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <h2>Failed to load your cart</h2>
         <p>Please try reloading the page or check your connection status.</p>
         <Button variant="secondary" onClick={() => window.location.reload()}>Retry</Button>
-      </div>
+      </motion.div>
     );
   }
 
   const isEmpty = cart.items.length === 0;
 
   return (
-    <div className="cart-page">
+    <motion.div 
+      className="cart-page"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       <header className="cart-header">
-        <h1 className="cart-title">Your Shopping Cart</h1>
+        <motion.h1 className="cart-title" variants={itemVariants}>Shopping Cart</motion.h1>
         {!isEmpty && (
-          <button className="clear-cart-btn" onClick={handleClearCart}>
+          <motion.button className="clear-cart-btn" onClick={handleClearCart} variants={itemVariants}>
             Clear Cart
-          </button>
+          </motion.button>
         )}
       </header>
 
-      {/* Warnings Block (Strictly complying with Impeccable: No side-stripes, full borders) */}
       {cart.warnings && cart.warnings.length > 0 && (
-        <div className="cart-warnings-alert">
-          <span className="warning-alert-icon">&#9888;</span>
+        <motion.div className="cart-warnings-alert" variants={itemVariants}>
+          <AlertTriangle className="warning-alert-icon" size={24} />
           <div className="warning-alert-list">
             {cart.warnings.map((warn, idx) => (
               <p key={idx} className="warning-alert-item">{warn}</p>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {isEmpty ? (
-        <div className="cart-empty-state">
+        <motion.div className="cart-empty-state" variants={itemVariants}>
+          <div className="empty-icon-wrapper">
+            <ShoppingBag size={48} strokeWidth={1} />
+          </div>
           <h2>Your cart is empty</h2>
           <p>Browse our catalog to find fashion products and add them to your cart.</p>
           <Link to="/products">
-            <Button>Start Shopping</Button>
+            <button className="editorial-btn-primary" style={{ padding: '16px 32px', width: 'auto' }}>
+              Start Shopping
+            </button>
           </Link>
-        </div>
+        </motion.div>
       ) : (
         <div className="cart-layout">
           <div className="cart-items-section">
             <div className="cart-items-list">
-              {cart.items.map((item) => {
-                const hasStockWarning = item.quantity > item.stockQuantity;
-                return (
-                  <div key={item.cartItemId} className={`cart-item-card ${hasStockWarning ? 'has-warning' : ''}`}>
-                    <div className="cart-item-image">
-                      {item.mainImageUrl ? (
-                        <img src={item.mainImageUrl} alt={item.productName} />
-                      ) : (
-                        <div className="cart-item-image-placeholder">No image</div>
-                      )}
-                    </div>
-
-                    <div className="cart-item-details">
-                      <Link to={`/products/${item.productId}`} className="cart-item-name">
-                        {item.productName}
-                      </Link>
-                      
-                      <div className="cart-item-specs">
-                        {item.color && (
-                          <span className="spec-badge">Color: {item.color}</span>
-                        )}
-                        {item.size && (
-                          <span className="spec-badge">Size: {item.size}</span>
+              <AnimatePresence>
+                {cart.items.map((item) => {
+                  const hasStockWarning = item.quantity > item.stockQuantity;
+                  return (
+                    <motion.div 
+                      key={item.cartItemId} 
+                      className={`editorial-cart-item ${hasStockWarning ? 'has-warning' : ''}`}
+                      variants={itemVariants}
+                      layout
+                    >
+                      <div className="cart-item-image">
+                        {item.mainImageUrl ? (
+                          <img src={item.mainImageUrl} alt={item.productName} />
+                        ) : (
+                          <div className="cart-item-image-placeholder">No image</div>
                         )}
                       </div>
 
-                      <div className="cart-item-price-info">
+                      <div className="cart-item-details">
+                        <Link to={`/products/${item.productId}`} className="cart-item-name">
+                          {item.productName}
+                        </Link>
+                        
+                        <div className="cart-item-specs">
+                          {item.color && (
+                            <span className="spec-badge">Color: {item.color}</span>
+                          )}
+                          {item.size && (
+                            <span className="spec-badge">Size: {item.size}</span>
+                          )}
+                        </div>
+
+                        {hasStockWarning && (
+                          <span className="item-stock-warning" role="alert">
+                            Only {item.stockQuantity} items in stock. Reduce quantity to proceed.
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="cart-item-price-block">
                         <span className="cart-item-unit-price">{item.unitPrice.toFixed(2)} EGP</span>
-                        <span className="cart-item-line-total">Total: {item.lineTotal.toFixed(2)} EGP</span>
+                        <div className="qty-picker">
+                          <button
+                            type="button"
+                            className="qty-picker-btn"
+                            disabled={item.quantity <= 1 || updateItemMutation.isPending}
+                            onClick={() => handleQuantityChange(item.cartItemId, item.quantity, -1, item.stockQuantity)}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="qty-picker-value">{item.quantity}</span>
+                          <button
+                            type="button"
+                            className="qty-picker-btn"
+                            disabled={item.quantity >= item.stockQuantity || updateItemMutation.isPending}
+                            onClick={() => handleQuantityChange(item.cartItemId, item.quantity, 1, item.stockQuantity)}
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
                       </div>
 
-                      {hasStockWarning && (
-                        <span className="item-stock-warning" role="alert">
-                          Only {item.stockQuantity} items in stock. Reduce quantity to proceed.
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="cart-item-actions">
-                      <div className="qty-picker">
+                      <div className="cart-item-total-block">
+                        <span className="cart-item-line-total">{item.lineTotal.toFixed(2)} EGP</span>
                         <button
                           type="button"
-                          className="qty-picker-btn"
-                          disabled={item.quantity <= 1 || updateItemMutation.isPending}
-                          onClick={() => handleQuantityChange(item.cartItemId, item.quantity, -1, item.stockQuantity)}
-                          aria-label="Decrease quantity"
+                          className="remove-item-btn"
+                          disabled={removeItemMutation.isPending}
+                          onClick={() => handleRemoveItem(item.cartItemId)}
+                          aria-label="Remove item"
+                          title="Remove item"
                         >
-                          &minus;
-                        </button>
-                        <span className="qty-picker-value">{item.quantity}</span>
-                        <button
-                          type="button"
-                          className="qty-picker-btn"
-                          disabled={item.quantity >= item.stockQuantity || updateItemMutation.isPending}
-                          onClick={() => handleQuantityChange(item.cartItemId, item.quantity, 1, item.stockQuantity)}
-                          aria-label="Increase quantity"
-                        >
-                          &#43;
+                          <Trash2 size={18} />
                         </button>
                       </div>
-
-                      <button
-                        type="button"
-                        className="remove-item-btn"
-                        disabled={removeItemMutation.isPending}
-                        onClick={() => handleRemoveItem(item.cartItemId)}
-                        aria-label="Remove item"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
 
-          <div className="cart-summary-section">
-            <div className="cart-summary-card">
+          <motion.div className="cart-summary-section" variants={itemVariants}>
+            <div className="editorial-summary-card">
               <h2 className="summary-card-title">Order Summary</h2>
               
               <div className="summary-row">
-                <span>Total Items</span>
-                <span>{cart.totalItems}</span>
+                <span className="summary-label">Total Items</span>
+                <span className="summary-value">{cart.totalItems}</span>
               </div>
               
               <div className="summary-row grand-total-row">
-                <span>Grand Total</span>
-                <span>{cart.grandTotal.toFixed(2)} EGP</span>
+                <span className="summary-label">Grand Total</span>
+                <span className="summary-value">{cart.grandTotal.toFixed(2)} EGP</span>
               </div>
 
               {cart.warnings && cart.warnings.length > 0 ? (
@@ -216,21 +250,21 @@ export const CartPage: React.FC = () => {
                   Resolve the warnings above before checking out.
                 </div>
               ) : (
-                <Button
-                  className="checkout-proceed-btn"
+                <button
+                  className="editorial-btn-primary checkout-proceed-btn"
                   onClick={() => navigate('/checkout')}
                 >
                   Proceed to Checkout
-                </Button>
+                </button>
               )}
 
               <Link to="/products" className="continue-shopping-link">
                 Continue Shopping
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

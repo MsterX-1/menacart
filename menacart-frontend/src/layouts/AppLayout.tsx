@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from '../components/Logo';
 import { Button } from '../components/Button';
@@ -8,6 +9,7 @@ import { NotificationsDropdown } from '../features/notifications/components/Noti
 import { useCart } from '../features/cart/hooks/useCart';
 import { useWishlist } from '../features/wishlist/hooks/useWishlist';
 import { useTheme } from '../context/ThemeContext';
+import { Moon, Sun, Heart, ShoppingCart, Bell, Menu, ChevronDown } from 'lucide-react';
 import './AppLayout.css';
 
 export const AppLayout: React.FC = () => {
@@ -20,6 +22,33 @@ export const AppLayout: React.FC = () => {
   const isCustomer = roles.includes('Customer');
   const isSeller = roles.includes('Seller');
   const isAdmin = roles.includes('Admin');
+
+  // Parallax background setup
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 50, stiffness: 100, mass: 1 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const x = (e.clientX / window.innerWidth) * 2 - 1;
+    const y = (e.clientY / window.innerHeight) * 2 - 1;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const x1 = useTransform(smoothX, [-1, 1], [30, -30]);
+  const y1 = useTransform(smoothY, [-1, 1], [30, -30]);
+
+  const x2 = useTransform(smoothX, [-1, 1], [-20, 20]);
+  const y2 = useTransform(smoothY, [-1, 1], [-20, 20]);
+
+  const x3 = useTransform(smoothX, [-1, 1], [-40, 40]);
+  const y3 = useTransform(smoothY, [-1, 1], [40, -40]);
+
+  const x4 = useTransform(smoothX, [-1, 1], [15, -15]);
+  const y4 = useTransform(smoothY, [-1, 1], [-15, 15]);
 
   // Fetch cart & wishlist items to compute badges
   const { data: cart } = useCart(isAuthenticated && isCustomer);
@@ -46,7 +75,14 @@ export const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="app-layout">
+    <div className="app-layout" onMouseMove={handleMouseMove}>
+      <div className="app-bg-shapes">
+        <motion.div className="app-shape app-shape-1" style={{ x: x1, y: y1 }}></motion.div>
+        <motion.div className="app-shape app-shape-2" style={{ x: x2, y: y2 }}></motion.div>
+        <motion.div className="app-shape app-shape-3" style={{ x: x3, y: y3 }}></motion.div>
+        <motion.div className="app-shape app-shape-4" style={{ x: x4, y: y4 }}></motion.div>
+      </div>
+
       <header className="app-header">
         <div className="header-container">
           <Link to="/" aria-label="Go to home">
@@ -59,7 +95,7 @@ export const AppLayout: React.FC = () => {
             aria-expanded={mobileMenuOpen}
             aria-label="Toggle navigation menu"
           >
-            &#9776;
+            <Menu size={24} />
           </button>
 
           <nav className={`app-nav ${mobileMenuOpen ? 'nav-open' : ''}`}>
@@ -122,27 +158,32 @@ export const AppLayout: React.FC = () => {
 
           <div className="header-actions">
             <button 
-              className="bell-toggle-btn theme-toggle-btn" 
+              className={`theme-switch ${theme === 'dark' ? 'dark' : ''}`}
               onClick={toggleTheme} 
               aria-label="Toggle theme"
               title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              style={{ justifyContent: theme === 'dark' ? 'flex-end' : 'flex-start' }}
             >
-              <span className="bell-icon" aria-hidden="true">
-                {theme === 'light' ? '🌙' : '☀️'}
-              </span>
+              <motion.div 
+                className="switch-handle" 
+                layout 
+                transition={{ type: "spring", stiffness: 700, damping: 30 }}
+              >
+                {theme === 'light' ? <Sun size={14} /> : <Moon size={14} />}
+              </motion.div>
             </button>
 
             {/* Customer Quick Icon Links */}
             {isAuthenticated && isCustomer && (
               <div className="customer-header-shortcuts">
                 <Link to="/wishlist" className="header-icon-shortcut" title="Wishlist" aria-label="Wishlist">
-                  <span className="shortcut-icon" aria-hidden="true">🖤</span>
+                  <span className="shortcut-icon" aria-hidden="true"><Heart size={20} /></span>
                   {wishlistCount > 0 && (
                     <span className="shortcut-badge-count">{wishlistCount}</span>
                   )}
                 </Link>
                 <Link to="/cart" className="header-icon-shortcut" title="Shopping Cart" aria-label="Shopping Cart">
-                  <span className="shortcut-icon" aria-hidden="true">🛒</span>
+                  <span className="shortcut-icon" aria-hidden="true"><ShoppingCart size={20} /></span>
                   {cartCount > 0 && (
                     <span className="shortcut-badge-count">{cartCount}</span>
                   )}
@@ -157,7 +198,7 @@ export const AppLayout: React.FC = () => {
                   onClick={() => setShowNotifications(!showNotifications)}
                   aria-label="Toggle notifications menu"
                 >
-                  <span className="bell-icon">🔔</span>
+                  <span className="bell-icon"><Bell size={20} /></span>
                   {unreadCount > 0 && (
                     <span className="bell-badge-count">{unreadCount}</span>
                   )}
@@ -178,7 +219,7 @@ export const AppLayout: React.FC = () => {
                     {user.firstName[0]?.toUpperCase()}{user.lastName[0]?.toUpperCase()}
                   </div>
                   <span className="user-firstname-text">{user.firstName}</span>
-                  <span className="dropdown-caret" aria-hidden="true">▼</span>
+                  <span className="dropdown-caret" aria-hidden="true"><ChevronDown size={14} /></span>
                 </button>
                 
                 <div className="profile-dropdown-menu">

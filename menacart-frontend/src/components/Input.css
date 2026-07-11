@@ -17,11 +17,22 @@
   position: relative;
   display: flex;
   width: 100%;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  pointer-events: none;
 }
 
 .input-field {
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text-main);
   background-color: var(--color-bg-panel);
@@ -29,6 +40,10 @@
   border-radius: var(--radius-md);
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-field.has-icon {
+  padding-left: calc(var(--space-8) + var(--space-2));
 }
 
 .input-field:focus {

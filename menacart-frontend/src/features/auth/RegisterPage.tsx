@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
+import { User, Mail, Lock, AlertTriangle, Store, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import { Input } from '../../components/Input';
@@ -9,6 +12,31 @@ import { Button } from '../../components/Button';
 import { registerSchema } from './api/types';
 import type { RegisterFormValues } from './api/types';
 import './RegisterPage.css';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+};
+
+// Google Icon SVG Component
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
 
 export const RegisterPage: React.FC = () => {
   const { register: signup } = useAuth();
@@ -59,22 +87,32 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
+  const handleGoogleSignUp = () => {
+    // Placeholder for Google Auth logic
+    alert('Google Sign-Up integration would open here!');
+  };
+
   return (
-    <div className="register-page">
-      <div className="auth-card-header">
+    <motion.div 
+      className="register-page"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="auth-card-header" variants={itemVariants}>
         <h1 className="auth-card-title">Create Account</h1>
         <p className="auth-card-subtitle">Get started with your MenaCart account</p>
-      </div>
+      </motion.div>
 
       {serverError && (
-        <div className="auth-error-alert" role="alert">
-          <span className="auth-error-icon">&#9888;</span>
+        <motion.div className="auth-error-alert" role="alert" variants={itemVariants}>
+          <AlertTriangle className="auth-error-icon" size={18} />
           <span className="auth-error-text">{serverError}</span>
-        </div>
+        </motion.div>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
-        <div className="role-selector-container">
+        <motion.div className="role-selector-container" variants={itemVariants}>
           <span className="role-selector-label">I want to register as a:</span>
           <div className="role-options">
             <button
@@ -82,6 +120,7 @@ export const RegisterPage: React.FC = () => {
               className={`role-option-card ${selectedRole === 'Customer' ? 'active' : ''}`}
               onClick={() => setValue('role', 'Customer')}
             >
+              <ShoppingBag size={20} className="role-option-icon" />
               <span className="role-option-title">Customer</span>
               <span className="role-option-desc">Browse & buy products</span>
             </button>
@@ -90,26 +129,31 @@ export const RegisterPage: React.FC = () => {
               className={`role-option-card ${selectedRole === 'Seller' ? 'active' : ''}`}
               onClick={() => setValue('role', 'Seller')}
             >
+              <Store size={20} className="role-option-icon" />
               <span className="role-option-title">Seller</span>
               <span className="role-option-desc">List products & fulfill orders</span>
             </button>
           </div>
           {errors.role && <span className="input-error">{errors.role.message}</span>}
-        </div>
+        </motion.div>
 
-        <Input
-          label="Username"
-          type="text"
-          autoComplete="username"
-          error={errors.userName?.message}
-          {...register('userName')}
-        />
+        <motion.div variants={itemVariants}>
+          <Input
+            label="Username"
+            type="text"
+            autoComplete="username"
+            icon={<User size={18} />}
+            error={errors.userName?.message}
+            {...register('userName')}
+          />
+        </motion.div>
 
-        <div className="auth-name-grid">
+        <motion.div className="auth-name-grid" variants={itemVariants}>
           <Input
             label="First Name"
             type="text"
             autoComplete="given-name"
+            icon={<User size={18} />}
             error={errors.firstName?.message}
             {...register('firstName')}
           />
@@ -117,45 +161,68 @@ export const RegisterPage: React.FC = () => {
             label="Last Name"
             type="text"
             autoComplete="family-name"
+            icon={<User size={18} />}
             error={errors.lastName?.message}
             {...register('lastName')}
           />
-        </div>
+        </motion.div>
 
-        <Input
-          label="Email Address"
-          type="email"
-          autoComplete="email"
-          error={errors.email?.message}
-          {...register('email')}
-        />
+        <motion.div variants={itemVariants}>
+          <Input
+            label="Email Address"
+            type="email"
+            autoComplete="email"
+            icon={<Mail size={18} />}
+            error={errors.email?.message}
+            {...register('email')}
+          />
+        </motion.div>
 
-        <Input
-          label="Password"
-          type="password"
-          autoComplete="new-password"
-          error={errors.password?.message}
-          {...register('password')}
-        />
+        <motion.div variants={itemVariants}>
+          <Input
+            label="Password"
+            type="password"
+            autoComplete="new-password"
+            icon={<Lock size={18} />}
+            error={errors.password?.message}
+            {...register('password')}
+          />
+        </motion.div>
 
-        <Input
-          label="Confirm Password"
-          type="password"
-          autoComplete="new-password"
-          error={errors.confirmPassword?.message}
-          {...register('confirmPassword')}
-        />
+        <motion.div variants={itemVariants}>
+          <Input
+            label="Confirm Password"
+            type="password"
+            autoComplete="new-password"
+            icon={<Lock size={18} />}
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
+          />
+        </motion.div>
 
-        <Button type="submit" isLoading={isPending} className="auth-submit-btn">
-          Create Account
-        </Button>
+        <motion.div variants={itemVariants}>
+          <Button type="submit" isLoading={isPending} className="auth-submit-btn">
+            Create Account
+          </Button>
+        </motion.div>
       </form>
 
-      <div className="auth-card-footer">
+      <motion.div variants={itemVariants} className="auth-divider">
+        <span>or</span>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <button type="button" className="google-signin-btn" onClick={handleGoogleSignUp}>
+          <GoogleIcon />
+          <span>Sign up with Google</span>
+        </button>
+      </motion.div>
+
+      <motion.div className="auth-card-footer" variants={itemVariants}>
         <p className="auth-switch-text">
           Already have an account? <Link to="/login" className="auth-link">Sign In</Link>
         </p>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

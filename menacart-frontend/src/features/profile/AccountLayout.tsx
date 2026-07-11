@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
+import { User, MapPin, Trophy, Package, Undo2, FileText, LineChart, Tags } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './AccountLayout.css';
 
@@ -29,7 +30,7 @@ export const AccountLayout: React.FC = () => {
               end
               className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
             >
-              <span className="nav-icon">&#128100;</span>
+              <span className="nav-icon"><User size={18} /></span>
               Personal Details
             </NavLink>
             
@@ -39,7 +40,7 @@ export const AccountLayout: React.FC = () => {
                   to="/account/addresses" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128205;</span>
+                  <span className="nav-icon"><MapPin size={18} /></span>
                   Address Book
                 </NavLink>
 
@@ -47,7 +48,7 @@ export const AccountLayout: React.FC = () => {
                   to="/account/loyalty" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#127942;</span>
+                  <span className="nav-icon"><Trophy size={18} /></span>
                   Loyalty Points
                 </NavLink>
 
@@ -57,7 +58,7 @@ export const AccountLayout: React.FC = () => {
                   to="/orders" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128230;</span>
+                  <span className="nav-icon"><Package size={18} /></span>
                   My Orders
                 </NavLink>
 
@@ -65,7 +66,7 @@ export const AccountLayout: React.FC = () => {
                   to="/returns" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#8635;</span>
+                  <span className="nav-icon"><Undo2 size={18} /></span>
                   My Returns
                 </NavLink>
               </>
@@ -77,7 +78,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/documents" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128196;</span>
+                  <span className="nav-icon"><FileText size={18} /></span>
                   KYC Verification
                 </NavLink>
 
@@ -87,7 +88,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/dashboard" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128200;</span>
+                  <span className="nav-icon"><LineChart size={18} /></span>
                   Seller Dashboard
                 </NavLink>
 
@@ -95,7 +96,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/products" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128085;</span>
+                  <span className="nav-icon"><Tags size={18} /></span>
                   My Products
                 </NavLink>
 
@@ -103,7 +104,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/orders" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128230;</span>
+                  <span className="nav-icon"><Package size={18} /></span>
                   Fulfill Orders
                 </NavLink>
               </>

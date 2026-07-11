@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Heart, Trash2 } from 'lucide-react';
 import { useWishlist, useRemoveFromWishlist } from './hooks/useWishlist';
 import { useAddCartItem } from '../cart/hooks/useCart';
 import { Button } from '../../components/Button';
@@ -79,7 +80,7 @@ export const WishlistPage: React.FC = () => {
 
       {isEmpty ? (
         <div className="wishlist-empty ">
-          <div className="wishlist-empty-icon">❤️</div>
+          <Heart className="wishlist-empty-icon" />
           <h2>Your wishlist is empty</h2>
           <p>Explore our products catalog and save items to buy them later.</p>
           <Link to="/products">
@@ -89,7 +90,7 @@ export const WishlistPage: React.FC = () => {
       ) : (
         <div className="wishlist-grid">
           {wishlistItems.map((item) => (
-            <div className="wishlist-card " key={item.wishlistId}>
+            <div className="editorial-wishlist-card" key={item.wishlistId}>
               <Link to={`/products/${item.productId}`} className="wishlist-card-image-link">
                 <div className="wishlist-card-image">
                   {item.mainImageUrl ? (
@@ -104,7 +105,7 @@ export const WishlistPage: React.FC = () => {
               </Link>
 
               <div className="wishlist-card-body">
-                <Link to={`/products/${item.productId}`}>
+                <Link to={`/products/${item.productId}`} style={{ textDecoration: 'none' }}>
                   <h3 className="wishlist-item-name">{item.productName}</h3>
                 </Link>
                 <div className="wishlist-item-details">
@@ -121,14 +122,13 @@ export const WishlistPage: React.FC = () => {
                   >
                     Move to Cart
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
+                  <button
                     className="remove-wishlist-btn"
                     onClick={() => handleRemove(item.variantId)}
+                    title="Remove from wishlist"
                   >
-                    Remove
-                  </Button>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>

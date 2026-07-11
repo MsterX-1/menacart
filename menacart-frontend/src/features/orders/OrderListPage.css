@@ -1,5 +1,5 @@
 .orders-list-page {
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-8) var(--space-4) var(--space-12);
   max-width: var(--max-width-page);
   margin: 0 auto;
   min-height: 80vh;
@@ -35,11 +35,13 @@
 }
 
 .orders-title {
-  font-size: var(--font-size-xxl);
-  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family);
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--color-text-main);
   margin-top: 0;
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 .orders-subtitle {
@@ -61,10 +63,16 @@
 }
 
 .order-list-card {
-  background-color: var(--color-bg-surface);
+  background-color: var(--color-bg-base);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-normal);
+}
+
+.order-list-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .order-card-header {
@@ -73,8 +81,8 @@
   justify-content: space-between;
   align-items: center;
   gap: var(--space-4);
-  background-color: var(--color-bg-panel);
-  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-bg-surface);
+  padding: var(--space-5) var(--space-8);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -109,7 +117,7 @@
 }
 
 .order-card-body {
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-6) var(--space-8);
 }
 
 .order-status-row {

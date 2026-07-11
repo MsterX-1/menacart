@@ -1,4 +1,5 @@
 import React from 'react';
+import { Star } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getPublicSellerProfile } from '../seller-onboarding/api/sellerOnboardingApi';
@@ -64,17 +65,17 @@ export const SellerProfilePage: React.FC = () => {
             {seller.storeLogoUrl ? (
               <img src={getOptimizedImageUrl(seller.storeLogoUrl)} alt={seller.storeName} className="seller-profile-logo" />
             ) : (
-              <div className="seller-profile-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: '#ccc' }}>
+              <div className="seller-profile-logo">
                 {seller.storeName.charAt(0).toUpperCase()}
               </div>
             )}
             <h1 className="seller-profile-name">{seller.storeName}</h1>
             <div className="seller-profile-meta">
               <span className="seller-profile-rating">
-                ★ {seller.rating.toFixed(1)}
+                <Star size={16} fill="currentColor" /> {seller.rating.toFixed(1)}
               </span>
               <span>Joined {new Date(seller.createdAt).getFullYear()}</span>
-              {seller.isVerified && <span style={{ color: 'var(--color-primary)' }}>✓ Verified</span>}
+              {seller.isVerified && <span style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>✓ Verified</span>}
             </div>
             <p className="seller-profile-desc">{seller.storeDescription || 'Welcome to our store. Browse our latest fashion collection.'}</p>
           </div>
@@ -88,11 +89,11 @@ export const SellerProfilePage: React.FC = () => {
         </div>
 
         {isProductsLoading ? (
-          <div className="product-grid">
+          <div className="catalog-grid">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div className="product-card-skeleton" key={i}>
-                <LoadingSkeleton variant="rect" height={220} />
-                <div style={{ padding: 'var(--space-3)' }}>
+              <div className="catalog-skeleton-card" key={i}>
+                <LoadingSkeleton variant="rect" height={260} />
+                <div className="skeleton-body">
                   <LoadingSkeleton variant="text" width="70%" />
                   <LoadingSkeleton variant="text" width="40%" />
                 </div>
@@ -100,21 +101,27 @@ export const SellerProfilePage: React.FC = () => {
             ))}
           </div>
         ) : products && products.length > 0 ? (
-          <div className="product-grid">
+          <div className="catalog-grid">
             {products.map((product) => (
-              <Link to={`/products/${product.productId}`} key={product.productId} className="product-card">
-                <div className="product-card-image">
+              <Link to={`/products/${product.productId}`} key={product.productId} className="editorial-product-card">
+                <div className="editorial-product-visual">
                   {product.mainImageUrl ? (
                     <img src={getOptimizedImageUrl(product.mainImageUrl)} alt={product.name} loading="lazy" />
                   ) : (
-                    <div className="product-image-placeholder"><span>No image</span></div>
+                    <div className="product-placeholder"><span>No image</span></div>
+                  )}
+                  {product.averageRating > 0 && (
+                    <div className="editorial-product-rating-badge">
+                      <Star size={12} fill="currentColor" className="star-icon" />
+                      <span>{product.averageRating.toFixed(1)}</span>
+                    </div>
                   )}
                 </div>
-                <div className="product-card-body">
-                  <span className="product-category-tag">{product.categoryName}</span>
-                  <h3 className="product-card-name">{product.name}</h3>
-                  <div className="product-card-footer">
-                    <span className="product-price">
+                <div className="editorial-product-body">
+                  <span className="editorial-product-category">{product.categoryName}</span>
+                  <h3 className="editorial-product-name">{product.name}</h3>
+                  <div className="editorial-product-footer">
+                    <span className="editorial-product-price">
                       {product.variants.length > 0
                         ? `${Math.min(...product.variants.map(v => v.price)).toFixed(2)} EGP`
                         : `${product.basePrice.toFixed(2)} EGP`}

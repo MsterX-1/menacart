@@ -15,11 +15,11 @@
 
 /* Sidebar Styling */
 .account-sidebar {
-  background: var(--color-bg-surface);
+  background: var(--color-bg-base);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-6);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   position: sticky;
   top: 100px;
 }
@@ -114,19 +114,20 @@
 
 /* Main Content Area styling */
 .account-main-content {
-  background: var(--color-bg-surface);
+  background: var(--color-bg-base);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-8);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   min-height: 480px;
 }
 
 /* Common tab content classes */
 .tab-title {
   font-family: var(--font-family);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--color-text-main);
   margin: 0 0 var(--space-1);
 }

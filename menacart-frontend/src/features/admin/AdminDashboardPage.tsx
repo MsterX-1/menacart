@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminDashboardStats } from './hooks/useAdminDashboard';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
+import { AlertTriangle, Banknote, Users, Store, Package, Wallet } from 'lucide-react';
 import './AdminDashboardPage.css';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -84,7 +85,7 @@ export const AdminDashboardPage: React.FC = () => {
               className="dashboard-badge-action-btn badge-warning" 
               onClick={() => navigate('/admin/sellers?status=Pending')}
             >
-              ⚠️ {stats.pendingSellerApplications} Pending Sellers
+              <AlertTriangle size={16} style={{ marginBottom: '-3px' }} /> {stats.pendingSellerApplications} Pending Sellers
             </button>
           )}
           {stats.pendingPayouts > 0 && (
@@ -92,7 +93,7 @@ export const AdminDashboardPage: React.FC = () => {
               className="dashboard-badge-action-btn badge-info" 
               onClick={() => navigate('/admin/payouts')}
             >
-              💸 {stats.pendingPayouts} Pending Payouts
+              <Banknote size={16} style={{ marginBottom: '-3px' }} /> {stats.pendingPayouts} Pending Payouts
             </button>
           )}
         </div>
@@ -101,7 +102,7 @@ export const AdminDashboardPage: React.FC = () => {
       {/* Core Metrics Grid */}
       <div className="stats-grid">
         <div className="metric-card ">
-          <div className="metric-icon-wrapper user-icon">👤</div>
+          <div className="metric-icon-wrapper user-icon"><Users size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Registered Members</span>
             <strong className="metric-value">{stats.totalUsers}</strong>
@@ -109,7 +110,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="metric-card ">
-          <div className="metric-icon-wrapper merchant-icon">🏪</div>
+          <div className="metric-icon-wrapper merchant-icon"><Store size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Active Stores</span>
             <strong className="metric-value">{stats.totalSellers}</strong>
@@ -117,7 +118,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="metric-card ">
-          <div className="metric-icon-wrapper order-icon">📦</div>
+          <div className="metric-icon-wrapper order-icon"><Package size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Total Transactions</span>
             <strong className="metric-value">{stats.totalOrders}</strong>
@@ -125,7 +126,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="metric-card highlighted">
-          <div className="metric-icon-wrapper revenue-icon">💰</div>
+          <div className="metric-icon-wrapper revenue-icon"><Wallet size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Gross Platform Volume</span>
             <strong className="metric-value">{formatCurrency(stats.totalRevenue)}</strong>
@@ -133,7 +134,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="metric-card success">
-          <div className="metric-icon-wrapper profit-icon">💵</div>
+          <div className="metric-icon-wrapper profit-icon"><Banknote size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Net Platform Profit</span>
             <strong className="metric-value">{formatCurrency(stats.platformCommissionProfit)}</strong>

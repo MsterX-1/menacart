@@ -1,14 +1,16 @@
 import React from 'react';
+import type { ReactNode } from 'react';
 import './Input.css';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
   helperText?: string;
+  icon?: ReactNode;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, disabled, className = '', id, ...props }, ref) => {
+  ({ label, error, helperText, disabled, icon, className = '', id, ...props }, ref) => {
     const inputId = id || `input-${label.toLowerCase().replace(/\s+/g, '-')}`;
     
     return (
@@ -17,11 +19,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {label}
         </label>
         <div className="input-wrapper">
+          {icon && <div className="input-icon">{icon}</div>}
           <input
             id={inputId}
             ref={ref}
             disabled={disabled}
-            className="input-field"
+            className={`input-field ${icon ? 'has-icon' : ''}`}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
             {...props}
