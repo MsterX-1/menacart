@@ -29,6 +29,9 @@ namespace Infrastructure.Repository
                     .ThenInclude(s => s.OrderItems)
                         .ThenInclude(i => i.ProductVariant)
                             .ThenInclude(v => v.Product)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(s => s.OrderItems)
+                        .ThenInclude(i => i.SellerCommissions)
                 .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
@@ -78,7 +81,7 @@ namespace Infrastructure.Repository
 
         public async Task<AdminDashboardStatsDto> GetAdminDashboardStatsAsync(int totalUsersCount)
         {
-            var totalSellers = await _context.SellerProfiles.CountAsync();
+            var totalSellers = await _context.SellerProfiles.CountAsync(sp => sp.Status == SellerStatus.Active);
             var totalProducts = await _context.Products.CountAsync();
             var totalOrders = await _context.Orders.CountAsync(o => o.Status != OrderStatus.Cancelled);
             
@@ -129,7 +132,7 @@ namespace Infrastructure.Repository
                     SellerId = sp.SellerId,
                     StoreName = sp.StoreName,
                     TotalRevenue = _context.SellerCommissions
-                        .Where(sc => sc.SellerId == sp.SellerId && sc.Status == SellerCommissionStatus.Settled)
+                        .Where(sc => sc.SellerId == sp.SellerId && (sc.Status == SellerCommissionStatus.Settled || sc.Status == SellerCommissionStatus.Pending))
                         .Sum(sc => (decimal?)sc.SaleAmount) ?? 0m,
                     PendingRevenue = _context.SellerCommissions
                         .Where(sc => sc.SellerId == sp.SellerId && sc.Status == SellerCommissionStatus.Pending)

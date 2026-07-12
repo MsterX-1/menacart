@@ -70,14 +70,14 @@ namespace Infrastructure.Repository
             }
 
             var commissions = await _context.SellerCommissions
-                .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Settled)
+                .Where(sc => sc.SellerId == sellerId && (sc.Status == SellerCommissionStatus.Settled || sc.Status == SellerCommissionStatus.Pending))
                 .ToListAsync();
 
             var totalRevenue = commissions.Sum(c => c.SaleAmount);
             var totalCommissionPaid = commissions.Sum(c => c.CommissionAmount);
             var netProfit = totalRevenue - totalCommissionPaid;
 
-            var availableBalance = commissions.Where(c => c.PayoutId == null).Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
+            var availableBalance = commissions.Where(c => c.PayoutId == null && c.Status == SellerCommissionStatus.Settled).Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
             
             var pendingCommissions = await _context.SellerCommissions
                 .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Pending)
