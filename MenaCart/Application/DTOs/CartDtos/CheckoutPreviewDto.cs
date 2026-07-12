@@ -14,6 +14,7 @@ namespace Application.DTOs.CartDtos
         public decimal Subtotal { get; set; }
         public decimal TotalShippingCost { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal LoyaltyPointsToCurrencyRate { get; set; } = 100m;
         public List<SellerShippingPreviewDto> SellerShipping { get; set; } = new();
     }
 }

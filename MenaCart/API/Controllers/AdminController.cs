@@ -176,5 +176,36 @@ namespace API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // ── Settings ──────────────────────────────────────────────────────────
+
+        [HttpGet("settings/{key}")]
+        public async Task<IActionResult> GetSystemSetting(string key)
+        {
+            try
+            {
+                var result = await _adminService.GetSystemSettingAsync(key);
+                if (result == null) return NotFound(new { message = "Setting not found." });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("settings/{key}")]
+        public async Task<IActionResult> UpdateSystemSetting(string key, [FromBody] UpdateSystemSettingDto request)
+        {
+            try
+            {
+                var result = await _adminService.UpdateSystemSettingAsync(key, request.Value);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

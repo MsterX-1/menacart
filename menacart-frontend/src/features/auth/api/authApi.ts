@@ -7,8 +7,18 @@ export const loginUser = async (dto: LoginDto): Promise<AuthResponse> => {
   return response.data;
 };
 
-export const registerUser = async (data: RegisterRequestData): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/Register', data);
+export const registerUser = async (data: RegisterRequestData): Promise<{ message: string }> => {
+  const response = await apiClient.post<{ message: string }>('/auth/Register', data);
+  return response.data;
+};
+
+export const verifyOtp = async (data: { email: string; code: string }): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/auth/VerifyOtp', data);
+  return response.data;
+};
+
+export const resendOtp = async (email: string): Promise<{ message: string }> => {
+  const response = await apiClient.post<{ message: string }>('/auth/ResendOtp', { email });
   return response.data;
 };
 
@@ -19,6 +29,10 @@ export const googleLogin = async (idToken: string): Promise<AuthResponse> => {
 
 export const forgotPassword = async (email: string): Promise<void> => {
   await apiClient.post('/auth/ForgotPassword', { email });
+};
+
+export const resetPassword = async (data: { email: string; token: string; newPassword: string }): Promise<void> => {
+  await apiClient.post('/auth/ResetPassword', data);
 };
 
 export const logoutUser = async (): Promise<void> => {

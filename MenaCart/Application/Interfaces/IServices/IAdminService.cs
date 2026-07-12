@@ -20,5 +20,8 @@ namespace Application.Interfaces.IServices
         Task<AdminDashboardStatsDto> GetDashboardStatsAsync();
         Task<AdminTransactionsPagedResponseDto> GetTransactionsAsync(int page, int pageSize);
         Task<AdminTransactionDetailDto?> GetTransactionDetailsAsync(int orderId);
+        // Settings
+        Task<SystemSettingDto?> GetSystemSettingAsync(string key);
+        Task<SystemSettingDto> UpdateSystemSettingAsync(string key, string value);
     }
 }

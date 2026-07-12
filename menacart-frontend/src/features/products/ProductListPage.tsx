@@ -54,13 +54,6 @@ export const ProductListPage: React.FC = () => {
 
   const { data: categories } = useCategoriesTree();
 
-  const flatCategories = useMemo(() => {
-    if (!categories) return [];
-    const flatten = (cats: Category[]): Category[] =>
-      cats.flatMap((c) => [c, ...flatten(c.childCategories)]);
-    return flatten(categories);
-  }, [categories]);
-
   const { data: publicSellers } = usePublicSellers('', 1, 100);
 
   // Debounced search on character change

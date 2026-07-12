@@ -45,6 +45,7 @@ namespace Infrastructure.Database
 
         public DbSet<LoyaltyPoint> LoyaltyPoints { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

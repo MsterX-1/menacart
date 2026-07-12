@@ -3,7 +3,9 @@ import { AppLayout } from '../layouts/AppLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { OtpVerificationPage } from '../features/auth/OtpVerificationPage';
 import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { ProductListPage } from '../features/products/ProductListPage';
@@ -36,6 +38,7 @@ import { AdminPayoutsPage } from '../features/payouts/AdminPayoutsPage';
 import { AdminDashboardPage } from '../features/admin/AdminDashboardPage';
 import { AdminUsersPage } from '../features/admin/AdminUsersPage';
 import { AdminTransactionsPage } from '../features/admin/AdminTransactionsPage';
+import { AdminSettingsPage } from '../features/admin/AdminSettingsPage';
 import {
   WishlistPlaceholder,
   ForbiddenPage,
@@ -411,6 +414,16 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'admin/settings',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Admin']}>
+              <AdminSettingsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   /* Authentication Layout Routes */
@@ -426,8 +439,16 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
+        path: 'verify-otp',
+        element: <OtpVerificationPage />,
+      },
+      {
         path: 'forgot-password',
         element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'reset-password',
+        element: <ResetPasswordPage />,
       },
     ],
   },

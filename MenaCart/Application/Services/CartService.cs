@@ -178,10 +178,15 @@ namespace Application.Services
             decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
             var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
 
+            var loyaltyRateSettings = await _unitOfWork.SystemSettingRepository.GetAll();
+            var loyaltyRateSetting = loyaltyRateSettings.FirstOrDefault(s => s?.Key == "Loyalty:PointsToCurrencyRate");
+            var pointsToCurrencyRate = loyaltyRateSetting != null ? Convert.ToDecimal(loyaltyRateSetting.Value) : 100m;
+
             var preview = new CheckoutPreviewDto
             {
                 Subtotal = subtotal,
                 TotalShippingCost = 0,
+                LoyaltyPointsToCurrencyRate = pointsToCurrencyRate,
                 SellerShipping = new List<SellerShippingPreviewDto>()
             };
 

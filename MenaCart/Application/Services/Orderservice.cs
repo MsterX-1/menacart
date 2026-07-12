@@ -162,14 +162,36 @@ namespace Application.Services
             if (request.RedeemPoints)
             {
                 var pointsBalance = await _unitOfWork.LoyaltyPointRepository.GetBalanceByUserIdAsync(userId);
-                var pointsToCurrencyRate = Convert.ToDecimal(_config["Loyalty:PointsToCurrencyRate"] ?? "100");
-                if (pointsToCurrencyRate > 0 && pointsBalance > 0)
+                var loyaltyRateSettings = await _unitOfWork.SystemSettingRepository.GetAll();
+                var loyaltyRateSetting = loyaltyRateSettings.FirstOrDefault(s => s?.Key == "Loyalty:PointsToCurrencyRate");
+                var pointsToCurrencyRate = loyaltyRateSetting != null ? Convert.ToDecimal(loyaltyRateSetting.Value) : 100m; // 100 points = 1 EGP
+                
+                decimal minStripeChargeEGP = 25.00m;
+                // Points can ONLY discount the subtotal (items minus coupons). Shipping must be paid.
+                decimal maxAmountEligibleForPoints = Math.Max(0, totalAmount - totalShippingCost);
+
+                if (pointsToCurrencyRate > 0 && pointsBalance > 0 && maxAmountEligibleForPoints > 0)
                 {
                     var maxPointsDiscount = pointsBalance / pointsToCurrencyRate;
-                    pointsDiscountAmount = Math.Min(totalAmount, maxPointsDiscount);
-                    pointsToDeduct = (int)(pointsDiscountAmount * pointsToCurrencyRate);
+                    // Cap the points discount at the eligible amount (subtotal after coupons)
+                    pointsDiscountAmount = Math.Min(maxAmountEligibleForPoints, maxPointsDiscount);
+                    
+                    var newTotal = totalAmount - pointsDiscountAmount;
+                    
+                    // If the new total is between 0 and the Stripe minimum, we throw an error BEFORE attempting payment.
+                    if (newTotal > 0 && newTotal < minStripeChargeEGP)
+                    {
+                        throw new Exception($"Minimum credit card charge is {minStripeChargeEGP:C}. Your remaining balance is {newTotal:C}. Please add more items, or use enough points/coupons to fully cover your order.");
+                    }
+
+                    pointsToDeduct = (int)Math.Floor(pointsDiscountAmount * pointsToCurrencyRate);
                     totalAmount -= pointsDiscountAmount;
                 }
+            }
+
+            if (totalAmount > 0 && totalAmount < 25.00m)
+            {
+                throw new Exception($"Minimum credit card charge is 25.00 EGP. Your order total is {totalAmount:C}. Please add more items, or use enough points/coupons to fully cover your order.");
             }
 
             var defaultCommissionRate = Convert.ToDecimal(_config["Commission:DefaultRatePercent"] ?? "10");
@@ -321,13 +343,49 @@ namespace Application.Services
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                // ── 12. Create Payment Session ──
-                var session = await _paymentGatewayService.CreateSessionAsync(order);
-
                 var placed = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(order.OrderId);
                 var response = MapOrderToDto(placed!);
-                response.PaymentUrl = session.PaymentUrl;
-                response.SessionId = session.SessionId;
+
+                // ── 12. Handle Payment Session ──
+                if (order.TotalAmount == 0)
+                {
+                    // Fully paid by points or coupon, bypass Stripe
+                    order.PaymentStatus = OrderPaymentStatus.Paid;
+                    order.Status = OrderStatus.Confirmed;
+                    order.UpdatedAt = DateTime.UtcNow;
+
+                    await _unitOfWork.PaymentRepository.Add(new Payment
+                    {
+                        OrderId = order.OrderId,
+                        Amount = 0,
+                        Currency = "EGP",
+                        Method = "LoyaltyPoints",
+                        Status = PaymentStatus.Succeeded,
+                        TransactionId = $"PT-{Guid.NewGuid()}",
+                        PaidAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    await _unitOfWork.NotificationRepository.Add(new Notification
+                    {
+                        UserId = order.UserId,
+                        Message = $"Your order <a href=\"/orders/{order.OrderId}\">#{order.OrderId}</a> has been fully paid using your loyalty points.",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    await _unitOfWork.CompleteAsync();
+                    
+                    response.PaymentUrl = null;
+                    response.SessionId = null;
+                }
+                else
+                {
+                    var session = await _paymentGatewayService.CreateSessionAsync(order);
+                    response.PaymentUrl = session.PaymentUrl;
+                    response.SessionId = session.SessionId;
+                }
+
                 return response;
             }
             catch (DbUpdateConcurrencyException)
@@ -644,7 +702,9 @@ namespace Application.Services
                     parentOrder.UpdatedAt = DateTime.UtcNow;
                     await _unitOfWork.OrderRepository.Update(parentOrder);
 
-                    var pointsPerCurrency = Convert.ToDecimal(_config["Loyalty:PointsPerCurrencyUnit"] ?? "10");
+                    var loyaltyRateSettings = await _unitOfWork.SystemSettingRepository.GetAll();
+                    var pointsPerCurrencySetting = loyaltyRateSettings.FirstOrDefault(s => s?.Key == "Loyalty:PointsPerCurrencyUnit");
+                    var pointsPerCurrency = pointsPerCurrencySetting != null ? Convert.ToDecimal(pointsPerCurrencySetting.Value) : Convert.ToDecimal(_config["Loyalty:PointsPerCurrencyUnit"] ?? "10");
                     var pointsEarned = (int)(parentOrder.TotalAmount * pointsPerCurrency);
                     if (pointsEarned > 0)
                     {

@@ -312,5 +312,30 @@ namespace Application.Services
         {
             return await _unitOfWork.OrderRepository.GetAdminTransactionByIdAsync(orderId);
         }
+        public async Task<SystemSettingDto?> GetSystemSettingAsync(string key)
+        {
+            var settings = await _unitOfWork.SystemSettingRepository.GetAll();
+            var setting = settings.FirstOrDefault(s => s?.Key == key);
+            if (setting == null) return null;
+            return new SystemSettingDto { Key = setting.Key, Value = setting.Value };
+        }
+
+        public async Task<SystemSettingDto> UpdateSystemSettingAsync(string key, string value)
+        {
+            var settings = await _unitOfWork.SystemSettingRepository.GetAll();
+            var setting = settings.FirstOrDefault(s => s?.Key == key);
+            if (setting == null)
+            {
+                setting = new Domain.Models.SystemSetting { Key = key, Value = value };
+                await _unitOfWork.SystemSettingRepository.Add(setting);
+            }
+            else
+            {
+                setting.Value = value;
+                await _unitOfWork.SystemSettingRepository.Update(setting);
+            }
+            await _unitOfWork.CompleteAsync();
+            return new SystemSettingDto { Key = setting.Key, Value = setting.Value };
+        }
     }
 }

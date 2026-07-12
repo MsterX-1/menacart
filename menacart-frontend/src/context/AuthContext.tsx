@@ -99,6 +99,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const responseData = await registerUser(data);
+      // Do NOT set tokens here, just return the message
+      return responseData;
+    } catch (err) {
+      clearAuth();
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOtpAction = async (email: string, code: string) => {
+    setIsLoading(true);
+    try {
+      const { verifyOtp } = await import('../features/auth/api/authApi');
+      const responseData = await verifyOtp({ email, code });
       handleAuthSuccess(responseData.token, responseData.roles);
       const currentUser = await getCurrentUser();
       setUser(currentUser);
@@ -157,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     login,
     register,
+    verifyOtp: verifyOtpAction,
     loginWithGoogle,
     logout,
     logoutAll,

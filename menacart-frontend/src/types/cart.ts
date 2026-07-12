@@ -35,5 +35,6 @@ export interface CheckoutPreview {
   subtotal: number;
   totalShippingCost: number;
   totalAmount: number;
+  loyaltyPointsToCurrencyRate: number;
   sellerShipping: SellerShippingPreview[];
 }

@@ -65,8 +65,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Registers a new user and returns JWT + Refresh Token.
-        /// Automatically logs in the user by issuing tokens.
+        /// Registers a new user. Does NOT issue tokens immediately. Requires Email Verification via OTP.
         /// </summary>
         [HttpPost("Register")]
         [AllowAnonymous]
@@ -74,7 +73,23 @@ namespace API.Controllers
         {
             try
             {
-                var result = await _authService.RegisterAsync(dto);
+                await _authService.RegisterAsync(dto);
+                return Ok(new { message = "Registration successful. Please check your email for the OTP verification code." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
+        }
+
+        [HttpPost("VerifyOtp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+        {
+            try
+            {
+                var result = await _authService.VerifyOtpAsync(dto);
                 SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiration);
                 var response = new AuthResponseDto
                 {
@@ -86,9 +101,23 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
+        }
 
+        [HttpPost("ResendOtp")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+        {
+            try
+            {
+                await _authService.ResendOtpAsync(dto);
+                return Ok(new { message = "A new verification code has been sent to your email." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("GoogleLogin")]

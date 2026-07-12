@@ -39,6 +39,7 @@ namespace Infrastructure.UnitOfWork
         public IGenaricRepository<OrderItem> OrderItemRepository { get; }
         public INotificationRepository NotificationRepository { get; }
         public IGenaricRepository<Payment> PaymentRepository { get; }
+        public IGenaricRepository<SystemSetting> SystemSettingRepository { get; }
  
         public UnitOfWork(
             AppDbContext context,
@@ -64,7 +65,8 @@ namespace Infrastructure.UnitOfWork
             ILoyaltyPointRepository loyaltyPointRepository,
             IGenaricRepository<OrderItem> orderItemRepository,
             INotificationRepository notificationRepository,
-            IGenaricRepository<Payment> paymentRepository)
+            IGenaricRepository<Payment> paymentRepository,
+            IGenaricRepository<SystemSetting> systemSettingRepository)
         {
             _context = context;
             RefreshTokenRepository = refreshTokenRepository;
@@ -91,6 +93,7 @@ namespace Infrastructure.UnitOfWork
             OrderItemRepository = orderItemRepository;
             NotificationRepository = notificationRepository;
             PaymentRepository = paymentRepository;
+            SystemSettingRepository = systemSettingRepository;
         }
 
         public async Task<int> CompleteAsync()
