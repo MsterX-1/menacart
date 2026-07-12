@@ -45,6 +45,7 @@ namespace Infrastructure.Database
 
         public DbSet<LoyaltyPoint> LoyaltyPoints { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -68,6 +69,14 @@ namespace Infrastructure.Database
 
             // Unique commission index
             builder.Entity<SellerCommission>().HasIndex(sc => sc.OrderItemId).IsUnique();
+
+            builder.Entity<SellerProfile>()
+                .Property(sp => sp.DeliveryProviders)
+                .HasConversion(
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new System.Collections.Generic.List<string>()
+                )
+                .HasColumnType("nvarchar(max)");
 
             // ---- Unique constraints ----
             builder.Entity<RefreshToken>()

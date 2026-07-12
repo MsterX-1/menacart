@@ -15,10 +15,41 @@ namespace API.Controllers
     public class SellerOnboardingController : ControllerBase
     {
         private readonly ISellerOnboardingService _onboardingService;
+        private readonly Microsoft.AspNetCore.Identity.UserManager<Domain.Models.User> _userManager;
 
-        public SellerOnboardingController(ISellerOnboardingService onboardingService)
+        public SellerOnboardingController(
+            ISellerOnboardingService onboardingService, 
+            Microsoft.AspNetCore.Identity.UserManager<Domain.Models.User> userManager)
         {
             _onboardingService = onboardingService;
+            _userManager = userManager;
+        }
+
+        /// <summary>
+        /// Instantly become a seller and get the role.
+        /// </summary>
+        [HttpPost("instant-seller")]
+        public async Task<IActionResult> BecomeInstantSeller()
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return NotFound(new { message = "User not found" });
+
+                if (!await _userManager.IsInRoleAsync(user, "Seller"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Seller");
+                }
+
+                var profile = await _onboardingService.BecomeInstantSellerAsync(userId, $"{user.FirstName}'s Store");
+                
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>

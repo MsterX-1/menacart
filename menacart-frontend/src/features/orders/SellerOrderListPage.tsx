@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSellerSubOrders, useUpdateSubOrderStatus } from './hooks/useSellerOrders';
+import { useMySellerProfile } from '../seller-onboarding/hooks/useSellerOnboarding';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
@@ -30,6 +31,8 @@ export const SellerOrderListPage: React.FC = () => {
     pageSize
   );
 
+  const { data: profile } = useMySellerProfile();
+
   // Mutation
   const updateStatusMutation = useUpdateSubOrderStatus();
 
@@ -37,13 +40,11 @@ export const SellerOrderListPage: React.FC = () => {
   const [selectedSubOrder, setSelectedSubOrder] = useState<SubOrder | null>(null);
   const [newStatus, setNewStatus] = useState<string>('Processing');
   const [carrier, setCarrier] = useState('');
-  const [trackingNumber, setTrackingNumber] = useState('');
 
   const handleOpenStatusModal = (subOrder: SubOrder) => {
     setSelectedSubOrder(subOrder);
     setNewStatus(subOrder.status);
-    setCarrier('');
-    setTrackingNumber('');
+    setCarrier(subOrder.carrier || '');
   };
 
   const handleCloseStatusModal = () => {
@@ -54,8 +55,8 @@ export const SellerOrderListPage: React.FC = () => {
     e.preventDefault();
     if (!selectedSubOrder) return;
 
-    if (newStatus === 'Shipped' && (!carrier.trim() || !trackingNumber.trim())) {
-      toastError('Carrier and Tracking Number are required to ship this package.');
+    if (newStatus === 'Shipped' && !carrier.trim()) {
+      toastError('Carrier is required to ship this package.');
       return;
     }
 
@@ -65,7 +66,6 @@ export const SellerOrderListPage: React.FC = () => {
         data: {
           status: newStatus as any,
           carrier: newStatus === 'Shipped' ? carrier : undefined,
-          trackingNumber: newStatus === 'Shipped' ? trackingNumber : undefined,
         },
       });
 
@@ -239,18 +239,45 @@ export const SellerOrderListPage: React.FC = () => {
 
               {newStatus === 'Shipped' && (
                 <div className="shipping-fields-container animate-fade-in">
-                  <Input
-                    label="Carrier Service"
-                    placeholder="Aramex, DHL, etc."
-                    value={carrier}
-                    onChange={(e) => setCarrier(e.target.value)}
-                  />
-                  <Input
-                    label="Tracking Number"
-                    placeholder="TRK-9823123"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                  />
+                  <div className="input-group">
+                    <label className="input-label" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Carrier Service</label>
+                    {profile?.deliveryProviders && profile.deliveryProviders.length > 0 ? (
+                      <select
+                        className="input-field select-field"
+                        value={carrier}
+                        onChange={(e) => setCarrier(e.target.value)}
+                        style={{ width: '100%' }}
+                      >
+                        <option value="" disabled>Select a Carrier</option>
+                        {profile.deliveryProviders.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        label=""
+                        placeholder="Aramex, DHL, etc."
+                        value={carrier}
+                        onChange={(e) => setCarrier(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  
+                  {selectedSubOrder.trackingNumber ? (
+                    <div className="input-group" style={{ marginTop: '1rem' }}>
+                      <label className="input-label" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Tracking Number (Auto-Generated)</label>
+                      <div style={{ padding: '0.5rem 0.75rem', backgroundColor: 'var(--color-bg-subtle)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-primary)' }}>
+                        {selectedSubOrder.trackingNumber}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="input-group" style={{ marginTop: '1rem' }}>
+                      <label className="input-label" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '0.25rem', display: 'block' }}>Tracking Number</label>
+                      <div style={{ fontSize: '14px', color: 'var(--color-text-tertiary)' }}>
+                        Will be automatically generated upon saving.
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

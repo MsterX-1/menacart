@@ -18,6 +18,12 @@ export interface SellerProfile {
   commissionRate: number | null;
   baseShippingCost: number | null;
   freeShippingThreshold: number | null;
+  returnPolicyDays: number;
+  bankName: string | null;
+  accountNumber: string | null;
+  accountHolder: string | null;
+  iban: string | null;
+  deliveryProviders: string[];
   createdAt: string;
 }
 
@@ -39,8 +45,14 @@ export interface ApplySellerRequest {
   storeAddress: string;
   phone: string;
   stripeAccountId?: string | null;
-  baseShippingCost?: number | null;
-  freeShippingThreshold?: number | null;
+  baseShippingCost?: number;
+  freeShippingThreshold?: number;
+  returnPolicyDays?: number;
+  bankName?: string;
+  accountNumber?: string;
+  accountHolder?: string;
+  iban?: string;
+  deliveryProviders?: string[];
 }
 
 export interface ReviewSellerDocumentRequest {

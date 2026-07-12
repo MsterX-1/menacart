@@ -19,6 +19,12 @@ export const SellerSettingsPage: React.FC = () => {
   const [storeBannerUrl, setStoreBannerUrl] = useState('');
   const [baseShippingCost, setBaseShippingCost] = useState('');
   const [freeShippingThreshold, setFreeShippingThreshold] = useState('');
+  const [returnPolicyDays, setReturnPolicyDays] = useState('14');
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
+  const [iban, setIban] = useState('');
+  const [deliveryProviders, setDeliveryProviders] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -30,6 +36,12 @@ export const SellerSettingsPage: React.FC = () => {
       setStoreBannerUrl(profile.storeBannerUrl || '');
       setBaseShippingCost(profile.baseShippingCost != null ? profile.baseShippingCost.toString() : '');
       setFreeShippingThreshold(profile.freeShippingThreshold != null ? profile.freeShippingThreshold.toString() : '');
+      setReturnPolicyDays(profile.returnPolicyDays != null ? profile.returnPolicyDays.toString() : '14');
+      setBankName(profile.bankName || '');
+      setAccountNumber(profile.accountNumber || '');
+      setAccountHolder(profile.accountHolder || '');
+      setIban(profile.iban || '');
+      setDeliveryProviders((profile.deliveryProviders || []).join(', '));
     }
   }, [profile]);
 
@@ -43,8 +55,14 @@ export const SellerSettingsPage: React.FC = () => {
         phone,
         storeLogoUrl,
         storeBannerUrl,
-        baseShippingCost: baseShippingCost.trim() ? parseFloat(baseShippingCost) : null,
-        freeShippingThreshold: freeShippingThreshold.trim() ? parseFloat(freeShippingThreshold) : null,
+        baseShippingCost: baseShippingCost.trim() ? parseFloat(baseShippingCost) : undefined,
+        freeShippingThreshold: freeShippingThreshold.trim() ? parseFloat(freeShippingThreshold) : undefined,
+        returnPolicyDays: returnPolicyDays.trim() ? parseInt(returnPolicyDays, 10) : 14,
+        bankName,
+        accountNumber,
+        accountHolder,
+        iban,
+        deliveryProviders: deliveryProviders.split(',').map(p => p.trim()).filter(p => p.length > 0),
       });
       toastSuccess('Profile updated successfully!');
     } catch (err: any) {
@@ -149,6 +167,61 @@ export const SellerSettingsPage: React.FC = () => {
               placeholder="e.g. 500 (Leave empty for no free shipping)"
               value={freeShippingThreshold}
               onChange={(e) => setFreeShippingThreshold(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', marginTop: '0.5rem' }}>
+            <Input
+              label="Return Policy (Days)"
+              type="number"
+              min="0"
+              placeholder="e.g. 14"
+              value={returnPolicyDays}
+              onChange={(e) => setReturnPolicyDays(e.target.value)}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', marginTop: '0.5rem' }}>
+            <Input
+              label="Delivery Providers (Comma Separated)"
+              type="text"
+              placeholder="e.g. Aramex, DHL, FedEx"
+              value={deliveryProviders}
+              onChange={(e) => setDeliveryProviders(e.target.value)}
+            />
+          </div>
+
+          <h3 style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: 600 }}>Bank Information (For Payouts)</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <Input
+              label="Bank Name"
+              type="text"
+              placeholder="e.g. National Bank of Egypt"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+            />
+            <Input
+              label="Account Holder Name"
+              type="text"
+              placeholder="e.g. John Doe"
+              value={accountHolder}
+              onChange={(e) => setAccountHolder(e.target.value)}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '0.5rem' }}>
+            <Input
+              label="Account Number"
+              type="text"
+              placeholder="e.g. 1234567890"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+            />
+            <Input
+              label="IBAN (Optional)"
+              type="text"
+              placeholder="e.g. EG1200..."
+              value={iban}
+              onChange={(e) => setIban(e.target.value)}
             />
           </div>
 

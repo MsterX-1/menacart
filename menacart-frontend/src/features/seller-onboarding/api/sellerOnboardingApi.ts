@@ -6,6 +6,11 @@ export const applyAsSeller = async (data: ApplySellerRequest): Promise<SellerPro
   return response.data;
 };
 
+export const becomeInstantSeller = async (): Promise<SellerProfile> => {
+  const response = await apiClient.post<SellerProfile>('/seller/instant-seller');
+  return response.data;
+};
+
 export const getMySellerProfile = async (): Promise<SellerProfile> => {
   const response = await apiClient.get<SellerProfile>('/seller/profile');
   return response.data;

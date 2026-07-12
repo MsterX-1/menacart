@@ -15,6 +15,7 @@ namespace Infrastructure.Repository
         {
             return await _dbSet
                 .Include(s => s.User)
+                .Include(s => s.SellerBankInfos)
                 .FirstOrDefaultAsync(s => s.UserId == userId);
         }
 
@@ -22,6 +23,7 @@ namespace Infrastructure.Repository
         {
             return await _dbSet
                 .Include(s => s.User)
+                .Include(s => s.SellerBankInfos)
                 .FirstOrDefaultAsync(s => s.SellerId == sellerId);
         }
 
@@ -56,6 +58,17 @@ namespace Infrastructure.Repository
             var totalProducts = await _context.Products
                 .CountAsync(p => p.SellerId == sellerId);
 
+            // Auto-settle commissions where SettlesAt <= now
+            var pendingToSettle = await _context.SellerCommissions
+                .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Pending && sc.SettlesAt <= DateTime.UtcNow)
+                .ToListAsync();
+            
+            if (pendingToSettle.Any())
+            {
+                foreach (var sc in pendingToSettle) sc.Status = SellerCommissionStatus.Settled;
+                await _context.SaveChangesAsync();
+            }
+
             var commissions = await _context.SellerCommissions
                 .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Settled)
                 .ToListAsync();
@@ -63,6 +76,14 @@ namespace Infrastructure.Repository
             var totalRevenue = commissions.Sum(c => c.SaleAmount);
             var totalCommissionPaid = commissions.Sum(c => c.CommissionAmount);
             var netProfit = totalRevenue - totalCommissionPaid;
+
+            var availableBalance = commissions.Where(c => c.PayoutId == null).Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
+            
+            var pendingCommissions = await _context.SellerCommissions
+                .Where(sc => sc.SellerId == sellerId && sc.Status == SellerCommissionStatus.Pending)
+                .ToListAsync();
+            
+            var pendingBalance = pendingCommissions.Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
 
             var pendingPayoutBalance = await _context.SellerPayouts
                 .Where(p => p.SellerId == sellerId && (p.Status == SellerPayoutStatus.Pending || p.Status == SellerPayoutStatus.Processing))
@@ -95,6 +116,8 @@ namespace Infrastructure.Repository
                 TotalOrders = totalOrders,
                 TotalProducts = totalProducts,
                 PendingPayoutBalance = pendingPayoutBalance,
+                AvailableBalance = availableBalance,
+                PendingBalance = pendingBalance,
                 TopProducts = topProducts
             };
         }

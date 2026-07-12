@@ -3,6 +3,9 @@ import { AppLayout } from '../layouts/AppLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
+import { OtpVerificationPage } from '../features/auth/OtpVerificationPage';
+import { ForgotPasswordPage } from '../features/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from '../features/auth/ResetPasswordPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { ProductListPage } from '../features/products/ProductListPage';
@@ -34,6 +37,8 @@ import { SellerPayoutsPage } from '../features/payouts/SellerPayoutsPage';
 import { AdminPayoutsPage } from '../features/payouts/AdminPayoutsPage';
 import { AdminDashboardPage } from '../features/admin/AdminDashboardPage';
 import { AdminUsersPage } from '../features/admin/AdminUsersPage';
+import { AdminTransactionsPage } from '../features/admin/AdminTransactionsPage';
+import { AdminSettingsPage } from '../features/admin/AdminSettingsPage';
 import {
   WishlistPlaceholder,
   ForbiddenPage,
@@ -81,7 +86,7 @@ export const router = createBrowserRouter([
         path: 'cart',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <CartPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -91,7 +96,7 @@ export const router = createBrowserRouter([
         path: 'wishlist',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <WishlistPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -101,7 +106,7 @@ export const router = createBrowserRouter([
         path: 'orders',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <OrderListPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -111,7 +116,7 @@ export const router = createBrowserRouter([
         path: 'orders/:id',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <OrderDetailPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -121,7 +126,7 @@ export const router = createBrowserRouter([
         path: 'returns',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <ReturnListPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -131,7 +136,7 @@ export const router = createBrowserRouter([
         path: 'checkout',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <CheckoutPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -141,7 +146,7 @@ export const router = createBrowserRouter([
         path: 'checkout/success/:orderId',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <CheckoutSuccessPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -151,7 +156,7 @@ export const router = createBrowserRouter([
         path: 'payment/processing/:orderId',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <PaymentProcessingPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -161,7 +166,7 @@ export const router = createBrowserRouter([
         path: 'sell/apply',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <ApplySellerPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -171,7 +176,7 @@ export const router = createBrowserRouter([
         path: 'payment/cancelled',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <PaymentCancelledPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -181,7 +186,7 @@ export const router = createBrowserRouter([
         path: 'wishlist',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <WishlistPlaceholder />
             </RoleRoute>
           </ProtectedRoute>
@@ -202,7 +207,7 @@ export const router = createBrowserRouter([
           {
             path: 'addresses',
             element: (
-              <RoleRoute allowedRoles={['Customer']}>
+              <RoleRoute allowedRoles={['Customer', 'Seller']}>
                 <AddressListPage />
               </RoleRoute>
             ),
@@ -210,7 +215,7 @@ export const router = createBrowserRouter([
           {
             path: 'loyalty',
             element: (
-              <RoleRoute allowedRoles={['Customer']}>
+              <RoleRoute allowedRoles={['Customer', 'Seller']}>
                 <LoyaltyDashboardPage />
               </RoleRoute>
             ),
@@ -302,7 +307,7 @@ export const router = createBrowserRouter([
         path: 'seller/documents',
         element: (
           <ProtectedRoute>
-            <RoleRoute allowedRoles={['Seller']}>
+            <RoleRoute allowedRoles={['Customer', 'Seller']}>
               <KYCDocumentsPage />
             </RoleRoute>
           </ProtectedRoute>
@@ -370,6 +375,16 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'admin/transactions',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Admin']}>
+              <AdminTransactionsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: 'admin/categories',
         element: (
           <ProtectedRoute>
@@ -389,6 +404,26 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'admin/transactions',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Admin']}>
+              <AdminTransactionsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/settings',
+        element: (
+          <ProtectedRoute>
+            <RoleRoute allowedRoles={['Admin']}>
+              <AdminSettingsPage />
+            </RoleRoute>
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   /* Authentication Layout Routes */
@@ -402,6 +437,18 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         element: <RegisterPage />,
+      },
+      {
+        path: 'verify-otp',
+        element: <OtpVerificationPage />,
+      },
+      {
+        path: 'forgot-password',
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: 'reset-password',
+        element: <ResetPasswordPage />,
       },
     ],
   },

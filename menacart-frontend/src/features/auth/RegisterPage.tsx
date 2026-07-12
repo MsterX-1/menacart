@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useToast } from '../../components/Toast';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { registerSchema } from './api/types';
@@ -12,7 +11,6 @@ import './RegisterPage.css';
 
 export const RegisterPage: React.FC = () => {
   const { register: signup } = useAuth();
-  const { success } = useToast();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -50,10 +48,9 @@ export const RegisterPage: React.FC = () => {
         password: data.password,
         role: data.role,
       });
-      success('Account created successfully!');
-      navigate('/');
+      navigate('/verify-otp', { state: { email: data.email } });
     } catch (err: any) {
-      setServerError(err.response?.data || err.message || 'Registration failed. Please try again.');
+      setServerError(err.response?.data?.message || err.response?.data || err.message || 'Registration failed. Please try again.');
     } finally {
       setIsPending(false);
     }

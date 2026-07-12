@@ -35,7 +35,13 @@ namespace API.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
-            var result = await _productService.BrowseAsync(search, categoryId, sellerId, page, pageSize);
+            string? excludeUserId = null;
+            if (User.Identity?.IsAuthenticated == true && User.IsInRole("Seller"))
+            {
+                excludeUserId = User.GetUserId();
+            }
+
+            var result = await _productService.BrowseAsync(search, categoryId, sellerId, page, pageSize, excludeUserId);
             return Ok(result);
         }
 

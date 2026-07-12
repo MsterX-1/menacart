@@ -29,7 +29,8 @@ namespace Domain.Models
         [MaxLength(150)]
         public string StoreName { get; set; }
 
-        public string StoreDescription { get; set; }
+        [MaxLength(2000)]
+        public string? StoreDescription { get; set; }
 
         [MaxLength(500)]
         public string StoreLogoUrl { get; set; }
@@ -66,8 +67,12 @@ namespace Domain.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal? FreeShippingThreshold { get; set; }
 
+        public int ReturnPolicyDays { get; set; } = 14;
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public List<string> DeliveryProviders { get; set; } = new List<string>();
 
         // Navigation
         [ForeignKey(nameof(UserId))]

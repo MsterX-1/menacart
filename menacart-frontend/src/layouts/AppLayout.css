@@ -81,7 +81,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background-color: var(--color-danger);
+  background-color: var(--color-error);
   color: white;
   font-size: 9px;
   font-weight: var(--font-weight-bold);

@@ -71,6 +71,12 @@ namespace Application.Services
             if (product.SellerProfile == null || product.SellerProfile.Status != SellerStatus.Active)
                 throw new Exception("The seller of this product is not active.");
 
+            var currentSellerProfile = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
+            if (currentSellerProfile != null && currentSellerProfile.SellerId == product.SellerId)
+            {
+                throw new Exception("You cannot buy items from your own store.");
+            }
+
             if (variant.StockQuantity < request.Quantity)
                 throw new Exception($"Only {variant.StockQuantity} units available.");
 
@@ -172,10 +178,15 @@ namespace Application.Services
             decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
             var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
 
+            var loyaltyRateSettings = await _unitOfWork.SystemSettingRepository.GetAll();
+            var loyaltyRateSetting = loyaltyRateSettings.FirstOrDefault(s => s?.Key == "Loyalty:PointsToCurrencyRate");
+            var pointsToCurrencyRate = loyaltyRateSetting != null ? Convert.ToDecimal(loyaltyRateSetting.Value) : 100m;
+
             var preview = new CheckoutPreviewDto
             {
                 Subtotal = subtotal,
                 TotalShippingCost = 0,
+                LoyaltyPointsToCurrencyRate = pointsToCurrencyRate,
                 SellerShipping = new List<SellerShippingPreviewDto>()
             };
 

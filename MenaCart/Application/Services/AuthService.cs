@@ -22,17 +22,20 @@ namespace Application.Services
         private readonly SignInManager<User> _signInManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
         public AuthService(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IUnitOfWork unitOfWork,
-            IConfiguration config)
+            IConfiguration config,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _unitOfWork = unitOfWork;
             _config = config;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -158,7 +161,7 @@ namespace Application.Services
         /// <summary>
         /// Registers a new user and returns JWT + Refresh Token.
         /// </summary>
-        public async Task<AuthResult> RegisterAsync(RegisterDto dto)
+        public async Task<bool> RegisterAsync(RegisterDto dto)
         {
             var allowedRoles = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Customer", "Seller" };
             if (!allowedRoles.Contains(dto.Role))
@@ -205,28 +208,20 @@ namespace Application.Services
                 await _unitOfWork.CompleteAsync();
             }
             
-            var roles = new List<string> { dto.Role };
+            // Generate OTP
+            var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            
+            // Send OTP Email
+            string emailBody = $@"
+                <h2>Welcome to MenaCart, {dto.FirstName}!</h2>
+                <p>Please use the following 6-digit code to verify your email address and complete your registration:</p>
+                <h1 style='color: #2563eb; letter-spacing: 5px; font-size: 36px; padding: 10px; background-color: #f1f5f9; display: inline-block; border-radius: 8px;'>{otp}</h1>
+                <p>If you did not request this, please ignore this email.</p>
+            ";
+            
+            await _emailService.SendEmailAsync(dto.Email, "Verify Your Email Address - MenaCart", emailBody);
 
-            // Generate JWT
-            var jwtToken = await CreateJwtToken(user, roles);
-
-            // Generate refresh token
-            var refreshToken = GenerateRefreshToken(user);
-
-            // Add refresh token (NO SAVE HERE)
-            await _unitOfWork.RefreshTokenRepository.AddAsync(refreshToken);
-
-            // Commit changes (UnitOfWork)
-            await _unitOfWork.CompleteAsync();
-
-            return new AuthResult
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                TokenExpiresOn = jwtToken.ValidTo,
-                RefreshToken = refreshToken.Token,
-                RefreshTokenExpiration = refreshToken.Expires,
-                Roles = roles
-            };
+            return true;
         }
 
         /// <summary>
@@ -238,6 +233,9 @@ namespace Application.Services
 
             if (user == null)
                 throw new Exception("Invalid email or password.");
+
+            if (!user.EmailConfirmed)
+                throw new Exception("Please verify your email address before logging in.");
 
             var signInResult = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, lockoutOnFailure: true);
 
@@ -267,6 +265,62 @@ namespace Application.Services
                 RefreshTokenExpiration = newRefreshToken.Expires,
                 Roles = roles.ToList()
             };
+        }
+
+        public async Task<AuthResult> VerifyOtpAsync(VerifyOtpDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+                throw new Exception("User not found.");
+
+            if (user.EmailConfirmed)
+                throw new Exception("Email is already verified.");
+
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", dto.Code);
+            if (!isValid)
+                throw new Exception("Invalid or expired OTP code.");
+
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var jwtToken = await CreateJwtToken(user, roles);
+            var newRefreshToken = GenerateRefreshToken(user);
+
+            await _unitOfWork.RefreshTokenRepository.AddAsync(newRefreshToken);
+            await _unitOfWork.CompleteAsync();
+
+            return new AuthResult
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                TokenExpiresOn = jwtToken.ValidTo,
+                RefreshToken = newRefreshToken.Token,
+                RefreshTokenExpiration = newRefreshToken.Expires,
+                Roles = roles.ToList()
+            };
+        }
+
+        public async Task<bool> ResendOtpAsync(ResendOtpDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+                throw new Exception("User not found.");
+
+            if (user.EmailConfirmed)
+                throw new Exception("Email is already verified.");
+
+            var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+            
+            string emailBody = $@"
+                <h2>Verify Your Email, {user.FirstName}!</h2>
+                <p>You requested a new verification code. Please use the following 6-digit code to verify your email address:</p>
+                <h1 style='color: #2563eb; letter-spacing: 5px; font-size: 36px; padding: 10px; background-color: #f1f5f9; display: inline-block; border-radius: 8px;'>{otp}</h1>
+                <p>If you did not request this, please ignore this email.</p>
+            ";
+            
+            await _emailService.SendEmailAsync(dto.Email, "New Verification Code - MenaCart", emailBody);
+
+            return true;
         }
 
         /// <summary>
@@ -304,6 +358,125 @@ namespace Application.Services
             }
 
             return true; // No-op success even if not found or already inactive
+        }
+
+        public async Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return true; // Pretend it worked for security
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // In a real app, generate a URL to the frontend with the token and email
+            // frontend_url/reset-password?email=...&token=...
+            var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+            var resetLink = $"{frontendUrl}/reset-password?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(token)}";
+
+            await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
+                $"<p>Click the link below to reset your password:</p><p><a href=\"{resetLink}\">{resetLink}</a></p>");
+
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) throw new Exception("User not found.");
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to reset password: {errors}");
+            }
+
+            return true;
+        }
+
+        public async Task<AuthResult> GoogleLoginAsync(GoogleLoginDto dto)
+        {
+            Google.Apis.Auth.GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var settings = new Google.Apis.Auth.GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>() { _config["Authentication:Google:ClientId"] ?? "dummy" }
+                };
+                payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            }
+            catch (Exception ex)
+            {
+                // MOCK for local testing when valid token is "dummy-google-token"
+                if (dto.IdToken == "dummy-google-token")
+                {
+                    payload = new Google.Apis.Auth.GoogleJsonWebSignature.Payload
+                    {
+                        Email = "mockuser@gmail.com",
+                        GivenName = "Mock",
+                        FamilyName = "User",
+                        Subject = "mock-google-id-12345"
+                    };
+                }
+                else
+                {
+                    throw new Exception("Invalid Google token.", ex);
+                }
+            }
+
+            var user = await _userManager.FindByEmailAsync(payload.Email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserName = payload.Email,
+                    Email = payload.Email,
+                    FirstName = payload.GivenName ?? "Google",
+                    LastName = payload.FamilyName ?? "User",
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded) throw new Exception("Failed to create user from Google account.");
+
+                var roleToAssign = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Customer", "Seller" }.Contains(dto.Role) ? dto.Role : "Customer";
+                await _userManager.AddToRoleAsync(user, roleToAssign);
+
+                if (roleToAssign == "Seller")
+                {
+                    await _unitOfWork.SellerRepository.Add(new SellerProfile
+                    {
+                        UserId = user.Id,
+                        StoreName = $"{user.FirstName}'s Store",
+                        StoreDescription = string.Empty,
+                        StoreLogoUrl = string.Empty,
+                        StoreBannerUrl = string.Empty,
+                        StoreAddress = string.Empty,
+                        Phone = string.Empty,
+                        Rating = 0,
+                        IsVerified = false,
+                        Status = SellerStatus.Pending,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                    await _unitOfWork.CompleteAsync();
+                }
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var jwtToken = await CreateJwtToken(user, roles);
+            var newRefreshToken = GenerateRefreshToken(user);
+
+            await _unitOfWork.RefreshTokenRepository.AddAsync(newRefreshToken);
+            await _unitOfWork.CompleteAsync();
+
+            return new AuthResult
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                TokenExpiresOn = jwtToken.ValidTo,
+                RefreshToken = newRefreshToken.Token,
+                RefreshTokenExpiration = newRefreshToken.Expires,
+                Roles = roles.ToList()
+            };
         }
     }
 }

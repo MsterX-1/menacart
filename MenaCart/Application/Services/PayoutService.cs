@@ -77,18 +77,26 @@ namespace Application.Services
             }
         }
 
-        public async Task<decimal> GetAvailableBalanceAsync(string userId)
+        public async Task<(decimal AvailableBalance, decimal PendingBalance)> GetAvailableBalanceAsync(string userId)
         {
             var seller = await _unitOfWork.SellerRepository.GetByUserIdAsync(userId);
             if (seller == null)
                 throw new UnauthorizedAccessException("Seller profile not found.");
 
-            var commissions = await _unitOfWork.SellerCommissionRepository.GetSettledCommissionsBySellerIdAsync(seller.SellerId);
-            var commissionList = commissions.ToList();
-            if (!commissionList.Any())
-                return 0;
+            var settledCommissions = await _unitOfWork.SellerCommissionRepository.GetSettledCommissionsBySellerIdAsync(seller.SellerId);
+            var availableBalance = settledCommissions.Any() 
+                ? settledCommissions.Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount) 
+                : 0;
 
-            return commissionList.Sum(c => c.SaleAmount - c.CommissionAmount - c.SellerDiscount);
+            // Compute pending balance
+            // We need to fetch commissions directly or add a method to repository. Let's just use GetBySellerIdAsync if it existed, but we don't have it.
+            // Wait, we can fetch all by injecting DbContext, but PayoutService only uses Repositories.
+            // Let's create a GetPendingCommissionsBySellerIdAsync in ISellerCommissionRepository, or just inject DbContext, or use another way.
+            // Let's use DbContext from UnitOfWork if exposed, but it's not.
+            // Wait! I can just use GetSellerDashboardStatsAsync which already calculates both!
+            var stats = await _unitOfWork.SellerRepository.GetSellerDashboardStatsAsync(seller.SellerId);
+
+            return (stats.AvailableBalance, stats.PendingBalance);
         }
 
         public async Task<IEnumerable<PayoutResponseDto>> GetMyPayoutsAsync(string userId)

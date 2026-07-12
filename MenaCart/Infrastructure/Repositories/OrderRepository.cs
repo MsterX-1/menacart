@@ -32,6 +32,34 @@ namespace Infrastructure.Repository
                 .FirstOrDefaultAsync(o => o.OrderId == orderId);
         }
 
+        public async Task<(IEnumerable<Order> Orders, int TotalCount)> GetAllWithDetailsAsync(int page, int pageSize)
+        {
+            var query = _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Address)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(s => s.SellerProfile)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(s => s.OrderItems)
+                        .ThenInclude(i => i.ProductVariant)
+                            .ThenInclude(v => v.Product)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(s => s.Shipping)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(s => s.OrderItems)
+                        .ThenInclude(oi => oi.SellerCommissions);
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (orders, totalCount);
+        }
+
         public async Task<IEnumerable<Order>> GetByUserIdAsync(string userId, int page, int pageSize)
         {
             return await _context.Orders
@@ -52,11 +80,11 @@ namespace Infrastructure.Repository
         {
             var totalSellers = await _context.SellerProfiles.CountAsync();
             var totalProducts = await _context.Products.CountAsync();
-            var totalOrders = await _context.Orders.CountAsync();
+            var totalOrders = await _context.Orders.CountAsync(o => o.Status != OrderStatus.Cancelled);
             
-            var totalRevenue = await _context.Orders
-                .Where(o => o.Status == OrderStatus.Completed && o.PaymentStatus == OrderPaymentStatus.Paid)
-                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+            var totalRevenue = await _context.OrderItems
+                .Where(oi => oi.SubOrder.Order.Status == OrderStatus.Completed && oi.SubOrder.Order.PaymentStatus == OrderPaymentStatus.Paid)
+                .SumAsync(oi => (decimal?)(oi.PriceAtPurchase * oi.Quantity)) ?? 0m;
 
             var pendingSellerApps = await _context.SellerProfiles
                 .CountAsync(sp => sp.Status == SellerStatus.Pending);
@@ -103,6 +131,9 @@ namespace Infrastructure.Repository
                     TotalRevenue = _context.SellerCommissions
                         .Where(sc => sc.SellerId == sp.SellerId && sc.Status == SellerCommissionStatus.Settled)
                         .Sum(sc => (decimal?)sc.SaleAmount) ?? 0m,
+                    PendingRevenue = _context.SellerCommissions
+                        .Where(sc => sc.SellerId == sp.SellerId && sc.Status == SellerCommissionStatus.Pending)
+                        .Sum(sc => (decimal?)sc.SaleAmount) ?? 0m,
                     PendingPayoutBalance = _context.SellerPayouts
                         .Where(p => p.SellerId == sp.SellerId && (p.Status == SellerPayoutStatus.Pending || p.Status == SellerPayoutStatus.Processing))
                         .Sum(p => (decimal?)p.Amount) ?? 0m
@@ -124,6 +155,90 @@ namespace Infrastructure.Repository
                 TopProducts = topProducts,
                 SellerRevenues = sellerRevenues
             };
+        }
+
+        public async Task<(IEnumerable<AdminTransactionDto> Items, int TotalCount)> GetAdminTransactionsAsync(int page, int pageSize)
+        {
+            var query = _dbSet
+                .Include(o => o.User)
+                .Where(o => o.Status != OrderStatus.Cancelled)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderByDescending(o => o.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(o => new AdminTransactionDto
+                {
+                    OrderId = o.OrderId,
+                    CustomerName = o.User.FirstName + " " + o.User.LastName,
+                    CustomerEmail = o.User.Email,
+                    TotalAmount = o.TotalAmount,
+                    PaymentMethod = "Stripe", // Currently only Stripe is supported for orders
+                    PaymentStatus = o.PaymentStatus.ToString(),
+                    OrderStatus = o.Status.ToString(),
+                    CreatedAt = o.CreatedAt
+                })
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        public async Task<AdminTransactionDetailDto?> GetAdminTransactionByIdAsync(int orderId)
+        {
+            var order = await _dbSet
+                .Include(o => o.User)
+                .Include(o => o.Coupon)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(so => so.SellerProfile)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(so => so.Shipping)
+                .Include(o => o.SubOrders)
+                    .ThenInclude(so => so.OrderItems)
+                        .ThenInclude(oi => oi.ProductVariant)
+                            .ThenInclude(pv => pv.Product)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+            if (order == null) return null;
+
+            var dto = new AdminTransactionDetailDto
+            {
+                OrderId = order.OrderId,
+                CustomerName = order.User.FirstName + " " + order.User.LastName,
+                CustomerEmail = order.User.Email,
+                TotalAmount = order.TotalAmount,
+                PlatformDiscount = order.PlatformDiscount,
+                CouponDiscount = order.PlatformDiscount + (order.SubOrders != null ? order.SubOrders.SelectMany(so => so.OrderItems).SelectMany(oi => oi.SellerCommissions ?? new List<Domain.Models.SellerCommission>()).Sum(sc => sc.SellerDiscount) : 0),
+                CouponCode = order.Coupon?.Code,
+                OrderStatus = order.Status.ToString(),
+                PaymentStatus = order.PaymentStatus.ToString(),
+                PaymentMethod = "Stripe", // Same hardcoding for now
+                CreatedAt = order.CreatedAt,
+                SubOrders = order.SubOrders.Select(so => new AdminSubOrderDto
+                {
+                    SubOrderId = so.SubOrderId,
+                    SellerId = so.SellerId,
+                    StoreName = so.SellerProfile?.StoreName ?? "Unknown",
+                    Status = so.Status.ToString(),
+                    ShippingCost = so.ShippingCost,
+                    Carrier = so.Shipping?.Carrier,
+                    TrackingNumber = so.Shipping?.TrackingNumber,
+                    Items = so.OrderItems.Select(oi => new AdminOrderItemDto
+                    {
+                        ProductName = oi.ProductVariant?.Product?.Name ?? "Unknown",
+                        Color = oi.ProductVariant?.Color,
+                        Size = oi.ProductVariant?.Size,
+                        Quantity = oi.Quantity,
+                        PriceAtPurchase = oi.PriceAtPurchase,
+                        SaleAmount = oi.Quantity * oi.PriceAtPurchase
+                    }).ToList(),
+                    SubOrderTotal = so.ShippingCost + so.OrderItems.Sum(oi => oi.Quantity * oi.PriceAtPurchase)
+                }).ToList()
+            };
+
+            return dto;
         }
     }
 }

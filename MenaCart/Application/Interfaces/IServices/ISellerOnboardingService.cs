@@ -10,5 +10,6 @@ namespace Application.Interfaces.IServices
         Task<SellerProfileResponseDto> GetProfileByIdAsync(int sellerId);
         Task<SellerProfileResponseDto> UpdateProfileAsync(string userId, ApplySellerDto request);
         Task<PublicSellerListResponseDto> GetActiveSellersAsync(string? search, int page, int pageSize);
+        Task<SellerProfileResponseDto> BecomeInstantSellerAsync(string userId, string defaultStoreName);
     }
 }

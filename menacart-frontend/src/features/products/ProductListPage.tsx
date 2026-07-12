@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useBrowseProducts } from './hooks/useProducts';
 import { useCategoriesTree } from './hooks/useCategories';
+import { usePublicSellers } from '../seller-onboarding/hooks/useSellerOnboarding';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -10,9 +11,27 @@ import type { Category } from '../../types/category';
 import { getOptimizedImageUrl } from '../../utils/cloudinary';
 import './ProductListPage.css';
 
+const getCategoryEmoji = (name: string) => {
+  if (!name) return '📦';
+  const n = name.toLowerCase();
+  if (n.includes('electronic') || n.includes('tech') || n.includes('computer') || n.includes('phone') || n.includes('gadget')) return '🔌';
+  if (n.includes('clothing') || n.includes('apparel') || n.includes('fashion') || n.includes('shirt') || n.includes('dress')) return '👕';
+  if (n.includes('home') || n.includes('furniture') || n.includes('kitchen') || n.includes('decor')) return '🏠';
+  if (n.includes('sport') || n.includes('outdoor') || n.includes('fitness')) return '⚽';
+  if (n.includes('beauty') || n.includes('health') || n.includes('makeup') || n.includes('care')) return '💄';
+  if (n.includes('toy') || n.includes('game') || n.includes('kids')) return '🧸';
+  if (n.includes('book') || n.includes('stationery')) return '📚';
+  if (n.includes('grocery') || n.includes('food') || n.includes('drink')) return '🛒';
+  if (n.includes('jewelry') || n.includes('accessor') || n.includes('watch')) return '💍';
+  if (n.includes('shoe') || n.includes('footwear') || n.includes('sneaker')) return '👟';
+  if (n.includes('auto') || n.includes('car') || n.includes('vehicle')) return '🚗';
+  if (n.includes('pet')) return '🐾';
+  return '📦';
+};
+
 export const ProductListPage: React.FC = () => {
   const { isAuthenticated, roles } = useAuth();
-  const isCustomer = isAuthenticated && roles.includes('Customer');
+  const isCustomer = isAuthenticated && (roles.includes('Customer') || roles.includes('Seller'));
   const { data: wishlist } = useWishlist(isCustomer);
   const addToWishlistMutation = useAddToWishlist();
   const removeFromWishlistMutation = useRemoveFromWishlist();
@@ -22,23 +41,20 @@ export const ProductListPage: React.FC = () => {
 
   const currentPage = Number(searchParams.get('page')) || 1;
   const categoryId = searchParams.get('categoryId') ? Number(searchParams.get('categoryId')) : undefined;
+  const sellerId = searchParams.get('sellerId') ? Number(searchParams.get('sellerId')) : undefined;
   const search = searchParams.get('search') || undefined;
 
   const { data: products, isLoading, isFetching, error } = useBrowseProducts({
     search,
     categoryId,
+    sellerId,
     page: currentPage,
     pageSize: 20,
   });
 
   const { data: categories } = useCategoriesTree();
 
-  const flatCategories = useMemo(() => {
-    if (!categories) return [];
-    const flatten = (cats: Category[]): Category[] =>
-      cats.flatMap((c) => [c, ...flatten(c.childCategories)]);
-    return flatten(categories);
-  }, [categories]);
+  const { data: publicSellers } = usePublicSellers('', 1, 100);
 
   // Debounced search on character change
   useEffect(() => {
@@ -69,6 +85,17 @@ export const ProductListPage: React.FC = () => {
     setSearchParams(params, { replace: true });
   };
 
+  const handleSellerChange = (sId: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (sId) {
+      params.set('sellerId', sId);
+    } else {
+      params.delete('sellerId');
+    }
+    params.set('page', '1');
+    setSearchParams(params, { replace: true });
+  };
+
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', String(newPage));
@@ -94,7 +121,25 @@ export const ProductListPage: React.FC = () => {
     }
   };
 
-  const hasActiveFilters = !!(search || categoryId);
+  const hasActiveFilters = !!(search || categoryId || sellerId);
+
+  const activeParentId = useMemo(() => {
+    if (!categoryId || !categories) return null;
+    for (const root of categories) {
+      if (root.categoryId === categoryId) return root.categoryId;
+      const findInTree = (cats: Category[]): boolean => {
+        for (const c of cats) {
+          if (c.categoryId === categoryId) return true;
+          if (c.childCategories && findInTree(c.childCategories)) return true;
+        }
+        return false;
+      };
+      if (root.childCategories && findInTree(root.childCategories)) {
+        return root.categoryId;
+      }
+    }
+    return null;
+  }, [categoryId, categories]);
 
   return (
     <div className="product-list-page">
@@ -104,29 +149,29 @@ export const ProductListPage: React.FC = () => {
       </header>
 
       <div className="catalog-toolbar">
-        <div className="search-bar-wrapper">
-          <span className="search-icon-prefix">🔍</span>
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search products by name or brand…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            aria-label="Search products"
-          />
-        </div>
-
         <div className="filter-group">
+          <div className="search-bar-wrapper">
+            <span className="search-icon-prefix">🔍</span>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search products by name or brand…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              aria-label="Search products"
+            />
+          </div>
+
           <select
-            className="category-select"
-            value={categoryId ?? ''}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            aria-label="Filter by category"
+            className="filter-select"
+            value={sellerId ?? ''}
+            onChange={(e) => handleSellerChange(e.target.value)}
+            aria-label="Filter by store"
           >
-            <option value="">All Categories</option>
-            {flatCategories.map((cat) => (
-              <option key={cat.categoryId} value={cat.categoryId}>
-                {cat.parentCategoryName ? `${cat.parentCategoryName} → ` : ''}{cat.name}
+            <option value="">🏬 All Stores</option>
+            {publicSellers?.items.map((seller) => (
+              <option key={seller.sellerId} value={seller.sellerId}>
+                {seller.storeName}
               </option>
             ))}
           </select>
@@ -138,6 +183,55 @@ export const ProductListPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      <div className="parent-category-filters">
+        <button
+          className={`parent-category-btn ${!activeParentId ? 'active' : ''}`}
+          onClick={() => handleCategoryChange('')}
+        >
+          🌍 All
+        </button>
+        {categories?.map(cat => (
+          <button
+            key={cat.categoryId}
+            className={`parent-category-btn ${activeParentId === cat.categoryId ? 'active' : ''}`}
+            onClick={() => handleCategoryChange(String(cat.categoryId))}
+          >
+            {getCategoryEmoji(cat.name)} {cat.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Child Categories Sub-filters */}
+      {(() => {
+        const selectedParent = activeParentId && categories ? categories.find(c => c.categoryId === activeParentId) : null;
+        if (selectedParent && selectedParent.childCategories?.length) {
+          return (
+            <div className="child-categories-pills">
+              <span className="child-pills-label">Subcategories:</span>
+              <div className="child-pills-container">
+                <button
+                  className={`category-pill-btn ${categoryId === activeParentId ? 'active' : ''}`}
+                  onClick={() => handleCategoryChange(String(activeParentId))}
+                >
+                  All {selectedParent.name}
+                </button>
+                {selectedParent.childCategories.map((child: any) => (
+                  <button
+                    key={child.categoryId}
+                    className={`category-pill-btn ${categoryId === child.categoryId ? 'active' : ''}`}
+                    onClick={() => handleCategoryChange(String(child.categoryId))}
+                  >
+                    {getCategoryEmoji(child.name)} {child.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
 
       {isLoading && !products && (
         <div className="product-grid">

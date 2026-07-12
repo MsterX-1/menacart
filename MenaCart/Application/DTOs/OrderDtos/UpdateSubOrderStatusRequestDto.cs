@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace Application.DTOs.OrderDtos
@@ -10,6 +10,5 @@ namespace Application.DTOs.OrderDtos
 
         // Required only when Status == "Shipped"
         public string? Carrier { get; set; }
-        public string? TrackingNumber { get; set; }
     }
 }

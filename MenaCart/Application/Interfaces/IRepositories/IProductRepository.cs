@@ -18,7 +18,8 @@ namespace Application.Interfaces.IRepositories
             int? categoryId,
             int? sellerId,
             int page,
-            int pageSize);
+            int pageSize,
+            string? excludeUserId = null);
 
         /// <summary>
         /// All products (any status) for a specific seller — for seller dashboard.

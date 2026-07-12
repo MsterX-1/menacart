@@ -12,7 +12,7 @@ namespace Application.Interfaces.IServices
 
         // Public
         Task<ProductResponseDto> GetByIdAsync(int productId);
-        Task<IEnumerable<ProductResponseDto>> BrowseAsync(string? search, int? categoryId, int? sellerId, int page, int pageSize);
+        Task<IEnumerable<ProductResponseDto>> BrowseAsync(string? search, int? categoryId, int? sellerId, int page, int pageSize, string? excludeUserId = null);
 
         // Admin
         Task<ProductResponseDto> ApproveProductAsync(int productId, ApproveProductRequestDto request);

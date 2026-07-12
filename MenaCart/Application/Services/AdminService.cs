@@ -215,6 +215,58 @@ namespace Application.Services
             return await _unitOfWork.OrderRepository.GetAdminDashboardStatsAsync(totalUsersCount);
         }
 
+        public async Task<AdminOrdersPagedResponseDto> GetAllOrdersAsync(int page, int pageSize)
+        {
+            var (orders, totalCount) = await _unitOfWork.OrderRepository.GetAllWithDetailsAsync(page, pageSize);
+
+            var items = orders.Select(o => new AdminOrderDto
+            {
+                OrderId = o.OrderId,
+                BuyerId = o.UserId,
+                BuyerName = o.User != null ? $"{o.User.FirstName} {o.User.LastName}".Trim() : "Unknown",
+                BuyerEmail = o.User?.Email ?? "Unknown",
+                ShippingAddress = o.Address != null ? $"{o.Address.Street}, {o.Address.City}, {o.Address.Country}" : "",
+                TotalAmount = o.TotalAmount,
+                PlatformDiscount = o.PlatformDiscount,
+                Status = o.Status.ToString(),
+                PaymentStatus = o.PaymentStatus.ToString(),
+                CreatedAt = o.CreatedAt,
+                SubOrders = o.SubOrders.Select(so => new AdminOrderSubOrderDto
+                {
+                    SubOrderId = so.SubOrderId,
+                    SellerId = so.SellerId,
+                    StoreName = so.SellerProfile?.StoreName ?? "Unknown Store",
+                    Status = so.Status.ToString(),
+                    ShippingCost = so.ShippingCost,
+                    PlatformCommission = so.OrderItems != null 
+                        ? so.OrderItems.SelectMany(oi => oi.SellerCommissions ?? new List<Domain.Models.SellerCommission>()).Sum(c => c.CommissionAmount) 
+                        : 0,
+                    Carrier = so.Shipping?.Carrier,
+                    TrackingNumber = so.Shipping?.TrackingNumber,
+                    Items = so.OrderItems != null ? so.OrderItems.Select(oi => new Application.DTOs.OrderDtos.OrderItemDto
+                    {
+                        OrderItemId = oi.OrderItemId,
+                        VariantId = oi.VariantId,
+                        ProductId = oi.ProductVariant?.ProductId ?? 0,
+                        ProductName = oi.ProductVariant?.Product?.Name ?? "Unknown Product",
+                        Color = oi.ProductVariant?.Color,
+                        Size = oi.ProductVariant?.Size,
+                        Quantity = oi.Quantity,
+                        PriceAtPurchase = oi.PriceAtPurchase
+                    }).ToList() : new List<Application.DTOs.OrderDtos.OrderItemDto>()
+                }).ToList()
+            });
+
+            return new AdminOrdersPagedResponseDto
+            {
+                Items = items,
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            };
+        }
+
         // ── Mappers ────────────────────────────────────────────────────────────
 
         private static SellerResponseDto MapSellerToDto(SellerProfile s) => new()
@@ -241,5 +293,49 @@ namespace Application.Services
             UsedCount = c.UsedCount,
             CreatedAt = c.CreatedAt
         };
+
+        public async Task<AdminTransactionsPagedResponseDto> GetTransactionsAsync(int page, int pageSize)
+        {
+            var (transactions, totalCount) = await _unitOfWork.OrderRepository.GetAdminTransactionsAsync(page, pageSize);
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            return new AdminTransactionsPagedResponseDto
+            {
+                Items = transactions,
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
+        }
+        public async Task<AdminTransactionDetailDto?> GetTransactionDetailsAsync(int orderId)
+        {
+            return await _unitOfWork.OrderRepository.GetAdminTransactionByIdAsync(orderId);
+        }
+        public async Task<SystemSettingDto?> GetSystemSettingAsync(string key)
+        {
+            var settings = await _unitOfWork.SystemSettingRepository.GetAll();
+            var setting = settings.FirstOrDefault(s => s?.Key == key);
+            if (setting == null) return null;
+            return new SystemSettingDto { Key = setting.Key, Value = setting.Value };
+        }
+
+        public async Task<SystemSettingDto> UpdateSystemSettingAsync(string key, string value)
+        {
+            var settings = await _unitOfWork.SystemSettingRepository.GetAll();
+            var setting = settings.FirstOrDefault(s => s?.Key == key);
+            if (setting == null)
+            {
+                setting = new Domain.Models.SystemSetting { Key = key, Value = value };
+                await _unitOfWork.SystemSettingRepository.Add(setting);
+            }
+            else
+            {
+                setting.Value = value;
+                await _unitOfWork.SystemSettingRepository.Update(setting);
+            }
+            await _unitOfWork.CompleteAsync();
+            return new SystemSettingDto { Key = setting.Key, Value = setting.Value };
+        }
     }
 }

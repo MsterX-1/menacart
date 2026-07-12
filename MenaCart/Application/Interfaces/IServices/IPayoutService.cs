@@ -8,7 +8,7 @@ namespace Application.Interfaces.IServices
     {
         Task<PayoutResponseDto> RequestPayoutAsync(string userId, RequestPayoutDto request);
         Task<IEnumerable<PayoutResponseDto>> GetMyPayoutsAsync(string userId);
-        Task<decimal> GetAvailableBalanceAsync(string userId);
+        Task<(decimal AvailableBalance, decimal PendingBalance)> GetAvailableBalanceAsync(string userId);
         Task<IEnumerable<PayoutResponseDto>> GetAllPayoutsForAdminAsync(string? statusFilter);
         Task<PayoutResponseDto> ReviewPayoutAsync(int payoutId, ReviewPayoutDto request);
     }

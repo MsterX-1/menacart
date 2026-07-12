@@ -20,6 +20,15 @@ namespace Application.DTOs.SellerDtos
         public decimal? CommissionRate { get; set; }
         public decimal? BaseShippingCost { get; set; }
         public decimal? FreeShippingThreshold { get; set; }
+        public int ReturnPolicyDays { get; set; }
+        
+        public string? BankName { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? AccountHolder { get; set; }
+        public string? Iban { get; set; }
+        
+        public System.Collections.Generic.List<string> DeliveryProviders { get; set; } = new();
+
         public DateTime CreatedAt { get; set; }
     }
 }

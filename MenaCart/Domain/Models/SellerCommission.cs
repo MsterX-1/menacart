@@ -40,6 +40,8 @@ namespace Domain.Models
 
         public int? PayoutId { get; set; }
 
+        public DateTime? SettlesAt { get; set; }
+
         [Timestamp]
         public byte[] RowVersion { get; set; }
 

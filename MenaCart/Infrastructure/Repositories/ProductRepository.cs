@@ -22,7 +22,7 @@ namespace Infrastructure.Repository
         }
 
         public async Task<IEnumerable<Product>> BrowseAsync(
-            string? search, int? categoryId, int? sellerId, int page, int pageSize)
+            string? search, int? categoryId, int? sellerId, int page, int pageSize, string? excludeUserId = null)
         {
             var query = _dbSet
                 .Where(p => p.ApprovalStatus == ApprovalStatus.Approved && p.IsActive)
@@ -40,10 +40,34 @@ namespace Infrastructure.Repository
                     (p.Description != null && p.Description.Contains(search)));
 
             if (categoryId.HasValue)
-                query = query.Where(p => p.CategoryId == categoryId.Value);
+            {
+                var targetCategoryId = categoryId.Value;
+                var allCategories = _context.Categories.ToList();
+                
+                var descendantCategoryIds = new List<int>();
+                var queue = new Queue<int>();
+                queue.Enqueue(targetCategoryId);
+                
+                while (queue.Count > 0)
+                {
+                    var currentId = queue.Dequeue();
+                    descendantCategoryIds.Add(currentId);
+                    
+                    var children = allCategories.Where(c => c.ParentCategoryId == currentId).Select(c => c.CategoryId);
+                    foreach (var childId in children)
+                    {
+                        queue.Enqueue(childId);
+                    }
+                }
+
+                query = query.Where(p => descendantCategoryIds.Contains(p.CategoryId));
+            }
 
             if (sellerId.HasValue)
                 query = query.Where(p => p.SellerId == sellerId.Value);
+
+            if (!string.IsNullOrEmpty(excludeUserId))
+                query = query.Where(p => p.SellerProfile.UserId != excludeUserId);
 
             return await query
                 .OrderByDescending(p => p.CreatedAt)

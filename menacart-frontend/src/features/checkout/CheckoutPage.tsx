@@ -141,13 +141,16 @@ export const CheckoutPage: React.FC = () => {
     );
   }
 
-  // Calculate Loyalty points discounts
-  // Assume: 1 Point = 1 EGP discount for the sake of presentation
-  const userPoints = loyalty?.balance || 0;
-  const pointsValue = userPoints; // 1:1 ratio
-  
   // Use preview data if available, otherwise fallback to cart subtotal
   const cartSubtotal = checkoutPreview ? checkoutPreview.subtotal : cart.grandTotal;
+
+  // Calculate Loyalty points discounts
+  const rate = checkoutPreview ? checkoutPreview.loyaltyPointsToCurrencyRate : 100;
+  const userPoints = loyalty?.balance || 0;
+  const pointsValue = userPoints / rate; 
+  
+  // Cap the points discount to the subtotal amount (after coupons, but we'll approximate with subtotal)
+  // Actually, we'll let the user see the max possible value, but the backend caps it at Subtotal.
   const totalShippingCost = checkoutPreview ? checkoutPreview.totalShippingCost : 0;
 
   // Coupon discount calculation
@@ -291,7 +294,7 @@ export const CheckoutPage: React.FC = () => {
                   <p className="loyalty-balance-text">
                     Available Balance: <strong>{userPoints} Points</strong>
                   </p>
-                  <p className="loyalty-desc">Redeem points for an immediate discount on your order (1 Point = 1.00 EGP).</p>
+                  <p className="loyalty-desc">Redeem points for an immediate discount on your order ({rate} Points = 1.00 EGP).</p>
                 </div>
                 
                 <div className="loyalty-toggle-container">

@@ -57,7 +57,7 @@ namespace API.Controllers
             {
                 var userId = User.GetUserId();
                 var balance = await _payoutService.GetAvailableBalanceAsync(userId);
-                return Ok(new { availableBalance = balance });
+                return Ok(new { availableBalance = balance.AvailableBalance, pendingBalance = balance.PendingBalance });
             }
             catch (UnauthorizedAccessException ex)
             {

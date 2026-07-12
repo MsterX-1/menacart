@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { useAdminDashboardStats } from './hooks/useAdminDashboard';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
@@ -165,11 +165,18 @@ export const AdminDashboardPage: React.FC = () => {
                         style={{ width: `${Math.max(percentage, 5)}%` }}
                       ></div>
                     </div>
-                    {seller.pendingPayoutBalance > 0 && (
-                      <span className="chart-item-subtext">
-                        Pending Payout: <strong>{formatCurrency(seller.pendingPayoutBalance)}</strong>
-                      </span>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
+                      {seller.pendingRevenue > 0 && (
+                        <span className="chart-item-subtext" style={{ color: 'var(--color-warning)' }}>
+                          Pending Return Period: <strong>{formatCurrency(seller.pendingRevenue)}</strong>
+                        </span>
+                      )}
+                      {seller.pendingPayoutBalance > 0 && (
+                        <span className="chart-item-subtext">
+                          Pending Payout: <strong>{formatCurrency(seller.pendingPayoutBalance)}</strong>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               })}

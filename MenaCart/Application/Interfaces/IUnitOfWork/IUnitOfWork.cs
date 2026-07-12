@@ -32,9 +32,13 @@ namespace Application.Interfaces.IUnitOfWork
         ISellerReviewRepository SellerReviewRepository { get; }
         ISellerPayoutRepository SellerPayoutRepository { get; }
         ILoyaltyPointRepository LoyaltyPointRepository { get; }
+        IGenaricRepository<SystemSetting> SystemSettingRepository { get; }
         Task<int> CompleteAsync();
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
+
+        Task ClearUserDataAsync(string userId);
+        Task<bool> HasOrdersOrProductsAsync(string userId);
     }
 }

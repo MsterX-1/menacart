@@ -16,19 +16,22 @@ namespace Application.Services
         private readonly UserManager<User> _userManager;
         private readonly IShippingService _shippingService;
         private readonly IPaymentGatewayService _paymentGatewayService;
+        private readonly IEmailService _emailService;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             IConfiguration config,
             UserManager<User> userManager,
             IShippingService shippingService,
-            IPaymentGatewayService paymentGatewayService)
+            IPaymentGatewayService paymentGatewayService,
+            IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _config = config;
             _userManager = userManager;
             _shippingService = shippingService;
             _paymentGatewayService = paymentGatewayService;
+            _emailService = emailService;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -83,62 +86,7 @@ namespace Application.Services
             if (stockErrors.Any())
                 throw new Exception($"Stock conflict:\n{string.Join("\n", stockErrors)}");
 
-            // ── 5. Validate coupon ─────────────────────────────────────────────
-            Coupon? coupon = null;
-            decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-
-            if (!string.IsNullOrWhiteSpace(request.CouponCode))
-            {
-                coupon = await _unitOfWork.CouponRepository.GetByCodeAsync(request.CouponCode);
-
-                if (coupon == null)
-                    throw new Exception("Coupon not found.");
-                if (coupon.ExpiryDate < DateTime.UtcNow)
-                    throw new Exception("Coupon has expired.");
-                if (coupon.UsageLimit.HasValue && coupon.UsedCount >= coupon.UsageLimit)
-                    throw new Exception("Coupon usage limit reached.");
-                if (coupon.MinOrderAmount.HasValue && subtotal < coupon.MinOrderAmount)
-                    throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C}.");
-
-                var alreadyUsed = await _unitOfWork.CouponRepository
-                    .HasUserUsedCouponAsync(userId, coupon.CouponId);
-                if (alreadyUsed)
-                    throw new Exception("You have already used this coupon.");
-            }
-
-            // ── 6. Compute total ───────────────────────────────────────────────
-            decimal discount = 0;
-            decimal platformDiscount = 0;
-            Dictionary<int, decimal> sellerDiscounts = new Dictionary<int, decimal>();
-
-            if (coupon != null)
-            {
-                if (coupon.SellerId == null)
-                {
-                    discount = coupon.DiscountType == DiscountType.Percentage
-                        ? subtotal * coupon.DiscountValue / 100
-                        : coupon.DiscountValue;
-                    discount = Math.Min(discount, subtotal);
-                    platformDiscount = discount;
-                }
-                else
-                {
-                    var sellerItems = activeItems.Where(ci => ci.ProductVariant.Product.SellerId == coupon.SellerId).ToList();
-                    if (!sellerItems.Any())
-                        throw new Exception("This coupon does not apply to any items in your cart.");
-                        
-                    var sellerSubtotal = sellerItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-                    if (coupon.MinOrderAmount.HasValue && sellerSubtotal < coupon.MinOrderAmount)
-                        throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C} for seller's items.");
-
-                    discount = coupon.DiscountType == DiscountType.Percentage
-                        ? sellerSubtotal * coupon.DiscountValue / 100
-                        : coupon.DiscountValue;
-                    discount = Math.Min(discount, sellerSubtotal);
-                    sellerDiscounts[coupon.SellerId.Value] = discount;
-                }
-            }
-
+            // ── 5. Calculate Shipping First ─────────────────────────────────────────────
             var grouped = activeItems.GroupBy(ci => ci.ProductVariant.Product.SellerId).ToList();
             decimal totalShippingCost = 0;
             var shippingCosts = new Dictionary<int, decimal>();
@@ -150,7 +98,63 @@ namespace Application.Services
                 totalShippingCost += cost;
             }
 
-            decimal totalAmount = Math.Max(0, subtotal - discount) + totalShippingCost;
+            decimal subtotal = activeItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+            decimal totalOrderPrice = subtotal + totalShippingCost;
+
+            // ── 6. Validate & Compute Coupon ──────────────────────────────────────────
+            Coupon? coupon = null;
+            decimal discount = 0;
+            decimal platformDiscount = 0;
+            Dictionary<int, decimal> sellerDiscounts = new Dictionary<int, decimal>();
+
+            if (!string.IsNullOrWhiteSpace(request.CouponCode))
+            {
+                coupon = await _unitOfWork.CouponRepository.GetByCodeAsync(request.CouponCode);
+
+                if (coupon == null)
+                    throw new Exception("Coupon not found.");
+                if (coupon.ExpiryDate < DateTime.UtcNow)
+                    throw new Exception("Coupon has expired.");
+                if (coupon.UsageLimit.HasValue && coupon.UsedCount >= coupon.UsageLimit)
+                    throw new Exception("Coupon usage limit reached.");
+                
+                var alreadyUsed = await _unitOfWork.CouponRepository
+                    .HasUserUsedCouponAsync(userId, coupon.CouponId);
+                if (alreadyUsed)
+                    throw new Exception("You have already used this coupon.");
+
+                if (coupon.SellerId == null)
+                {
+                    if (coupon.MinOrderAmount.HasValue && totalOrderPrice < coupon.MinOrderAmount)
+                        throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C}.");
+
+                    discount = coupon.DiscountType == DiscountType.Percentage
+                        ? totalOrderPrice * coupon.DiscountValue / 100
+                        : coupon.DiscountValue;
+                    discount = Math.Min(discount, totalOrderPrice);
+                    platformDiscount = discount;
+                }
+                else
+                {
+                    var sellerItems = activeItems.Where(ci => ci.ProductVariant.Product.SellerId == coupon.SellerId).ToList();
+                    if (!sellerItems.Any())
+                        throw new Exception("This coupon does not apply to any items in your cart.");
+                        
+                    var sellerSubtotal = sellerItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                    var sellerTotal = sellerSubtotal + shippingCosts[coupon.SellerId.Value];
+
+                    if (coupon.MinOrderAmount.HasValue && sellerTotal < coupon.MinOrderAmount)
+                        throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C} for seller's items.");
+
+                    discount = coupon.DiscountType == DiscountType.Percentage
+                        ? sellerTotal * coupon.DiscountValue / 100
+                        : coupon.DiscountValue;
+                    discount = Math.Min(discount, sellerTotal);
+                    sellerDiscounts[coupon.SellerId.Value] = discount;
+                }
+            }
+
+            decimal totalAmount = Math.Max(0, totalOrderPrice - discount);
 
             // Calculate points discount if requested
             decimal pointsDiscountAmount = 0;
@@ -158,14 +162,36 @@ namespace Application.Services
             if (request.RedeemPoints)
             {
                 var pointsBalance = await _unitOfWork.LoyaltyPointRepository.GetBalanceByUserIdAsync(userId);
-                var pointsToCurrencyRate = Convert.ToDecimal(_config["Loyalty:PointsToCurrencyRate"] ?? "100");
-                if (pointsToCurrencyRate > 0 && pointsBalance > 0)
+                var loyaltyRateSettings = await _unitOfWork.SystemSettingRepository.GetAll();
+                var loyaltyRateSetting = loyaltyRateSettings.FirstOrDefault(s => s?.Key == "Loyalty:PointsToCurrencyRate");
+                var pointsToCurrencyRate = loyaltyRateSetting != null ? Convert.ToDecimal(loyaltyRateSetting.Value) : 100m; // 100 points = 1 EGP
+                
+                decimal minStripeChargeEGP = 25.00m;
+                // Points can ONLY discount the subtotal (items minus coupons). Shipping must be paid.
+                decimal maxAmountEligibleForPoints = Math.Max(0, totalAmount - totalShippingCost);
+
+                if (pointsToCurrencyRate > 0 && pointsBalance > 0 && maxAmountEligibleForPoints > 0)
                 {
                     var maxPointsDiscount = pointsBalance / pointsToCurrencyRate;
-                    pointsDiscountAmount = Math.Min(totalAmount, maxPointsDiscount);
-                    pointsToDeduct = (int)(pointsDiscountAmount * pointsToCurrencyRate);
+                    // Cap the points discount at the eligible amount (subtotal after coupons)
+                    pointsDiscountAmount = Math.Min(maxAmountEligibleForPoints, maxPointsDiscount);
+                    
+                    var newTotal = totalAmount - pointsDiscountAmount;
+                    
+                    // If the new total is between 0 and the Stripe minimum, we throw an error BEFORE attempting payment.
+                    if (newTotal > 0 && newTotal < minStripeChargeEGP)
+                    {
+                        throw new Exception($"Minimum credit card charge is {minStripeChargeEGP:C}. Your remaining balance is {newTotal:C}. Please add more items, or use enough points/coupons to fully cover your order.");
+                    }
+
+                    pointsToDeduct = (int)Math.Floor(pointsDiscountAmount * pointsToCurrencyRate);
                     totalAmount -= pointsDiscountAmount;
                 }
+            }
+
+            if (totalAmount > 0 && totalAmount < 25.00m)
+            {
+                throw new Exception($"Minimum credit card charge is 25.00 EGP. Your order total is {totalAmount:C}. Please add more items, or use enough points/coupons to fully cover your order.");
             }
 
             var defaultCommissionRate = Convert.ToDecimal(_config["Commission:DefaultRatePercent"] ?? "10");
@@ -205,6 +231,9 @@ namespace Application.Services
 
                     await _unitOfWork.SubOrderRepository.Add(subOrder);
 
+                    var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
+                    var sellerTotalWithShipping = sellerSubtotal + shippingCosts[sellerGroup.Key];
+
                     foreach (var cartItem in sellerGroup)
                     {
                         var variant = cartItem.ProductVariant;
@@ -225,42 +254,33 @@ namespace Application.Services
                         var sellerProfile = variant.Product.SellerProfile;
                         var appliedCommissionRate = sellerProfile.CommissionRate ?? defaultCommissionRate;
 
+                        // Distribute shipping cost to this item based on its sale amount ratio
+                        var itemShippingCost = sellerSubtotal > 0 ? shippingCosts[sellerGroup.Key] * (saleAmount / sellerSubtotal) : 0;
+                        var saleAmountWithShipping = saleAmount + itemShippingCost;
+
                         decimal sellerDiscountForItem = 0;
                         if (sellerDiscounts.TryGetValue(sellerGroup.Key, out var sDiscount) && sDiscount > 0)
                         {
-                            var sellerSubtotal = sellerGroup.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-                            sellerDiscountForItem = sDiscount * (saleAmount / sellerSubtotal);
+                            sellerDiscountForItem = sellerTotalWithShipping > 0 ? sDiscount * (saleAmountWithShipping / sellerTotalWithShipping) : 0;
                         }
 
-                            var discountedSaleAmount = Math.Max(0, saleAmount - sellerDiscountForItem);
-                            
-                            await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
-                            {
-                                SellerId = sellerGroup.Key,
-                                OrderItem = orderItem,
-                                SaleAmount = saleAmount,
-                                CommissionRate = appliedCommissionRate,
-                                CommissionAmount = discountedSaleAmount * appliedCommissionRate / 100,
-                                SellerDiscount = sellerDiscountForItem,
-                                Status = SellerCommissionStatus.Pending,
-                                CreatedAt = DateTime.UtcNow
-                            });
+                        var discountedSaleAmount = Math.Max(0, saleAmountWithShipping - sellerDiscountForItem);
+                        
+                        await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
+                        {
+                            SellerId = sellerGroup.Key,
+                            OrderItem = orderItem,
+                            SaleAmount = saleAmountWithShipping,
+                            CommissionRate = appliedCommissionRate,
+                            CommissionAmount = discountedSaleAmount * appliedCommissionRate / 100,
+                            SellerDiscount = sellerDiscountForItem,
+                            Status = SellerCommissionStatus.Pending,
+                            CreatedAt = DateTime.UtcNow
+                        });
                     }
                 }
 
-                // ── 9. Apply coupon usage ──────────────────────────────────────
-                if (coupon != null)
-                {
-                    coupon.UsedCount++;
-                    await _unitOfWork.CouponRepository.AddUsageAsync(new UserCouponUsage
-                    {
-                        UserId = userId,
-                        CouponId = coupon.CouponId,
-                        Coupon = coupon,
-                        Order = order,
-                        UsedAt = DateTime.UtcNow
-                    });
-                }
+                // Coupon usage is no longer incremented here. It will be incremented when payment succeeds.
 
                 // ── 10. Clear cart ─────────────────────────────────────────────
                 await _unitOfWork.CartRepository.ClearCartItemsAsync(cart.CartId);
@@ -287,23 +307,85 @@ namespace Application.Services
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
                         UserId = sellerGroup.First().ProductVariant.Product.SellerProfile.UserId,
-                        Message = $"You have a new order: <a href=\"/seller/orders/{order.OrderId}\">Order #{order.OrderId}</a>.",
+                        Message = $"You have a new order: <a href=\"/seller/orders\">Order #{order.OrderId}</a>.",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     });
+
+                    var sellerUser = await _userManager.FindByIdAsync(sellerGroup.First().ProductVariant.Product.SellerProfile.UserId);
+                    if (sellerUser != null)
+                    {
+                        var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+                        var sellerOrderLink = $"{frontendUrl}/seller/orders/{order.OrderId}";
+                        await _emailService.SendEmailAsync(sellerUser.Email, $"New Order Received: #{order.OrderId}", 
+                            $"<h1>New Order Received!</h1><p>You have received a new order (Order #{order.OrderId}).</p><p><a href='{sellerOrderLink}'>Click here to view it in your seller dashboard.</a></p>");
+                    }
+                }
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user != null)
+                {
+                    var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+                    var orderLink = $"{frontendUrl}/orders/{order.OrderId}";
+                    
+                    var emailBody = $@"
+                        <h1>Thank you for your order!</h1>
+                        <p>Your order <strong>#{order.OrderId}</strong> has been placed successfully.</p>
+                        <p><strong>Total Amount:</strong> {order.TotalAmount:C}</p>
+                        <br/>
+                        <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background-color:#007bff;color:#fff;text-decoration:none;border-radius:5px;'>View Order Status</a></p>
+                    ";
+
+                    await _emailService.SendEmailAsync(user.Email, $"Order Confirmation - #{order.OrderId}", emailBody);
                 }
 
                 await _unitOfWork.CompleteAsync();
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                // ── 12. Create Payment Session ──
-                var session = await _paymentGatewayService.CreateSessionAsync(order);
-
                 var placed = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(order.OrderId);
                 var response = MapOrderToDto(placed!);
-                response.PaymentUrl = session.PaymentUrl;
-                response.SessionId = session.SessionId;
+
+                // ── 12. Handle Payment Session ──
+                if (order.TotalAmount == 0)
+                {
+                    // Fully paid by points or coupon, bypass Stripe
+                    order.PaymentStatus = OrderPaymentStatus.Paid;
+                    order.Status = OrderStatus.Confirmed;
+                    order.UpdatedAt = DateTime.UtcNow;
+
+                    await _unitOfWork.PaymentRepository.Add(new Payment
+                    {
+                        OrderId = order.OrderId,
+                        Amount = 0,
+                        Currency = "EGP",
+                        Method = "LoyaltyPoints",
+                        Status = PaymentStatus.Succeeded,
+                        TransactionId = $"PT-{Guid.NewGuid()}",
+                        PaidAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    await _unitOfWork.NotificationRepository.Add(new Notification
+                    {
+                        UserId = order.UserId,
+                        Message = $"Your order <a href=\"/orders/{order.OrderId}\">#{order.OrderId}</a> has been fully paid using your loyalty points.",
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    await _unitOfWork.CompleteAsync();
+                    
+                    response.PaymentUrl = null;
+                    response.SessionId = null;
+                }
+                else
+                {
+                    var session = await _paymentGatewayService.CreateSessionAsync(order);
+                    response.PaymentUrl = session.PaymentUrl;
+                    response.SessionId = session.SessionId;
+                }
+
                 return response;
             }
             catch (DbUpdateConcurrencyException)
@@ -368,13 +450,14 @@ namespace Application.Services
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
                         UserId = subOrder.SellerProfile.UserId,
-                        Message = $"Order <a href=\"/seller/orders/{order.OrderId}\">#{order.OrderId}</a> has been cancelled by the customer.",
+                        Message = $"Order <a href=\"/seller/orders\">#{order.OrderId}</a> has been cancelled by the customer.",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
                     });
                 }
 
                 order.Status = OrderStatus.Cancelled;
+                order.PaymentStatus = OrderPaymentStatus.Cancelled;
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _unitOfWork.CompleteAsync();
@@ -594,14 +677,20 @@ namespace Application.Services
                 shipping.DeliveredAt = DateTime.UtcNow;
                 shipping.UpdatedAt = DateTime.UtcNow;
 
-                // Settle commissions
+                // Schedule commissions for settlement
                 var commissions = await _unitOfWork.SellerCommissionRepository.GetBySubOrderIdAsync(subOrderId);
-                foreach (var commission in commissions)
+                if (commissions.Any())
                 {
-                    if (commission.Status == SellerCommissionStatus.Pending)
+                    var sellerProfile = await _unitOfWork.SellerRepository.GetById(subOrder.SellerId);
+                    var returnPolicyDays = sellerProfile?.ReturnPolicyDays ?? 14;
+
+                    foreach (var commission in commissions)
                     {
-                        commission.Status = SellerCommissionStatus.Settled;
-                        await _unitOfWork.SellerCommissionRepository.Update(commission);
+                        if (commission.Status == SellerCommissionStatus.Pending)
+                        {
+                            commission.SettlesAt = DateTime.UtcNow.AddDays(returnPolicyDays);
+                            await _unitOfWork.SellerCommissionRepository.Update(commission);
+                        }
                     }
                 }
 
@@ -613,7 +702,9 @@ namespace Application.Services
                     parentOrder.UpdatedAt = DateTime.UtcNow;
                     await _unitOfWork.OrderRepository.Update(parentOrder);
 
-                    var pointsPerCurrency = Convert.ToDecimal(_config["Loyalty:PointsPerCurrencyUnit"] ?? "10");
+                    var loyaltyRateSettings = await _unitOfWork.SystemSettingRepository.GetAll();
+                    var pointsPerCurrencySetting = loyaltyRateSettings.FirstOrDefault(s => s?.Key == "Loyalty:PointsPerCurrencyUnit");
+                    var pointsPerCurrency = pointsPerCurrencySetting != null ? Convert.ToDecimal(pointsPerCurrencySetting.Value) : Convert.ToDecimal(_config["Loyalty:PointsPerCurrencyUnit"] ?? "10");
                     var pointsEarned = (int)(parentOrder.TotalAmount * pointsPerCurrency);
                     if (pointsEarned > 0)
                     {
@@ -627,6 +718,17 @@ namespace Application.Services
                     }
                 }
             }
+            else if (newStatus == SubOrderStatus.Cancelled)
+            {
+                var parentOrder = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(subOrder.OrderId);
+                if (parentOrder != null && parentOrder.SubOrders.All(so => so.Status == SubOrderStatus.Cancelled || so.SubOrderId == subOrderId))
+                {
+                    parentOrder.Status = OrderStatus.Cancelled;
+                    parentOrder.PaymentStatus = OrderPaymentStatus.Cancelled;
+                    parentOrder.UpdatedAt = DateTime.UtcNow;
+                    await _unitOfWork.OrderRepository.Update(parentOrder);
+                }
+            }
 
             await _unitOfWork.NotificationRepository.Add(new Notification
             {
@@ -635,6 +737,19 @@ namespace Application.Services
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             });
+
+            var customerUser = await _userManager.FindByIdAsync(subOrder.Order.UserId);
+            if (customerUser != null)
+            {
+                var frontendUrl = _config["Frontend:Url"] ?? "http://localhost:5173";
+                var orderLink = $"{frontendUrl}/orders/{subOrder.OrderId}";
+                var emailBody = $@"
+                    <h2>Order Update</h2>
+                    <p>Your order from <strong>{subOrder.SellerProfile.StoreName}</strong> is now <strong>{newStatus}</strong>.</p>
+                    <p><a href='{orderLink}' style='display:inline-block;padding:10px 20px;background-color:#007bff;color:#fff;text-decoration:none;border-radius:5px;'>View Order Details</a></p>
+                ";
+                await _emailService.SendEmailAsync(customerUser.Email, $"Order Update: {newStatus}", emailBody);
+            }
 
             await _unitOfWork.CompleteAsync();
         }
@@ -686,6 +801,19 @@ namespace Application.Services
                 };
 
                 await _unitOfWork.PaymentRepository.Add(payment);
+
+                if (order.CouponId.HasValue && order.Coupon != null)
+                {
+                    order.Coupon.UsedCount++;
+                    await _unitOfWork.CouponRepository.AddUsageAsync(new UserCouponUsage
+                    {
+                        UserId = order.UserId,
+                        CouponId = order.Coupon.CouponId,
+                        Coupon = order.Coupon,
+                        Order = order,
+                        UsedAt = DateTime.UtcNow
+                    });
+                }
 
                 // Notify buyer
                 await _unitOfWork.NotificationRepository.Add(new Notification
@@ -752,6 +880,19 @@ namespace Application.Services
             };
 
             await _unitOfWork.PaymentRepository.Add(payment);
+
+            if (order.CouponId.HasValue && order.Coupon != null)
+            {
+                order.Coupon.UsedCount++;
+                await _unitOfWork.CouponRepository.AddUsageAsync(new UserCouponUsage
+                {
+                    UserId = order.UserId,
+                    CouponId = order.Coupon.CouponId,
+                    Coupon = order.Coupon,
+                    Order = order,
+                    UsedAt = DateTime.UtcNow
+                });
+            }
 
             await _unitOfWork.NotificationRepository.Add(new Notification
             {

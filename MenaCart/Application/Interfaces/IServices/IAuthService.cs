@@ -5,15 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.Interfaces.IServices
 {
     public interface IAuthService
     {
         public Task<AuthResult> RefreshTokenAsync(string token);
-        public Task<AuthResult> RegisterAsync(RegisterDto dto);
+        public Task<bool> RegisterAsync(RegisterDto dto);
         public Task<AuthResult> LoginAsync(LoginDto dto);
         public Task<bool> LogoutAsync(string userId);
         public Task<bool> RevokeTokenAsync(string token);
+        Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto);
+        Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<AuthResult> GoogleLoginAsync(GoogleLoginDto dto);
+        Task<AuthResult> VerifyOtpAsync(VerifyOtpDto dto);
+        Task<bool> ResendOtpAsync(ResendOtpDto dto);
     }
 }

@@ -22,4 +22,5 @@ export interface ReviewPayoutDto {
 
 export interface AvailableBalanceResponse {
   availableBalance: number;
+  pendingBalance: number;
 }

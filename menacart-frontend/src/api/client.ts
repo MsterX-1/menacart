@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 let accessToken: string | null = null;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: ((token: string | null) => void)[] = [];
 let isRefreshing = false;
 
 export const setAccessToken = (token: string | null) => {
@@ -11,12 +11,12 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessToken;
 
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
+const subscribeTokenRefresh = (cb: (token: string | null) => void) => {
   refreshSubscribers.push(cb);
 };
 
-const onRefreshed = (token: string) => {
-  refreshSubscribers.map((cb) => cb(token));
+const onRefreshed = (token: string | null) => {
+  refreshSubscribers.forEach((cb) => cb(token));
   refreshSubscribers = [];
 };
 
@@ -50,12 +50,16 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (isRefreshing) {
         // Queue the request until refresh finishes
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((token: string) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((token: string | null) => {
+            if (token) {
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+              }
+              resolve(apiClient(originalRequest));
+            } else {
+              reject(error);
             }
-            resolve(apiClient(originalRequest));
           });
         });
       }
@@ -86,7 +90,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         isRefreshing = false;
-        refreshSubscribers = [];
+        onRefreshed(null); // Notify queued promises that refresh failed
         setAccessToken(null);
         
         // Redirect to login only in browser environments
