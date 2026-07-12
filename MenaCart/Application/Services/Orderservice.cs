@@ -141,15 +141,14 @@ namespace Application.Services
                         throw new Exception("This coupon does not apply to any items in your cart.");
                         
                     var sellerSubtotal = sellerItems.Sum(ci => ci.Quantity * ci.ProductVariant.Price);
-                    var sellerTotal = sellerSubtotal + shippingCosts[coupon.SellerId.Value];
 
-                    if (coupon.MinOrderAmount.HasValue && sellerTotal < coupon.MinOrderAmount)
+                    if (coupon.MinOrderAmount.HasValue && sellerSubtotal < coupon.MinOrderAmount)
                         throw new Exception($"Minimum order amount for this coupon is {coupon.MinOrderAmount:C} for seller's items.");
 
                     discount = coupon.DiscountType == DiscountType.Percentage
-                        ? sellerTotal * coupon.DiscountValue / 100
+                        ? sellerSubtotal * coupon.DiscountValue / 100
                         : coupon.DiscountValue;
-                    discount = Math.Min(discount, sellerTotal);
+                    discount = Math.Min(discount, sellerSubtotal);
                     sellerDiscounts[coupon.SellerId.Value] = discount;
                 }
             }
@@ -254,23 +253,19 @@ namespace Application.Services
                         var sellerProfile = variant.Product.SellerProfile;
                         var appliedCommissionRate = sellerProfile.CommissionRate ?? defaultCommissionRate;
 
-                        // Distribute shipping cost to this item based on its sale amount ratio
-                        var itemShippingCost = sellerSubtotal > 0 ? shippingCosts[sellerGroup.Key] * (saleAmount / sellerSubtotal) : 0;
-                        var saleAmountWithShipping = saleAmount + itemShippingCost;
-
                         decimal sellerDiscountForItem = 0;
                         if (sellerDiscounts.TryGetValue(sellerGroup.Key, out var sDiscount) && sDiscount > 0)
                         {
-                            sellerDiscountForItem = sellerTotalWithShipping > 0 ? sDiscount * (saleAmountWithShipping / sellerTotalWithShipping) : 0;
+                            sellerDiscountForItem = sellerSubtotal > 0 ? sDiscount * (saleAmount / sellerSubtotal) : 0;
                         }
 
-                        var discountedSaleAmount = Math.Max(0, saleAmountWithShipping - sellerDiscountForItem);
+                        var discountedSaleAmount = Math.Max(0, saleAmount - sellerDiscountForItem);
                         
                         await _unitOfWork.SellerCommissionRepository.Add(new SellerCommission
                         {
                             SellerId = sellerGroup.Key,
                             OrderItem = orderItem,
-                            SaleAmount = saleAmountWithShipping,
+                            SaleAmount = saleAmount,
                             CommissionRate = appliedCommissionRate,
                             CommissionAmount = discountedSaleAmount * appliedCommissionRate / 100,
                             SellerDiscount = sellerDiscountForItem,
@@ -445,7 +440,16 @@ namespace Application.Services
                     subOrder.UpdatedAt = DateTime.UtcNow;
 
                     foreach (var item in subOrder.OrderItems)
+                    {
                         item.ProductVariant.StockQuantity += item.Quantity;
+                        if (item.SellerCommissions != null)
+                        {
+                            foreach (var comm in item.SellerCommissions)
+                            {
+                                comm.Status = SellerCommissionStatus.Refunded;
+                            }
+                        }
+                    }
 
                     await _unitOfWork.NotificationRepository.Add(new Notification
                     {
@@ -720,6 +724,13 @@ namespace Application.Services
             }
             else if (newStatus == SubOrderStatus.Cancelled)
             {
+                var commissions = await _unitOfWork.SellerCommissionRepository.GetBySubOrderIdAsync(subOrderId);
+                foreach (var comm in commissions)
+                {
+                    comm.Status = SellerCommissionStatus.Refunded;
+                    await _unitOfWork.SellerCommissionRepository.Update(comm);
+                }
+
                 var parentOrder = await _unitOfWork.OrderRepository.GetByIdWithDetailsAsync(subOrder.OrderId);
                 if (parentOrder != null && parentOrder.SubOrders.All(so => so.Status == SubOrderStatus.Cancelled || so.SubOrderId == subOrderId))
                 {
