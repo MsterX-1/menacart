@@ -15,7 +15,8 @@ while buyers enjoy a unified shopping experience across multiple storefronts.
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ### 🚀 Live Demo
-- **Frontend App**: [https://menacart-ten.vercel.app/](https://menacart-ten.vercel.app/)
+
+- **Frontend App**: [https://menacart-ll2s-xi.vercel.app/](https://menacart-ll2s-xi.vercel.app/)
 - **Backend API (Swagger)**: [https://menacart.runasp.net/index.html](https://menacart.runasp.net/index.html)
 
 </div>
@@ -53,11 +54,11 @@ The platform handles the complete lifecycle — from user registration, seller o
 
 ### Who Is It For?
 
-| Role | Capabilities |
-|------|-------------|
-| **Buyer** | Browse catalog, manage cart & wishlist, checkout with coupons & loyalty points, manage addresses, track orders, request returns/exchanges, submit reviews |
+| Role       | Capabilities                                                                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Buyer**  | Browse catalog, manage cart & wishlist, checkout with coupons & loyalty points, manage addresses, track orders, request returns/exchanges, submit reviews                                   |
 | **Seller** | Apply for seller status, complete KYC, list products with variants & image galleries, configure shipping rules, fulfill orders, process returns, view commission dashboard, request payouts |
-| **Admin** | Approve sellers & products, manage categories & coupons, process payouts via Stripe Connect, monitor all orders & transactions, manage platform settings & users |
+| **Admin**  | Approve sellers & products, manage categories & coupons, process payouts via Stripe Connect, monitor all orders & transactions, manage platform settings & users                            |
 
 ---
 
@@ -83,33 +84,33 @@ MenaCart operates on a **commission-based marketplace model**:
 
 ### Backend
 
-| Technology | Purpose |
-|-----------|---------|
-| **ASP.NET Core 8** | Web API framework |
-| **C# 12** | Primary language |
-| **Entity Framework Core** | ORM with code-first migrations |
-| **SQL Server (LocalDB)** | Relational database |
-| **ASP.NET Identity** | User management, roles, password hashing |
-| **JWT + Refresh Tokens** | Stateless auth with stateful session security |
-| **Stripe SDK** | Payment processing (Checkout Sessions + Connect Transfers) |
-| **SMTP (Gmail)** | Transactional emails (OTP verification, notifications) |
-| **Swagger / OpenAPI** | API documentation |
+| Technology                | Purpose                                                    |
+| ------------------------- | ---------------------------------------------------------- |
+| **ASP.NET Core 8**        | Web API framework                                          |
+| **C# 12**                 | Primary language                                           |
+| **Entity Framework Core** | ORM with code-first migrations                             |
+| **SQL Server (LocalDB)**  | Relational database                                        |
+| **ASP.NET Identity**      | User management, roles, password hashing                   |
+| **JWT + Refresh Tokens**  | Stateless auth with stateful session security              |
+| **Stripe SDK**            | Payment processing (Checkout Sessions + Connect Transfers) |
+| **SMTP (Gmail)**          | Transactional emails (OTP verification, notifications)     |
+| **Swagger / OpenAPI**     | API documentation                                          |
 
 ### Frontend
 
-| Technology | Purpose |
-|-----------|---------|
-| **React 19** | UI library |
-| **TypeScript 6** | Type-safe JavaScript |
-| **Vite 8** | Build tool & dev server |
-| **React Router 7** | Client-side routing with route guards |
-| **TanStack React Query 5** | Server state management with caching |
-| **React Hook Form + Zod** | Form handling with schema-based validation |
-| **Framer Motion** | Animations & micro-interactions |
-| **Recharts** | Dashboard data visualization |
-| **Axios** | HTTP client with interceptors |
-| **Cloudinary** | Image upload & CDN |
-| **Google OAuth** | Social authentication |
+| Technology                 | Purpose                                    |
+| -------------------------- | ------------------------------------------ |
+| **React 19**               | UI library                                 |
+| **TypeScript 6**           | Type-safe JavaScript                       |
+| **Vite 8**                 | Build tool & dev server                    |
+| **React Router 7**         | Client-side routing with route guards      |
+| **TanStack React Query 5** | Server state management with caching       |
+| **React Hook Form + Zod**  | Form handling with schema-based validation |
+| **Framer Motion**          | Animations & micro-interactions            |
+| **Recharts**               | Dashboard data visualization               |
+| **Axios**                  | HTTP client with interceptors              |
+| **Cloudinary**             | Image upload & CDN                         |
+| **Google OAuth**           | Social authentication                      |
 
 ---
 
@@ -138,13 +139,13 @@ If the database migrates from SQL Server to PostgreSQL, or Stripe is replaced wi
 
 ### Core Patterns
 
-| Pattern | Usage |
-|---------|-------|
-| **Unit of Work** | Wraps all repositories in a single atomic `SaveAsync()` — critical for order placement that touches Orders, SubOrders, Items, Commissions, Stock, and Notifications |
-| **Repository** | Data access abstraction. Repositories return `IQueryable` for complex queries or concrete lists for simple ones |
-| **Dependency Injection** | All services registered as `Scoped` via extension methods in `ServiceCollectionExtensions.cs` |
-| **DTO Pattern** | Strict input/output shapes — `CreateXRequestDto` for input, `XResponseDto` for output |
-| **Optimistic Concurrency** | `[Timestamp]` / `RowVersion` on `ProductVariant` and `SellerCommission` prevents race conditions |
+| Pattern                    | Usage                                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Unit of Work**           | Wraps all repositories in a single atomic `SaveAsync()` — critical for order placement that touches Orders, SubOrders, Items, Commissions, Stock, and Notifications |
+| **Repository**             | Data access abstraction. Repositories return `IQueryable` for complex queries or concrete lists for simple ones                                                     |
+| **Dependency Injection**   | All services registered as `Scoped` via extension methods in `ServiceCollectionExtensions.cs`                                                                       |
+| **DTO Pattern**            | Strict input/output shapes — `CreateXRequestDto` for input, `XResponseDto` for output                                                                               |
+| **Optimistic Concurrency** | `[Timestamp]` / `RowVersion` on `ProductVariant` and `SellerCommission` prevents race conditions                                                                    |
 
 ---
 
@@ -152,45 +153,45 @@ If the database migrates from SQL Server to PostgreSQL, or Stripe is replaced wi
 
 ### 19 Backend Services
 
-| Service | Description |
-|---------|-------------|
-| `AuthService` | Registration with OTP email verification, login, JWT generation, refresh token rotation with reuse detection, Google OAuth, password reset, logout (single & all devices) |
-| `OrderService` | The core engine (~950 lines). Cart → Order conversion, multi-seller splitting into SubOrders, concurrency-safe stock deduction, commission calculation, coupon/loyalty application, Stripe session creation |
-| `CartService` | Server-side persistent cart. Add/update/remove items with stock validation and product approval checks |
-| `ProductService` | Full CRUD with variants, product-level and variant-level image galleries, category assignment, search & filtering, seller ownership enforcement |
-| `SellerOnboardingService` | Application workflow, instant seller creation, profile management, Stripe Connect account linking |
-| `ReturnService` | Return/exchange requests within 14-day window. Seller approval flow, stock reservation for exchanges, refund tracking |
-| `PayoutService` | Seller payout requests against delivered commissions. Admin review & Stripe Connect transfers with concurrency protection |
-| `AdminService` | Seller & product approval, user management, order oversight, dashboard analytics, system settings |
-| `CategoryService` | Hierarchical category management with parent-child relationships |
-| `CouponService` | Percentage & fixed discount coupons with usage limits, min order thresholds, expiry dates, per-seller scoping |
-| `ReviewService` | Product & seller reviews with purchase verification, transactional rating recalculation, one-review-per-product constraint |
-| `ShippingService` | Dynamic shipping cost calculation per seller with configurable rules and free-shipping thresholds |
-| `AddressService` | Buyer shipping address CRUD with default address management and soft-delete |
-| `NotificationService` | In-app notifications triggered by order, delivery, return, and payout events |
-| `WishlistService` | Add/remove products to wishlists with full product details |
-| `LoyaltyService` | Points balance retrieval and full transaction ledger history |
-| `SellerDocumentService` | KYC document upload and admin review for verification compliance |
-| `SellerDashboardService` | Aggregated seller analytics — revenue, order counts, pending payouts |
-| `EmailService` | SMTP-based HTML transactional emails with mock fallback for development |
+| Service                   | Description                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthService`             | Registration with OTP email verification, login, JWT generation, refresh token rotation with reuse detection, Google OAuth, password reset, logout (single & all devices)                                   |
+| `OrderService`            | The core engine (~950 lines). Cart → Order conversion, multi-seller splitting into SubOrders, concurrency-safe stock deduction, commission calculation, coupon/loyalty application, Stripe session creation |
+| `CartService`             | Server-side persistent cart. Add/update/remove items with stock validation and product approval checks                                                                                                      |
+| `ProductService`          | Full CRUD with variants, product-level and variant-level image galleries, category assignment, search & filtering, seller ownership enforcement                                                             |
+| `SellerOnboardingService` | Application workflow, instant seller creation, profile management, Stripe Connect account linking                                                                                                           |
+| `ReturnService`           | Return/exchange requests within 14-day window. Seller approval flow, stock reservation for exchanges, refund tracking                                                                                       |
+| `PayoutService`           | Seller payout requests against delivered commissions. Admin review & Stripe Connect transfers with concurrency protection                                                                                   |
+| `AdminService`            | Seller & product approval, user management, order oversight, dashboard analytics, system settings                                                                                                           |
+| `CategoryService`         | Hierarchical category management with parent-child relationships                                                                                                                                            |
+| `CouponService`           | Percentage & fixed discount coupons with usage limits, min order thresholds, expiry dates, per-seller scoping                                                                                               |
+| `ReviewService`           | Product & seller reviews with purchase verification, transactional rating recalculation, one-review-per-product constraint                                                                                  |
+| `ShippingService`         | Dynamic shipping cost calculation per seller with configurable rules and free-shipping thresholds                                                                                                           |
+| `AddressService`          | Buyer shipping address CRUD with default address management and soft-delete                                                                                                                                 |
+| `NotificationService`     | In-app notifications triggered by order, delivery, return, and payout events                                                                                                                                |
+| `WishlistService`         | Add/remove products to wishlists with full product details                                                                                                                                                  |
+| `LoyaltyService`          | Points balance retrieval and full transaction ledger history                                                                                                                                                |
+| `SellerDocumentService`   | KYC document upload and admin review for verification compliance                                                                                                                                            |
+| `SellerDashboardService`  | Aggregated seller analytics — revenue, order counts, pending payouts                                                                                                                                        |
+| `EmailService`            | SMTP-based HTML transactional emails with mock fallback for development                                                                                                                                     |
 
 ### 17 Frontend Feature Modules
 
-| Module | Buyer | Seller | Admin |
-|--------|-------|--------|-------|
-| **Auth** | Login, Register, OTP, Forgot/Reset Password, Google OAuth | — | — |
-| **Products** | Catalog browsing, Product detail | My Products, Create/Edit with variants & galleries | Product approval queue |
-| **Cart & Checkout** | Cart, Checkout, Payment processing/success/cancelled | — | — |
-| **Orders** | Order list, Order detail with tracking | Seller order management | — |
-| **Returns** | Return/exchange requests | Seller return review & processing | — |
-| **Payouts** | — | Payout dashboard & requests | Payout review & processing |
-| **Account** | Dashboard, Addresses, Loyalty points | — | — |
-| **Sellers** | Seller directory, Seller profile pages | Dashboard, Settings, Shipping rules | Seller management |
-| **Admin** | — | — | Dashboard, Users, Coupons, Categories, Transactions, Settings |
-| **Wishlist** | Add/remove, View wishlist | — | — |
-| **Reviews** | Product & seller reviews | — | — |
-| **Notifications** | In-app notification center | In-app notification center | — |
-| **Home** | Landing page & featured products | — | — |
+| Module              | Buyer                                                     | Seller                                             | Admin                                                         |
+| ------------------- | --------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------- |
+| **Auth**            | Login, Register, OTP, Forgot/Reset Password, Google OAuth | —                                                  | —                                                             |
+| **Products**        | Catalog browsing, Product detail                          | My Products, Create/Edit with variants & galleries | Product approval queue                                        |
+| **Cart & Checkout** | Cart, Checkout, Payment processing/success/cancelled      | —                                                  | —                                                             |
+| **Orders**          | Order list, Order detail with tracking                    | Seller order management                            | —                                                             |
+| **Returns**         | Return/exchange requests                                  | Seller return review & processing                  | —                                                             |
+| **Payouts**         | —                                                         | Payout dashboard & requests                        | Payout review & processing                                    |
+| **Account**         | Dashboard, Addresses, Loyalty points                      | —                                                  | —                                                             |
+| **Sellers**         | Seller directory, Seller profile pages                    | Dashboard, Settings, Shipping rules                | Seller management                                             |
+| **Admin**           | —                                                         | —                                                  | Dashboard, Users, Coupons, Categories, Transactions, Settings |
+| **Wishlist**        | Add/remove, View wishlist                                 | —                                                  | —                                                             |
+| **Reviews**         | Product & seller reviews                                  | —                                                  | —                                                             |
+| **Notifications**   | In-app notification center                                | In-app notification center                         | —                                                             |
+| **Home**            | Landing page & featured products                          | —                                                  | —                                                             |
 
 ---
 
@@ -562,40 +563,38 @@ SYSTEM SETTINGS:
 → Platform-wide settings management
 ```
 
-
-
 ## 🗄 Database Design
 
 ### 28 Domain Entities
 
-| Entity | Purpose | Key Design Feature |
-|--------|---------|-------------------|
-| `User` | Identity & authentication | ASP.NET Identity with multi-role support |
-| `SellerProfile` | Seller storefront data | Store branding, KYC status, Stripe Connect ID, commission rate |
-| `Product` | Catalog item | Soft-deletable (`IsActive`), admin approval workflow, denormalized `MainImageUrl` |
-| `ProductVariant` | Size/color/SKU combinations | `RowVersion` timestamp for concurrency-safe stock deduction |
-| `ProductImage` | Image galleries | Supports both product-level and variant-specific galleries |
-| `Category` | Product categorization | Hierarchical parent-child relationships |
-| `Cart` / `CartItem` | Shopping cart | Server-side persistent, linked to user |
-| `Order` | Buyer's full transaction | Parent record, total payment, coupon/loyalty references |
-| `SubOrder` | Per-seller fulfillment | Unique constraint `(OrderId, SellerId)`, independent status tracking |
-| `OrderItem` | Purchased variant line | Locks `PriceAtPurchase` for historical accuracy |
-| `Payment` | Stripe transaction record | Links `SessionId`, `TransactionId`, payment status |
-| `Shipping` | Shipment tracking | Carrier, tracking number, `DeliveredAt` timestamp |
-| `SellerCommission` | Platform fee tracking | `RowVersion` prevents double-payout claims |
-| `SellerPayout` | Payout disbursement records | Aggregated from eligible commissions |
-| `Return` | Post-delivery returns/exchanges | 14-day window enforcement, exchange variant tracking |
-| `Review` / `SellerReview` | Ratings & feedback | Purchase verification, transactional rating recalculation |
-| `Coupon` / `UserCouponUsage` | Discount system | Per-user usage tracking, expiry, min order thresholds |
-| `LoyaltyPoint` | Rewards ledger | Earn/spend entries with full audit trail |
-| `Notification` | In-app alerts | Read/unread status, deep-link URLs |
-| `RefreshToken` | Session management | Rotation + reuse detection for stolen token protection |
-| `Address` | Shipping addresses | Default flag, soft-delete, cascade restrict on orders |
-| `SellerBankInfo` | Payout banking details | Linked to seller profile for financial transfers |
-| `SellerDocument` | KYC compliance | Document upload and admin review workflow |
-| `SellerShippingRule` | Delivery pricing | Region-based cost with free-shipping thresholds |
-| `SystemSetting` | Platform configuration | Key-value runtime settings |
-| `Wishlist` | Saved products | User-product favorites |
+| Entity                       | Purpose                         | Key Design Feature                                                                |
+| ---------------------------- | ------------------------------- | --------------------------------------------------------------------------------- |
+| `User`                       | Identity & authentication       | ASP.NET Identity with multi-role support                                          |
+| `SellerProfile`              | Seller storefront data          | Store branding, KYC status, Stripe Connect ID, commission rate                    |
+| `Product`                    | Catalog item                    | Soft-deletable (`IsActive`), admin approval workflow, denormalized `MainImageUrl` |
+| `ProductVariant`             | Size/color/SKU combinations     | `RowVersion` timestamp for concurrency-safe stock deduction                       |
+| `ProductImage`               | Image galleries                 | Supports both product-level and variant-specific galleries                        |
+| `Category`                   | Product categorization          | Hierarchical parent-child relationships                                           |
+| `Cart` / `CartItem`          | Shopping cart                   | Server-side persistent, linked to user                                            |
+| `Order`                      | Buyer's full transaction        | Parent record, total payment, coupon/loyalty references                           |
+| `SubOrder`                   | Per-seller fulfillment          | Unique constraint `(OrderId, SellerId)`, independent status tracking              |
+| `OrderItem`                  | Purchased variant line          | Locks `PriceAtPurchase` for historical accuracy                                   |
+| `Payment`                    | Stripe transaction record       | Links `SessionId`, `TransactionId`, payment status                                |
+| `Shipping`                   | Shipment tracking               | Carrier, tracking number, `DeliveredAt` timestamp                                 |
+| `SellerCommission`           | Platform fee tracking           | `RowVersion` prevents double-payout claims                                        |
+| `SellerPayout`               | Payout disbursement records     | Aggregated from eligible commissions                                              |
+| `Return`                     | Post-delivery returns/exchanges | 14-day window enforcement, exchange variant tracking                              |
+| `Review` / `SellerReview`    | Ratings & feedback              | Purchase verification, transactional rating recalculation                         |
+| `Coupon` / `UserCouponUsage` | Discount system                 | Per-user usage tracking, expiry, min order thresholds                             |
+| `LoyaltyPoint`               | Rewards ledger                  | Earn/spend entries with full audit trail                                          |
+| `Notification`               | In-app alerts                   | Read/unread status, deep-link URLs                                                |
+| `RefreshToken`               | Session management              | Rotation + reuse detection for stolen token protection                            |
+| `Address`                    | Shipping addresses              | Default flag, soft-delete, cascade restrict on orders                             |
+| `SellerBankInfo`             | Payout banking details          | Linked to seller profile for financial transfers                                  |
+| `SellerDocument`             | KYC compliance                  | Document upload and admin review workflow                                         |
+| `SellerShippingRule`         | Delivery pricing                | Region-based cost with free-shipping thresholds                                   |
+| `SystemSetting`              | Platform configuration          | Key-value runtime settings                                                        |
+| `Wishlist`                   | Saved products                  | User-product favorites                                                            |
 
 ### Schema Design Principles
 
@@ -613,24 +612,24 @@ SYSTEM SETTINGS:
 
 The API follows RESTful conventions. Full interactive documentation available via **Swagger UI** at `/swagger` in development mode.
 
-| Controller | Key Endpoints | Auth |
-|-----------|---------------|------|
-| **Auth** | `POST /login`, `POST /register`, `POST /verify-otp`, `POST /refresh`, `POST /google`, `POST /forgot-password`, `POST /reset-password` | Public / Auth |
-| **Products** | `GET /products`, `GET /products/{id}`, `POST /products`, `PUT /products/{id}`, `DELETE /products/{id}` | Public / Seller |
-| **Cart** | `GET /cart`, `POST /cart/items`, `PUT /cart/items/{id}`, `DELETE /cart/items/{id}` | Customer |
-| **Orders** | `POST /orders`, `GET /orders`, `GET /orders/{id}`, `POST /orders/verify-payment` | Customer |
-| **Seller Orders** | `GET /seller/suborders`, `PATCH /seller/suborders/{id}/status` | Seller |
-| **Returns** | `POST /returns`, `GET /returns`, `PATCH /returns/{id}/status` | Customer / Seller |
-| **Payouts** | `POST /payouts/request`, `GET /payouts`, `PATCH /payouts/{id}/process` | Seller / Admin |
-| **Admin** | `GET /admin/sellers`, `PATCH /admin/sellers/{id}`, `GET /admin/orders`, `GET /admin/dashboard` | Admin |
-| **Addresses** | `GET /addresses`, `POST /addresses`, `PUT /addresses/{id}`, `PATCH /addresses/{id}/default`, `DELETE /addresses/{id}` | Auth |
-| **Categories** | `GET /categories`, `POST /categories`, `PUT /categories/{id}`, `DELETE /categories/{id}` | Public / Admin |
-| **Coupons** | `GET /coupons`, `POST /coupons`, `PUT /coupons/{id}`, `DELETE /coupons/{id}`, `GET /coupons/code/{code}` | Admin |
-| **Reviews** | `POST /reviews/product`, `POST /reviews/seller`, `GET /reviews/product/{id}`, `GET /reviews/seller/{id}` | Customer |
-| **Wishlist** | `GET /wishlists`, `POST /wishlists`, `DELETE /wishlists/{id}` | Customer |
-| **Notifications** | `GET /notifications`, `PATCH /notifications/{id}/read`, `PATCH /notifications/read-all` | Auth |
-| **Webhook** | `POST /webhook/stripe` | Stripe Signature |
-| **+ 6 more** | Loyalty, Shipping Rules, Seller Onboarding, Seller Documents, Seller Dashboard, User Profile | Various |
+| Controller        | Key Endpoints                                                                                                                         | Auth              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| **Auth**          | `POST /login`, `POST /register`, `POST /verify-otp`, `POST /refresh`, `POST /google`, `POST /forgot-password`, `POST /reset-password` | Public / Auth     |
+| **Products**      | `GET /products`, `GET /products/{id}`, `POST /products`, `PUT /products/{id}`, `DELETE /products/{id}`                                | Public / Seller   |
+| **Cart**          | `GET /cart`, `POST /cart/items`, `PUT /cart/items/{id}`, `DELETE /cart/items/{id}`                                                    | Customer          |
+| **Orders**        | `POST /orders`, `GET /orders`, `GET /orders/{id}`, `POST /orders/verify-payment`                                                      | Customer          |
+| **Seller Orders** | `GET /seller/suborders`, `PATCH /seller/suborders/{id}/status`                                                                        | Seller            |
+| **Returns**       | `POST /returns`, `GET /returns`, `PATCH /returns/{id}/status`                                                                         | Customer / Seller |
+| **Payouts**       | `POST /payouts/request`, `GET /payouts`, `PATCH /payouts/{id}/process`                                                                | Seller / Admin    |
+| **Admin**         | `GET /admin/sellers`, `PATCH /admin/sellers/{id}`, `GET /admin/orders`, `GET /admin/dashboard`                                        | Admin             |
+| **Addresses**     | `GET /addresses`, `POST /addresses`, `PUT /addresses/{id}`, `PATCH /addresses/{id}/default`, `DELETE /addresses/{id}`                 | Auth              |
+| **Categories**    | `GET /categories`, `POST /categories`, `PUT /categories/{id}`, `DELETE /categories/{id}`                                              | Public / Admin    |
+| **Coupons**       | `GET /coupons`, `POST /coupons`, `PUT /coupons/{id}`, `DELETE /coupons/{id}`, `GET /coupons/code/{code}`                              | Admin             |
+| **Reviews**       | `POST /reviews/product`, `POST /reviews/seller`, `GET /reviews/product/{id}`, `GET /reviews/seller/{id}`                              | Customer          |
+| **Wishlist**      | `GET /wishlists`, `POST /wishlists`, `DELETE /wishlists/{id}`                                                                         | Customer          |
+| **Notifications** | `GET /notifications`, `PATCH /notifications/{id}/read`, `PATCH /notifications/read-all`                                               | Auth              |
+| **Webhook**       | `POST /webhook/stripe`                                                                                                                | Stripe Signature  |
+| **+ 6 more**      | Loyalty, Shipping Rules, Seller Onboarding, Seller Documents, Seller Dashboard, User Profile                                          | Various           |
 
 ---
 
@@ -695,6 +694,7 @@ npm run dev
 ```
 
 The frontend starts at `http://localhost:3000` with API proxying configured via Vite:
+
 - `/api/*` → `https://localhost:7210`
 - `/uploads/*` → `https://localhost:7210`
 
@@ -708,10 +708,10 @@ sqlcmd -S "(localdb)\MSSQLLocalDB" -d MenaCart -i seed_test_data.sql
 
 ### Default Admin Credentials
 
-| Field | Value |
-|-------|-------|
-| Email | `admin@system.com` |
-| Password | `Admin@123` |
+| Field    | Value              |
+| -------- | ------------------ |
+| Email    | `admin@system.com` |
+| Password | `Admin@123`        |
 
 ---
 
