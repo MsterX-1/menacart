@@ -60,16 +60,24 @@ export const ProductListPage: React.FC = () => {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       setSearchParams((prev) => {
+        const currentSearch = prev.get('search') || '';
+        const trimmedInput = searchInput.trim();
+        
+        // Only update URL and reset page if the search query ACTUALLY changed
+        if (currentSearch === trimmedInput) {
+          return prev;
+        }
+
         const params = new URLSearchParams(prev);
-        if (searchInput.trim()) {
-          params.set('search', searchInput.trim());
+        if (trimmedInput) {
+          params.set('search', trimmedInput);
         } else {
           params.delete('search');
         }
         params.set('page', '1');
         return params;
-      }, { replace: true }); // Replace state to keep back history clean
-    }, 300); // 300ms delay
+      }, { replace: true });
+    }, 300);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchInput, setSearchParams]);

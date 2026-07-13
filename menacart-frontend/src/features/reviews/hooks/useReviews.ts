@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import {
   getProductReviews,
   submitProductReview,
@@ -22,6 +22,7 @@ export const useProductReviews = (productId: number, page = 1, pageSize = 10) =>
     queryKey: reviewKeys.product(productId, page, pageSize),
     queryFn: () => getProductReviews(productId, page, pageSize),
     enabled: !!productId && !isNaN(productId),
+    placeholderData: keepPreviousData,
   });
 };
 
@@ -47,6 +48,7 @@ export const useSellerReviews = (sellerId: number, page = 1, pageSize = 10) => {
     queryKey: reviewKeys.seller(sellerId, page, pageSize),
     queryFn: () => getSellerReviews(sellerId, page, pageSize),
     enabled: !!sellerId && !isNaN(sellerId),
+    placeholderData: keepPreviousData,
   });
 };
 
