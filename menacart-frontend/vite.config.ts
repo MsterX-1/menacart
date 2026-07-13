@@ -8,12 +8,12 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:5082',
+        target: 'https://localhost:7210',
         changeOrigin: true,
         secure: false, // Dev SSL certificates
       },
       '/uploads': {
-        target: 'http://localhost:5082',
+        target: 'https://localhost:7210',
         changeOrigin: true,
         secure: false, // Dev SSL certificates
       }
