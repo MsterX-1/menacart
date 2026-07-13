@@ -127,6 +127,7 @@ namespace Infrastructure.Repository
 
             // Seller Revenues
             var sellerRevenues = await _context.SellerProfiles
+                .Where(sp => sp.Status == SellerStatus.Active)
                 .Select(sp => new SellerRevenueDto
                 {
                     SellerId = sp.SellerId,

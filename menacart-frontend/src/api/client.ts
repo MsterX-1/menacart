@@ -1,9 +1,8 @@
 import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type { AuthResponse } from '../types/auth';
 
 let accessToken: string | null = null;
-let refreshSubscribers: ((token: string | null) => void)[] = [];
-let isRefreshing = false;
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
@@ -11,13 +10,36 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessToken;
 
-const subscribeTokenRefresh = (cb: (token: string | null) => void) => {
-  refreshSubscribers.push(cb);
-};
+let refreshTokenRequest: Promise<AuthResponse> | null = null;
 
-const onRefreshed = (token: string | null) => {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
+export const performTokenRefresh = async (): Promise<AuthResponse> => {
+  if (refreshTokenRequest) {
+    return refreshTokenRequest;
+  }
+  
+  refreshTokenRequest = (async () => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
+      const response = await axios.post<AuthResponse>(
+        `${apiBaseUrl}/Auth/RefreshToken`,
+        {},
+        { withCredentials: true }
+      );
+      const newToken = response.data.token;
+      setAccessToken(newToken);
+      return response.data;
+    } catch (error) {
+      setAccessToken(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-logout'));
+      }
+      throw error;
+    } finally {
+      refreshTokenRequest = null;
+    }
+  })();
+  
+  return refreshTokenRequest;
 };
 
 export const apiClient = axios.create({
@@ -48,55 +70,17 @@ apiClient.interceptors.response.use(
 
     // If 401 response and request hasn't been retried yet
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      if (isRefreshing) {
-        // Queue the request until refresh finishes
-        return new Promise((resolve, reject) => {
-          subscribeTokenRefresh((token: string | null) => {
-            if (token) {
-              if (originalRequest.headers) {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-              }
-              resolve(apiClient(originalRequest));
-            } else {
-              reject(error);
-            }
-          });
-        });
-      }
-
       originalRequest._retry = true;
-      isRefreshing = true;
 
       try {
-        // Attempt token rotation. The backend reads HTTP-only cookies and sets new ones.
-        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api';
-        const response = await axios.post<{ token: string; tokenExpiresOn: string; roles: string[] }>(
-          `${apiBaseUrl}/Auth/RefreshToken`,
-          {},
-          { withCredentials: true }
-        );
-
-        const newToken = response.data.token;
-        setAccessToken(newToken);
+        const data = await performTokenRefresh();
         
-        // Notify the subscriber queue
-        onRefreshed(newToken);
-        isRefreshing = false;
-
         // Re-run original request with new token
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          originalRequest.headers.Authorization = `Bearer ${data.token}`;
         }
         return apiClient(originalRequest);
       } catch (refreshError) {
-        isRefreshing = false;
-        onRefreshed(null); // Notify queued promises that refresh failed
-        setAccessToken(null);
-        
-        // Redirect to login only in browser environments
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('auth-logout'));
-        }
         return Promise.reject(refreshError);
       }
     }

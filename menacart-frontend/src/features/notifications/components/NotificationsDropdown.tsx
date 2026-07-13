@@ -58,7 +58,9 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ on
   };
 
   const formatTime = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Ensure the date string is parsed as UTC by appending 'Z' if it's missing timezone info
+    const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`;
+    const date = new Date(utcDateStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);

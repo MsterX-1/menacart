@@ -49,6 +49,6 @@ export const getCurrentUser = async (): Promise<User> => {
 };
 
 export const refreshToken = async (): Promise<AuthResponse> => {
-  const response = await apiClient.post<AuthResponse>('/auth/RefreshToken');
-  return response.data;
+  const { performTokenRefresh } = await import('../../../api/client');
+  return await performTokenRefresh();
 };

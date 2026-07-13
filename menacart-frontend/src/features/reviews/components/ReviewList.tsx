@@ -17,9 +17,9 @@ export const ReviewList: React.FC<ReviewListProps> = ({
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
-  const { data: reviewsData, isLoading, error } = useProductReviews(productId, page, pageSize);
+  const { data: reviewsData, isLoading, isFetching, error } = useProductReviews(productId, page, pageSize);
 
-  if (isLoading) {
+  if (isLoading && !reviewsData) {
     return (
       <div className="reviews-list-loading">
         <LoadingSkeleton variant="text" width="150px" height={24} />
@@ -82,7 +82,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({
               <p>No reviews yet for this product. Be the first to share your experience!</p>
             </div>
           ) : (
-            <div className="reviews-feed">
+            <div className={`reviews-feed ${isFetching ? 'is-fetching' : ''}`} style={isFetching ? { opacity: 0.6, pointerEvents: 'none' } : {}}>
               {reviews.map((review) => {
                 const formattedDate = new Date(review.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -117,8 +117,9 @@ export const ReviewList: React.FC<ReviewListProps> = ({
               {totalPages > 1 && (
                 <div className="reviews-pagination">
                   <button
+                    type="button"
                     className="pagination-btn"
-                    disabled={page === 1}
+                    disabled={page === 1 || isFetching}
                     onClick={() => setPage((prev) => prev - 1)}
                   >
                     &larr; Previous
@@ -127,8 +128,9 @@ export const ReviewList: React.FC<ReviewListProps> = ({
                     Page {page} of {totalPages}
                   </span>
                   <button
+                    type="button"
                     className="pagination-btn"
-                    disabled={page === totalPages}
+                    disabled={page === totalPages || isFetching}
                     onClick={() => setPage((prev) => prev + 1)}
                   >
                     Next &rarr;

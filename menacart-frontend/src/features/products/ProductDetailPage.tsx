@@ -23,7 +23,7 @@ export const ProductDetailPage: React.FC = () => {
   const { data: wishlist } = useWishlist(isCustomer);
   const addToWishlistMutation = useAddToWishlist();
   const removeFromWishlistMutation = useRemoveFromWishlist();
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(product?.variants[0]?.variantId || null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   if (isLoading) {
@@ -54,7 +54,9 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const activeVariant = selectedVariant || (product.variants.length > 0 ? product.variants[0] : null);
+  let activeVariant = product.variants.find(v => v.variantId === selectedVariantId) 
+                   || (product.variants.length > 0 ? product.variants[0] : null);
+
   const displayPrice = activeVariant ? activeVariant.price : product.basePrice;
 
   const allImages: string[] = [];
@@ -66,6 +68,12 @@ export const ProductDetailPage: React.FC = () => {
 
   const uniqueSizes = [...new Set(product.variants.map(v => v.size).filter(Boolean))] as string[];
   const uniqueColors = [...new Set(product.variants.map(v => v.color).filter(Boolean))] as string[];
+
+  // Determine if there are variants with the exact same color AND size. 
+  // If so, Color/Size buttons are insufficient to distinguish them.
+  const isAmbiguous = product.variants.length > 1 && product.variants.some((v, i, arr) => 
+    arr.findIndex(x => (x.color || '') === (v.color || '') && (x.size || '') === (v.size || '')) !== i
+  );
 
   const isInWishlist = activeVariant
     ? wishlist?.some((item) => item.variantId === activeVariant.variantId) ?? false
@@ -108,11 +116,39 @@ export const ProductDetailPage: React.FC = () => {
     }
   };
 
-  const handleVariantSelect = (variant: ProductVariant) => {
-    setSelectedVariant(variant);
+  const updateImageForVariant = (variant: ProductVariant) => {
     if (variant.mainImageUrl) {
       const idx = allImages.indexOf(variant.mainImageUrl);
       if (idx >= 0) setActiveImageIndex(idx);
+    }
+  };
+
+  const handleDirectVariantSelect = (variant: ProductVariant) => {
+    setSelectedVariantId(variant.variantId);
+    updateImageForVariant(variant);
+  };
+
+  const handleColorSelect = (color: string) => {
+    const currentSize = activeVariant?.size;
+    let variant = product.variants.find(v => v.color === color && v.size === currentSize);
+    if (!variant) {
+      variant = product.variants.find(v => v.color === color);
+    }
+    if (variant) {
+      setSelectedVariantId(variant.variantId);
+      updateImageForVariant(variant);
+    }
+  };
+
+  const handleSizeSelect = (size: string) => {
+    const currentColor = activeVariant?.color;
+    let variant = product.variants.find(v => v.color === currentColor && v.size === size);
+    if (!variant) {
+      variant = product.variants.find(v => v.size === size);
+    }
+    if (variant) {
+      setSelectedVariantId(variant.variantId);
+      updateImageForVariant(variant);
     }
   };
 
@@ -179,44 +215,73 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </div>
 
-          {uniqueColors.length > 0 && (
+          {isAmbiguous ? (
             <div className="variant-selector">
-              <span className="variant-label">Color</span>
-              <div className="variant-options">
-                {product.variants
-                  .filter((v, i, arr) => v.color && arr.findIndex(x => x.color === v.color) === i)
-                  .map((v) => (
+              <span className="variant-label">Option</span>
+              <div className="variant-options" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                {product.variants.map((v) => {
+                  const labelParts = [];
+                  if (v.color) labelParts.push(v.color);
+                  if (v.size) labelParts.push(v.size);
+                  const label = labelParts.length > 0 ? `${labelParts.join(' ')} - SKU: ${v.sku}` : `SKU: ${v.sku}`;
+                  return (
                     <button
                       key={v.variantId}
                       className={`variant-option ${activeVariant?.variantId === v.variantId ? 'active' : ''} ${v.stockQuantity === 0 ? 'disabled' : ''}`}
-                      onClick={() => handleVariantSelect(v)}
+                      onClick={() => handleDirectVariantSelect(v)}
                       disabled={v.stockQuantity === 0}
+                      style={{ width: '100%', textAlign: 'left', justifyContent: 'flex-start' }}
                     >
-                      {v.color}
+                      {label}
                     </button>
-                  ))}
+                  );
+                })}
               </div>
             </div>
-          )}
+          ) : (
+            <>
+              {uniqueColors.length > 0 && (
+                <div className="variant-selector">
+                  <span className="variant-label">Color</span>
+                  <div className="variant-options">
+                    {uniqueColors.map((color) => {
+                      const isAvailable = product.variants.some(v => v.color === color && v.stockQuantity > 0);
+                      return (
+                        <button
+                          key={color}
+                          className={`variant-option ${activeVariant?.color === color ? 'active' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                          onClick={() => handleColorSelect(color)}
+                          disabled={!isAvailable}
+                        >
+                          {color}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-          {uniqueSizes.length > 0 && (
-            <div className="variant-selector">
-              <span className="variant-label">Size</span>
-              <div className="variant-options">
-                {product.variants
-                  .filter((v, i, arr) => v.size && arr.findIndex(x => x.size === v.size) === i)
-                  .map((v) => (
-                    <button
-                      key={v.variantId}
-                      className={`variant-option ${activeVariant?.variantId === v.variantId ? 'active' : ''} ${v.stockQuantity === 0 ? 'disabled' : ''}`}
-                      onClick={() => handleVariantSelect(v)}
-                      disabled={v.stockQuantity === 0}
-                    >
-                      {v.size}
-                    </button>
-                  ))}
-              </div>
-            </div>
+              {uniqueSizes.length > 0 && (
+                <div className="variant-selector">
+                  <span className="variant-label">Size</span>
+                  <div className="variant-options">
+                    {uniqueSizes.map((size) => {
+                      const isAvailable = product.variants.some(v => v.size === size && v.stockQuantity > 0);
+                      return (
+                        <button
+                          key={size}
+                          className={`variant-option ${activeVariant?.size === size ? 'active' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                          onClick={() => handleSizeSelect(size)}
+                          disabled={!isAvailable}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           <div className="detail-actions">
