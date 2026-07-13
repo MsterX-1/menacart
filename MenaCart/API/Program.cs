@@ -34,12 +34,12 @@ namespace API
             // SEED DATABASE (ROLES + ADMIN)
             await app.UseIdentitySeeder();
 
-            // Enable Swagger only in development
-            if (app.Environment.IsDevelopment())
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                options.RoutePrefix = string.Empty; // Serves Swagger directly at https://menacart.runasp.net/
+            });
 
             // Middleware
             app.UseHttpsRedirection();
