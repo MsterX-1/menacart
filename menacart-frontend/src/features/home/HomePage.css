@@ -226,73 +226,122 @@
   animation-delay: -5s;
 }
 
-/* Editorial Categories with 3D Tilt */
-.editorial-categories-grid {
+/* Editorial Bento Categories - Horizontal Scroll Grid */
+.editorial-bento-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: var(--space-6);
+  padding-top: var(--space-2);
+  /* Custom modern scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) var(--color-bg-panel);
+  /* Ensure padding is considered in scrolling bounds */
+  scroll-padding: 0 var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+.editorial-bento-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.editorial-bento-scroll-wrapper::-webkit-scrollbar-track {
+  background: var(--color-bg-panel);
+  border-radius: var(--radius-round);
+}
+.editorial-bento-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--color-primary);
+  border-radius: var(--radius-round);
+}
+
+.editorial-bento-categories {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--space-6);
+  grid-template-rows: repeat(2, 160px);
+  grid-auto-columns: 160px;
+  grid-auto-flow: column dense;
+  gap: var(--space-4);
+  /* Allow grid to stretch horizontally based on content */
+  width: max-content;
   perspective: 1000px;
 }
 
-.editorial-category-card {
+.bento-cat-card {
   position: relative;
   display: block;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  height: 320px;
   transform-style: preserve-3d;
   transition: transform var(--transition-spring), box-shadow var(--transition-spring);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
+  background: var(--color-bg-panel);
 }
 
-.editorial-category-card:hover {
-  transform: translateY(-10px) rotateX(5deg) rotateY(-5deg);
-  box-shadow: var(--shadow-lg), 20px 20px 40px oklch(from var(--color-primary) l c h / 0.15);
+.bento-parent {
+  grid-row: span 2;
+  grid-column: span 2;
+}
+
+.bento-child {
+  grid-row: span 1;
+  grid-column: span 1;
+}
+
+.bento-cat-card:hover {
+  transform: translateY(-8px) rotateX(2deg) rotateY(-2deg);
+  box-shadow: var(--shadow-lg), 10px 10px 30px oklch(from var(--color-primary) l c h / 0.15);
   z-index: 10;
 }
 
-.editorial-cat-bg {
+.bento-cat-bg {
   position: absolute;
   inset: 0;
   background-color: var(--color-bg-panel);
 }
 
-.editorial-cat-img {
+.bento-cat-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.editorial-category-card:hover .editorial-cat-img {
+.bento-cat-card:hover .bento-cat-img {
   transform: scale(1.1);
 }
 
-.editorial-cat-overlay {
+.bento-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, oklch(0 0 0 / 0.8) 0%, oklch(0 0 0 / 0.2) 50%, transparent 100%);
   transition: opacity var(--transition-normal);
 }
 
-.editorial-cat-content {
+.bento-cat-content {
   position: absolute;
   inset: 0;
-  padding: var(--space-6);
+  padding: var(--space-4);
   display: flex;
-  align-items: flex-end;
-  transform: translateZ(30px); /* 3D pop effect on text */
+  flex-direction: column;
+  justify-content: flex-end;
+  transform: translateZ(30px);
 }
 
-.editorial-cat-name {
-  font-size: var(--font-size-xl);
+.bento-parent .bento-cat-content {
+  padding: var(--space-6);
+}
+
+.bento-cat-name {
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-bold);
   color: white;
   text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  line-height: 1.2;
   position: relative;
 }
 
-.editorial-cat-name::after {
+.bento-parent .bento-cat-name {
+  font-size: var(--font-size-xl);
+}
+
+.bento-cat-name::after {
   content: '→';
   position: absolute;
   right: -25px;
@@ -301,9 +350,25 @@
   transition: all var(--transition-spring);
 }
 
-.editorial-category-card:hover .editorial-cat-name::after {
+.bento-cat-card:hover .bento-cat-name::after {
   opacity: 1;
   transform: translateX(0);
+}
+
+.bento-cat-count {
+  font-size: 11px;
+  color: oklch(from var(--color-primary-light) l c h / 0.9);
+  margin-top: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: var(--font-weight-bold);
+}
+
+.bento-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--color-bg-base), var(--color-bg-panel));
+  opacity: 0.5;
 }
 
 /* Premium Product Cards */

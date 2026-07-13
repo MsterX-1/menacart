@@ -14,6 +14,10 @@ while buyers enjoy a unified shopping experience across multiple storefronts.
 [![Stripe](https://img.shields.io/badge/Stripe-Payments-635BFF?logo=stripe&logoColor=white)](https://stripe.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+### 🚀 Live Demo
+- **Frontend App**: [https://menacart-ten.vercel.app/](https://menacart-ten.vercel.app/)
+- **Backend API (Swagger)**: [https://menacart.runasp.net/index.html](https://menacart.runasp.net/index.html)
+
 </div>
 
 ---

@@ -75,38 +75,66 @@ export const HomePage: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* Categories Grid */}
+      {/* Categories Grid (Bento Style) */}
       <motion.section variants={itemVariants} className="home-section">
         <div className="section-header">
           <h2>Shop by Category</h2>
         </div>
-        <div className="editorial-categories-grid">
-          {isCategoriesLoading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <LoadingSkeleton key={i} variant="rect" height={320} />
-            ))
-          ) : (
-            categories?.slice(0, 6).map((cat) => (
-              <Link to={`/products?categoryId=${cat.categoryId}`} key={cat.categoryId} className="editorial-category-card">
-                <div className="editorial-cat-bg">
-                  {cat.imageUrl ? (
-                    <img 
-                      src={getOptimizedImageUrl(cat.imageUrl)} 
-                      alt={cat.name} 
-                      className="editorial-cat-img" 
-                      loading="lazy" 
-                    />
-                  ) : (
-                    <div className="editorial-cat-placeholder" style={{ width: '100%', height: '100%', background: 'var(--color-bg-panel)' }} />
-                  )}
-                  <div className="editorial-cat-overlay" />
-                </div>
-                <div className="editorial-cat-content">
-                  <span className="editorial-cat-name">{cat.name}</span>
-                </div>
-              </Link>
-            ))
-          )}
+        
+        <div className="editorial-bento-scroll-wrapper">
+          <div className="editorial-bento-categories">
+            {isCategoriesLoading ? (
+              Array.from({ length: 12 }).map((_, i) => (
+                <LoadingSkeleton 
+                  key={i} 
+                  variant="rect" 
+                  style={{ borderRadius: 'var(--radius-xl)' }} 
+                  className={i % 5 === 0 ? 'bento-parent' : 'bento-child'} 
+                />
+              ))
+            ) : (
+              React.useMemo(() => {
+                if (!categories) return [];
+                const flat: typeof categories = [];
+                categories.forEach(parent => {
+                  flat.push(parent);
+                  if (parent.childCategories) {
+                    flat.push(...parent.childCategories);
+                  }
+                });
+                return flat;
+              }, [categories])?.map((cat) => {
+                const isParent = !cat.parentCategoryId;
+                return (
+                  <Link 
+                    to={`/products?categoryId=${cat.categoryId}`} 
+                    key={cat.categoryId} 
+                    className={`bento-cat-card ${isParent ? 'bento-parent' : 'bento-child'}`}
+                  >
+                    <div className="bento-cat-bg">
+                      {cat.imageUrl ? (
+                        <img 
+                          src={getOptimizedImageUrl(cat.imageUrl)} 
+                          alt={cat.name} 
+                          className="bento-cat-img" 
+                          loading="lazy" 
+                        />
+                      ) : (
+                        <div className="bento-placeholder" />
+                      )}
+                      <div className="bento-overlay" />
+                    </div>
+                    <div className="bento-cat-content">
+                      <span className="bento-cat-name">{cat.name}</span>
+                      {isParent && cat.childCategories && cat.childCategories.length > 0 && (
+                        <span className="bento-cat-count">{cat.childCategories.length} Collections</span>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
         </div>
       </motion.section>
 
