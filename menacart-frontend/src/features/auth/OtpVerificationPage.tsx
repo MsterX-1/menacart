@@ -19,6 +19,15 @@ export const OtpVerificationPage: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(30);
+
+  React.useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (cooldown > 0) {
+      timer = setTimeout(() => setCooldown(c => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   // If no email in state, they shouldn't be here
   if (!email) {
