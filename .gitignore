@@ -364,4 +364,4 @@ FodyWeavers.xsd
 
 
 /MenaCart/API/appsettings.json
-menacart-frontend/env
+menacartfrontend/.env
