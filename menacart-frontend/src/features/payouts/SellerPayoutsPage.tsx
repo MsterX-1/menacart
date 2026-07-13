@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LuCreditCard, LuLandmark, LuCoins } from 'react-icons/lu';
 import { useAvailableBalance, useMyPayouts, useRequestPayout } from './hooks/usePayouts';
 import { useMySellerProfile, useUpdateSellerProfile } from '../seller-onboarding/hooks/useSellerOnboarding';
 import { Button } from '../../components/Button';
@@ -127,7 +128,7 @@ export const SellerPayoutsPage: React.FC = () => {
                 className={`method-btn ${paymentMethod === 'Stripe' ? 'active' : ''}`}
                 onClick={() => setPaymentMethod('Stripe')}
               >
-                <span className="method-icon">💳</span>
+                <span className="method-icon"><LuCreditCard size={20} /></span>
                 <span className="method-text">Stripe Connect</span>
               </button>
               <button
@@ -135,7 +136,7 @@ export const SellerPayoutsPage: React.FC = () => {
                 className={`method-btn ${paymentMethod === 'Bank Transfer' ? 'active' : ''}`}
                 onClick={() => setPaymentMethod('Bank Transfer')}
               >
-                <span className="method-icon">🏦</span>
+                <span className="method-icon"><LuLandmark size={20} /></span>
                 <span className="method-text">Bank Transfer</span>
               </button>
             </div>
@@ -217,7 +218,7 @@ export const SellerPayoutsPage: React.FC = () => {
           
           {!payouts || payouts.length === 0 ? (
             <div className="empty-history-state">
-              <span className="empty-icon">🪙</span>
+              <span className="empty-icon"><LuCoins size={40} /></span>
               <p className="empty-text">No payout requests submitted yet.</p>
             </div>
           ) : (

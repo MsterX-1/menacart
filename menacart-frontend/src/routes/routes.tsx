@@ -40,7 +40,6 @@ import { AdminUsersPage } from '../features/admin/AdminUsersPage';
 import { AdminTransactionsPage } from '../features/admin/AdminTransactionsPage';
 import { AdminSettingsPage } from '../features/admin/AdminSettingsPage';
 import {
-  WishlistPlaceholder,
   ForbiddenPage,
   NotFoundPage
 } from '../pages/Placeholders';
@@ -182,16 +181,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: 'wishlist',
-        element: (
-          <ProtectedRoute>
-            <RoleRoute allowedRoles={['Customer', 'Seller']}>
-              <WishlistPlaceholder />
-            </RoleRoute>
-          </ProtectedRoute>
-        ),
-      },
+
       {
         path: 'account',
         element: (

@@ -1,31 +1,31 @@
 .admin-transactions-container {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: var(--space-8) var(--space-4);
+  max-width: var(--max-width-page);
   margin: 0 auto;
 }
 
 .transactions-header {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 }
 
 .transactions-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-main);
+  margin-bottom: var(--space-2);
 }
 
 .transactions-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .transactions-table-wrapper {
-  background: var(--bg-card);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  border: 1px solid var(--border-light);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
 }
 
 .transactions-table {
@@ -35,33 +35,33 @@
 }
 
 .transactions-table th {
-  background: var(--bg-body);
-  padding: 1.25rem 1.5rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  background: var(--color-bg-panel);
+  padding: var(--space-4) var(--space-5);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid var(--border-light);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .transactions-table td {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-light);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border-subtle);
   vertical-align: middle;
 }
 
 .transactions-table tbody tr:hover {
-  background: var(--bg-hover);
+  background: var(--color-bg-base);
 }
 
 .clickable-row {
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .clickable-row:hover {
-  background: var(--bg-hover) !important;
+  background: var(--color-bg-base) !important;
 }
 
 .tx-id {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LuArrowLeftRight } from 'react-icons/lu';
 import { useSellerReturns } from './hooks/useSellerReturns';
 import { SellerReturnReviewModal } from './components/SellerReturnReviewModal';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
@@ -58,7 +59,7 @@ export const SellerReturnListPage: React.FC = () => {
 
       {returns.length === 0 ? (
         <div className="seller-returns-empty">
-          <div className="empty-box-icon">&#10226;</div>
+          <div className="empty-box-icon"><LuArrowLeftRight size={48} /></div>
           <h3>No return requests found</h3>
           <p>When buyers request a return or exchange for your store products, they will show up here.</p>
         </div>

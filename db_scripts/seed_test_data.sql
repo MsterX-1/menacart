@@ -10,21 +10,23 @@ PRINT 'Seeding test data...';
 EXEC sp_MSforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT ALL";
 
 -- 1. Ensure Roles Exist
-DECLARE @AdminRoleId NVARCHAR(450) = 'admin-role-id';
-DECLARE @SellerRoleId NVARCHAR(450) = 'seller-role-id';
-DECLARE @CustomerRoleId NVARCHAR(450) = 'customer-role-id';
+DECLARE @AdminRoleId NVARCHAR(450) = (SELECT Id FROM AspNetRoles WHERE NormalizedName = 'ADMIN');
+IF @AdminRoleId IS NULL BEGIN
+    SET @AdminRoleId = 'admin-role-id';
+    INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES (@AdminRoleId, 'Admin', 'ADMIN', NEWID());
+END
 
-IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE Id = @AdminRoleId)
-    INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) 
-    VALUES (@AdminRoleId, 'Admin', 'ADMIN', NEWID());
+DECLARE @SellerRoleId NVARCHAR(450) = (SELECT Id FROM AspNetRoles WHERE NormalizedName = 'SELLER');
+IF @SellerRoleId IS NULL BEGIN
+    SET @SellerRoleId = 'seller-role-id';
+    INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES (@SellerRoleId, 'Seller', 'SELLER', NEWID());
+END
 
-IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE Id = @SellerRoleId)
-    INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) 
-    VALUES (@SellerRoleId, 'Seller', 'SELLER', NEWID());
-
-IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE Id = @CustomerRoleId)
-    INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) 
-    VALUES (@CustomerRoleId, 'Customer', 'CUSTOMER', NEWID());
+DECLARE @CustomerRoleId NVARCHAR(450) = (SELECT Id FROM AspNetRoles WHERE NormalizedName = 'CUSTOMER');
+IF @CustomerRoleId IS NULL BEGIN
+    SET @CustomerRoleId = 'customer-role-id';
+    INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES (@CustomerRoleId, 'Customer', 'CUSTOMER', NEWID());
+END
 
 -- 2. Retrieve Admin Password Hash to copy for test accounts (Password will match Admin's password, default: Admin@123)
 DECLARE @PasswordHash NVARCHAR(MAX);

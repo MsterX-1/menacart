@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAdminTransactions } from './hooks/useAdminTransactions';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { AdminTransactionDetailModal } from './components/AdminTransactionDetailModal';
@@ -51,7 +52,11 @@ export const AdminTransactionsPage: React.FC = () => {
   }
 
   return (
-    <div className="admin-transactions-container animate-fade-in">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="admin-transactions-container animate-fade-in"
+    >
       <div className="transactions-header">
         <h1 className="transactions-title">Transaction History</h1>
         <p className="transactions-subtitle">Monitor incoming payments and order statuses.</p>
@@ -75,34 +80,40 @@ export const AdminTransactionsPage: React.FC = () => {
                 <td colSpan={6} className="empty-table">No transactions found.</td>
               </tr>
             ) : (
-              data.items.map((tx) => (
-                <tr 
-                  key={tx.orderId} 
-                  onClick={() => setSelectedOrderId(tx.orderId)}
-                  className="clickable-row"
-                >
-                  <td className="tx-id">#{tx.orderId}</td>
-                  <td>
-                    <div className="tx-customer">
-                      <span className="customer-name">{tx.customerName}</span>
-                      <span className="customer-email">{tx.customerEmail}</span>
-                    </div>
-                  </td>
-                  <td className="tx-date">{formatDate(tx.createdAt)}</td>
-                  <td className="tx-method">{tx.paymentMethod}</td>
-                  <td>
-                    <span className={`status-badge status-${tx.paymentStatus.toLowerCase()}`}>
-                      {tx.paymentStatus}
-                    </span>
-                    {tx.orderStatus === 'Cancelled' && (
-                      <span className="status-badge status-cancelled" style={{ marginLeft: '8px' }}>
-                        Cancelled
+              <AnimatePresence>
+                {data.items.map((tx, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    key={tx.orderId} 
+                    onClick={() => setSelectedOrderId(tx.orderId)}
+                    className="clickable-row"
+                  >
+                    <td className="tx-id">#{tx.orderId}</td>
+                    <td>
+                      <div className="tx-customer">
+                        <span className="customer-name">{tx.customerName}</span>
+                        <span className="customer-email">{tx.customerEmail}</span>
+                      </div>
+                    </td>
+                    <td className="tx-date">{formatDate(tx.createdAt)}</td>
+                    <td className="tx-method">{tx.paymentMethod}</td>
+                    <td>
+                      <span className={`status-badge status-${tx.paymentStatus.toLowerCase()}`}>
+                        {tx.paymentStatus}
                       </span>
-                    )}
-                  </td>
-                  <td className="tx-amount">{formatCurrency(tx.totalAmount)}</td>
-                </tr>
-              ))
+                      {tx.orderStatus === 'Cancelled' && (
+                        <span className="status-badge status-cancelled" style={{ marginLeft: '8px' }}>
+                          Cancelled
+                        </span>
+                      )}
+                    </td>
+                    <td className="tx-amount">{formatCurrency(tx.totalAmount)}</td>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
             )}
           </tbody>
         </table>
@@ -136,7 +147,7 @@ export const AdminTransactionsPage: React.FC = () => {
           onClose={() => setSelectedOrderId(null)}
         />
       )}
-    </div>
+    </motion.div>
   );
 };
 

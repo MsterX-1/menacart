@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LuInbox } from 'react-icons/lu';
 import { useSellerSubOrders, useUpdateSubOrderStatus } from './hooks/useSellerOrders';
 import { useMySellerProfile } from '../seller-onboarding/hooks/useSellerOnboarding';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
@@ -102,7 +104,11 @@ export const SellerOrderListPage: React.FC = () => {
   }
 
   return (
-    <div className="seller-orders-page">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="seller-orders-page"
+    >
       <header className="seller-orders-header">
         <div>
           <h1 className="seller-orders-title">Shop Orders</h1>
@@ -130,11 +136,11 @@ export const SellerOrderListPage: React.FC = () => {
       </header>
 
       {subOrders.length === 0 ? (
-        <div className="seller-orders-empty">
-          <div className="empty-box-icon">&#128229;</div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="seller-orders-empty">
+          <div className="empty-box-icon"><LuInbox size={48} color="var(--color-text-disabled)" /></div>
           <h3>No orders matching this status</h3>
           <p>Once clients make orders from your shop, they will show up here.</p>
-        </div>
+        </motion.div>
       ) : (
         <div className="seller-orders-container">
           <div className="sub-orders-table-wrapper shadow-card">
@@ -150,11 +156,18 @@ export const SellerOrderListPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {subOrders.map((subOrder) => {
+              <AnimatePresence>
+                {subOrders.map((subOrder, index) => {
                   const totalValue = subOrder.items.reduce((sum, item) => sum + item.priceAtPurchase * item.quantity, 0);
 
                   return (
-                    <tr key={subOrder.subOrderId}>
+                    <motion.tr 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      key={subOrder.subOrderId}
+                    >
                       <td className="font-highlight">#{subOrder.subOrderId}</td>
                       <td>
                         <div className="items-cell-list">
@@ -186,9 +199,10 @@ export const SellerOrderListPage: React.FC = () => {
                           <span style={{ color: 'var(--color-text-disabled)', paddingLeft: '8px' }}>—</span>
                         )}
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
+              </AnimatePresence>
               </tbody>
             </table>
           </div>
@@ -293,6 +307,6 @@ export const SellerOrderListPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

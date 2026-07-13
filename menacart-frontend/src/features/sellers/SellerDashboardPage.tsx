@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { getSellerDashboardStats } from './api/sellerDashboardApi';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { 
   FiSettings, FiBox, FiTruck, FiClipboard, 
-  FiCornerUpLeft, FiDollarSign, FiTrendingUp 
+  FiCornerUpLeft, FiDollarSign, FiTrendingUp, FiBarChart2 
 } from 'react-icons/fi';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
@@ -17,21 +18,26 @@ const formatCurrency = (val: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EGP' }).format(val);
 
 const QuickLinkCard = ({ to, icon: Icon, title, desc, color }: any) => (
-  <Link to={to} className="quick-link-card">
-    <div className={`quick-link-icon-wrapper ${color}`}>
-      <Icon className="quick-link-icon" />
-    </div>
-    <h3 className="quick-link-title">
-      {title}
-    </h3>
-    <p className="quick-link-desc">
-      {desc}
-    </p>
-  </Link>
+  <motion.div whileHover={{ y: -4, scale: 1.02 }}>
+    <Link to={to} className="quick-link-card">
+      <div className={`quick-link-icon-wrapper ${color}`}>
+        <Icon className="quick-link-icon" />
+      </div>
+      <h3 className="quick-link-title">
+        {title}
+      </h3>
+      <p className="quick-link-desc">
+        {desc}
+      </p>
+    </Link>
+  </motion.div>
 );
 
 const StatCard = ({ title, value, icon: Icon }: { title: string, value: string | number, icon: any }) => (
-  <div className="stat-card">
+  <motion.div 
+    whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }}
+    className="stat-card"
+  >
     <div>
       <p className="stat-title">{title}</p>
       <h4 className="stat-value">{value}</h4>
@@ -39,7 +45,7 @@ const StatCard = ({ title, value, icon: Icon }: { title: string, value: string |
     <div className="stat-icon-wrapper">
       <Icon className="stat-icon" />
     </div>
-  </div>
+  </motion.div>
 );
 
 export const SellerDashboardPage: React.FC = () => {
@@ -72,10 +78,21 @@ export const SellerDashboardPage: React.FC = () => {
     revenue: p.revenue
   }));
 
-  const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316'];
+  const colors = ['#4f46e5', '#7c3aed', '#db2777', '#e11d48', '#ea580c'];
+
+  const summaryChartData = [
+    { name: 'Net Profit', value: stats.netProfit },
+    { name: 'Total Orders', value: stats.totalOrders },
+    { name: 'Available Payout', value: stats.availableBalance },
+    { name: 'Active Products', value: stats.totalProducts },
+  ];
 
   return (
-    <div className="seller-dashboard-container">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="seller-dashboard-container"
+    >
       {/* Header section */}
       <div className="seller-dashboard-header">
         <div>
@@ -93,6 +110,37 @@ export const SellerDashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Summary Graph Section */}
+      <div className="chart-section" style={{ marginBottom: '0.5rem' }}>
+        <h3 className="section-title">Overview Metrics</h3>
+        <div className="chart-card">
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={summaryChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" />
+                <XAxis dataKey="name" axisLine={{ stroke: '#64748b' }} tickLine={{ stroke: '#64748b' }} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} />
+                <YAxis axisLine={{ stroke: '#64748b' }} tickLine={{ stroke: '#64748b' }} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ color: '#0f172a', fontWeight: 600 }}
+                  labelStyle={{ color: '#475569', fontWeight: 500, paddingBottom: '4px' }}
+                  formatter={(value: any, name: any, props: any) => [
+                    props.payload.name.includes('Profit') || props.payload.name.includes('Payout') ? formatCurrency(Number(value)) : value,
+                    props.payload.name
+                  ]}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {summaryChartData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Grid */}
       <div className="stats-grid">
         <StatCard title="Net Profit" value={formatCurrency(stats.netProfit)} icon={FiTrendingUp} />
@@ -104,18 +152,20 @@ export const SellerDashboardPage: React.FC = () => {
       <div className="dashboard-main-grid">
         {/* Charts & Analytics */}
         <div className="chart-section">
+          <h3 className="section-title">Top Performing Products (Revenue)</h3>
           <div className="chart-card">
-            <h3 className="section-title">Top Performing Products (Revenue)</h3>
             {chartData.length > 0 ? (
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `EGP ${val}`} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" />
+                    <XAxis dataKey="name" axisLine={{ stroke: '#64748b' }} tickLine={{ stroke: '#64748b' }} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} />
+                    <YAxis axisLine={{ stroke: '#64748b' }} tickLine={{ stroke: '#64748b' }} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} tickFormatter={(val) => `EGP ${val}`} />
                     <Tooltip 
-                      cursor={{ fill: '#f8fafc' }}
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ color: '#0f172a', fontWeight: 600 }}
+                      labelStyle={{ color: '#475569', fontWeight: 500, paddingBottom: '4px' }}
                       formatter={(value: any) => formatCurrency(Number(value))}
                     />
                     <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
@@ -128,7 +178,8 @@ export const SellerDashboardPage: React.FC = () => {
               </div>
             ) : (
               <div className="no-data-msg">
-                No product data available yet.
+                <FiBarChart2 className="no-data-icon" />
+                <p>No product data available yet.</p>
               </div>
             )}
           </div>
@@ -183,6 +234,6 @@ export const SellerDashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

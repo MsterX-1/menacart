@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
+import { LuUser, LuMapPin, LuTrophy, LuPackage, LuRotateCcw, LuFileText, LuTrendingUp, LuShirt } from 'react-icons/lu';
 import { useAuth } from '../../context/AuthContext';
 import './AccountLayout.css';
 
@@ -29,7 +30,7 @@ export const AccountLayout: React.FC = () => {
               end
               className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
             >
-              <span className="nav-icon">&#128100;</span>
+              <span className="nav-icon"><LuUser size={18} /></span>
               Personal Details
             </NavLink>
             
@@ -39,7 +40,7 @@ export const AccountLayout: React.FC = () => {
                   to="/account/addresses" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128205;</span>
+                  <span className="nav-icon"><LuMapPin size={18} /></span>
                   Address Book
                 </NavLink>
 
@@ -47,7 +48,7 @@ export const AccountLayout: React.FC = () => {
                   to="/account/loyalty" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#127942;</span>
+                  <span className="nav-icon"><LuTrophy size={18} /></span>
                   Loyalty Points
                 </NavLink>
 
@@ -57,7 +58,7 @@ export const AccountLayout: React.FC = () => {
                   to="/orders" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128230;</span>
+                  <span className="nav-icon"><LuPackage size={18} /></span>
                   My Orders
                 </NavLink>
 
@@ -65,7 +66,7 @@ export const AccountLayout: React.FC = () => {
                   to="/returns" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#8635;</span>
+                  <span className="nav-icon"><LuRotateCcw size={18} /></span>
                   My Returns
                 </NavLink>
               </>
@@ -77,7 +78,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/documents" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128196;</span>
+                  <span className="nav-icon"><LuFileText size={18} /></span>
                   KYC Verification
                 </NavLink>
 
@@ -87,7 +88,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/dashboard" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128200;</span>
+                  <span className="nav-icon"><LuTrendingUp size={18} /></span>
                   Seller Dashboard
                 </NavLink>
 
@@ -95,7 +96,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/products" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128085;</span>
+                  <span className="nav-icon"><LuShirt size={18} /></span>
                   My Products
                 </NavLink>
 
@@ -103,7 +104,7 @@ export const AccountLayout: React.FC = () => {
                   to="/seller/orders" 
                   className={({ isActive }) => `account-nav-item ${isActive ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">&#128230;</span>
+                  <span className="nav-icon"><LuPackage size={18} /></span>
                   Fulfill Orders
                 </NavLink>
               </>

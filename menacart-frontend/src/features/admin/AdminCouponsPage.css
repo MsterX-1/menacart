@@ -36,7 +36,7 @@
   text-align: center;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
   max-width: 500px;
   margin: var(--space-10) auto;
@@ -59,8 +59,8 @@
 .coupons-table-wrapper {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   overflow-x: auto;
   padding: var(--space-4);
 }

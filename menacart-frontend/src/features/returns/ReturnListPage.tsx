@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LuArrowLeftRight } from 'react-icons/lu';
 import { useMyReturns } from './hooks/useReturns';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
@@ -46,7 +47,7 @@ export const ReturnListPage: React.FC = () => {
 
       {isEmpty ? (
         <div className="returns-empty-state">
-          <div className="empty-returns-icon">&#10226;</div>
+          <div className="empty-returns-icon"><LuArrowLeftRight size={48} /></div>
           <h2>No return requests yet</h2>
           <p>If you have any eligible items, you can request returns or exchanges directly from your Order Details.</p>
         </div>

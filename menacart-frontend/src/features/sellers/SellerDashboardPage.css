@@ -147,9 +147,17 @@
 .no-data-msg {
   height: 18rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
+  gap: 1rem;
+}
+
+.no-data-icon {
+  width: 3rem;
+  height: 3rem;
+  opacity: 0.5;
 }
 
 .quick-links-grid {
@@ -161,12 +169,6 @@
 @media (min-width: 640px) {
   .quick-links-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .quick-links-grid {
-    grid-template-columns: 1fr;
   }
 }
 
