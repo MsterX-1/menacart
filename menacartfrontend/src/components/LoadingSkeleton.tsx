@@ -6,6 +6,7 @@ interface LoadingSkeletonProps {
   width?: string | number;
   height?: string | number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
@@ -13,10 +14,12 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   width,
   height,
   className = '',
+  style: customStyle,
 }) => {
   const style: React.CSSProperties = {
     width: typeof width === 'number' ? `${width}px` : width,
     height: typeof height === 'number' ? `${height}px` : height,
+    ...customStyle,
   };
 
   return (
