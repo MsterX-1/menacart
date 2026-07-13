@@ -11,8 +11,8 @@ namespace API.Extensions
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy.WithOrigins(
-                            "http://menacart-ten.vercel.app",
-                            "https://menacart-ten.vercel.app"
+                            "http://menacart-ll2s-xi.vercel.app",
+                            "https://menacart-ll2s-xi.vercel.app"
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
