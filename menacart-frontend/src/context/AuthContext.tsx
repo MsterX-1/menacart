@@ -28,9 +28,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Map backend roles correctly to UserRole type
     const mappedRoles = assignedRoles.map(r => {
-      if (r === 'Customer') return 'Customer';
-      if (r === 'Seller') return 'Seller';
-      if (r === 'Admin') return 'Admin';
+      const normalized = r.toLowerCase();
+      if (normalized === 'customer') return 'Customer';
+      if (normalized === 'seller') return 'Seller';
+      if (normalized === 'admin') return 'Admin';
       return null;
     }).filter(Boolean) as UserRole[];
     

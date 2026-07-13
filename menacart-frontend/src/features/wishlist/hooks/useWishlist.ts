@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getWishlist, addToWishlist, removeFromWishlist, checkWishlistStatus } from '../api/wishlistApi';
+import type { WishlistItem } from '../../../types/wishlist';
 
 export const wishlistKeys = {
   all: ['wishlist'] as const,
@@ -18,9 +19,10 @@ export const useAddToWishlist = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: addToWishlist,
-    onSuccess: (_, variantId) => {
-      queryClient.invalidateQueries({ queryKey: wishlistKeys.all });
-      queryClient.invalidateQueries({ queryKey: wishlistKeys.status(variantId) });
+    onSuccess: async (_, variantId) => {
+      // Invalidate and wait for the refetch to complete so the UI gets the new data immediately
+      await queryClient.invalidateQueries({ queryKey: wishlistKeys.all, refetchType: 'all' });
+      await queryClient.invalidateQueries({ queryKey: wishlistKeys.status(variantId), refetchType: 'all' });
     },
   });
 };
@@ -29,9 +31,10 @@ export const useRemoveFromWishlist = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: removeFromWishlist,
-    onSuccess: (_, variantId) => {
-      queryClient.invalidateQueries({ queryKey: wishlistKeys.all });
-      queryClient.invalidateQueries({ queryKey: wishlistKeys.status(variantId) });
+    onSuccess: async (_, variantId) => {
+      // Invalidate and wait for the refetch to complete so the UI gets the new data immediately
+      await queryClient.invalidateQueries({ queryKey: wishlistKeys.all, refetchType: 'all' });
+      await queryClient.invalidateQueries({ queryKey: wishlistKeys.status(variantId), refetchType: 'all' });
     },
   });
 };

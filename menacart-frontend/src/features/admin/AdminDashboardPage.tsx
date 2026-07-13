@@ -1,8 +1,18 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useAdminDashboardStats } from './hooks/useAdminDashboard';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
+import { motion } from 'framer-motion';
+import { 
+  LuUser, 
+  LuPackage, LuStar, LuStarHalf
+} from 'react-icons/lu';
+import { 
+  FiAlertTriangle, FiDollarSign, FiBriefcase 
+} from 'react-icons/fi';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+} from 'recharts';
 import './AdminDashboardPage.css';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -22,14 +32,14 @@ export const AdminDashboardPage: React.FC = () => {
     const floorRating = Math.floor(rating);
     for (let i = 1; i <= 5; i++) {
       if (i <= floorRating) {
-        stars.push(<span key={i} className="star-filled">★</span>);
+        stars.push(<LuStar key={i} className="star-filled" fill="currentColor" size={14} />);
       } else if (i - rating < 1) {
-        stars.push(<span key={i} className="star-half">★</span>);
+        stars.push(<LuStarHalf key={i} className="star-half" fill="currentColor" size={14} />);
       } else {
-        stars.push(<span key={i} className="star-empty">☆</span>);
+        stars.push(<LuStar key={i} className="star-empty" size={14} />);
       }
     }
-    return <div className="stars-wrapper">{stars} <span className="rating-num">({rating.toFixed(1)})</span></div>;
+    return <div className="stars-wrapper" style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>{stars} <span className="rating-num" style={{marginLeft: '4px'}}>({rating.toFixed(1)})</span></div>;
   };
 
   if (isLoading) {
@@ -68,11 +78,24 @@ export const AdminDashboardPage: React.FC = () => {
     );
   }
 
-  // Calculate platform sales or commission volume if we want to display it
   const maxSellerRevenue = Math.max(...stats.sellerRevenues.map(r => r.totalRevenue), 1);
 
+  const colors = ['#4f46e5', '#7c3aed', '#db2777', '#e11d48', '#ea580c'];
+
+  const summaryChartData = [
+    { name: 'Registered Members', value: stats.totalUsers },
+    { name: 'Active Stores', value: stats.totalSellers },
+    { name: 'Total Transactions', value: stats.totalOrders },
+    { name: 'Gross Volume', value: stats.totalRevenue },
+    { name: 'Net Profit', value: stats.platformCommissionProfit },
+  ];
+
   return (
-    <div className="admin-dashboard-container animate-fade-in">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="admin-dashboard-container animate-fade-in"
+    >
       <div className="admin-dashboard-header">
         <div>
           <h1 className="admin-dashboard-title">Platform Insights</h1>
@@ -80,69 +103,102 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
         <div className="admin-quick-actions">
           {stats.pendingSellerApplications > 0 && (
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="dashboard-badge-action-btn badge-warning" 
               onClick={() => navigate('/admin/sellers?status=Pending')}
             >
-              ⚠️ {stats.pendingSellerApplications} Pending Sellers
-            </button>
+              <FiAlertTriangle size={16} /> {stats.pendingSellerApplications} Pending Sellers
+            </motion.button>
           )}
           {stats.pendingPayouts > 0 && (
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="dashboard-badge-action-btn badge-info" 
               onClick={() => navigate('/admin/payouts')}
             >
-              💸 {stats.pendingPayouts} Pending Payouts
-            </button>
+              <FiDollarSign size={16} /> {stats.pendingPayouts} Pending Payouts
+            </motion.button>
           )}
+        </div>
+      </div>
+
+      {/* Summary Graph Section */}
+      <div className="chart-section" style={{ marginBottom: '2rem' }}>
+        <div className="chart-card" style={{ backgroundColor: 'var(--color-surface)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid var(--color-border)', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+          <div className="chart-container" style={{ height: '18rem', width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={summaryChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94a3b8" />
+                <XAxis dataKey="name" axisLine={{ stroke: '#64748b' }} tickLine={{ stroke: '#64748b' }} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} />
+                <YAxis axisLine={{ stroke: '#64748b' }} tickLine={{ stroke: '#64748b' }} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ color: '#0f172a', fontWeight: 600 }}
+                  labelStyle={{ color: '#475569', fontWeight: 500, paddingBottom: '4px' }}
+                  formatter={(value: any, name: any, props: any) => [
+                    props.payload.name.includes('Profit') || props.payload.name.includes('Volume') ? formatCurrency(Number(value)) : value,
+                    props.payload.name
+                  ]}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {summaryChartData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
       {/* Core Metrics Grid */}
       <div className="stats-grid">
-        <div className="metric-card ">
-          <div className="metric-icon-wrapper user-icon">👤</div>
+        <motion.div whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }} className="metric-card ">
+          <div className="metric-icon-wrapper user-icon"><LuUser size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Registered Members</span>
             <strong className="metric-value">{stats.totalUsers}</strong>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="metric-card ">
-          <div className="metric-icon-wrapper merchant-icon">🏪</div>
+        <motion.div whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }} className="metric-card ">
+          <div className="metric-icon-wrapper merchant-icon"><FiBriefcase size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Active Stores</span>
             <strong className="metric-value">{stats.totalSellers}</strong>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="metric-card ">
-          <div className="metric-icon-wrapper order-icon">📦</div>
+        <motion.div whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }} className="metric-card ">
+          <div className="metric-icon-wrapper order-icon"><LuPackage size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Total Transactions</span>
             <strong className="metric-value">{stats.totalOrders}</strong>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="metric-card highlighted">
-          <div className="metric-icon-wrapper revenue-icon">💰</div>
+        <motion.div whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }} className="metric-card highlighted">
+          <div className="metric-icon-wrapper revenue-icon"><FiDollarSign size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Gross Platform Volume</span>
             <strong className="metric-value">{formatCurrency(stats.totalRevenue)}</strong>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="metric-card success">
-          <div className="metric-icon-wrapper profit-icon">💵</div>
+        <motion.div whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }} className="metric-card success">
+          <div className="metric-icon-wrapper profit-icon"><FiDollarSign size={24} /></div>
           <div className="metric-details">
             <span className="metric-label">Net Platform Profit</span>
             <strong className="metric-value">{formatCurrency(stats.platformCommissionProfit)}</strong>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <div className="dashboard-sections-grid">
-        {/* Top Sellers / Merchant Performance Chart (Custom CSS bars) */}
         <div className="dashboard-section-card ">
           <h3 className="section-card-title">Merchant Volume Breakdown</h3>
           <p className="section-card-subtitle">Highest grossing seller stores based on completed transactions.</p>
@@ -160,10 +216,12 @@ export const AdminDashboardPage: React.FC = () => {
                       <span className="chart-item-val">{formatCurrency(seller.totalRevenue)}</span>
                     </div>
                     <div className="chart-item-track">
-                      <div 
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.max(percentage, 5)}%` }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
                         className="chart-item-bar" 
-                        style={{ width: `${Math.max(percentage, 5)}%` }}
-                      ></div>
+                      ></motion.div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px' }}>
                       {seller.pendingRevenue > 0 && (
@@ -184,7 +242,6 @@ export const AdminDashboardPage: React.FC = () => {
           )}
         </div>
 
-        {/* Top Selling Products */}
         <div className="dashboard-section-card ">
           <h3 className="section-card-title">Best Sellers & Rated Products</h3>
           <p className="section-card-subtitle">Top products ranked by sales volume and review averages.</p>
@@ -194,7 +251,7 @@ export const AdminDashboardPage: React.FC = () => {
           ) : (
             <div className="top-products-list">
               {stats.topProducts.map((prod) => (
-                <div key={prod.productId} className="product-ranking-item">
+                <motion.div whileHover={{ scale: 1.01 }} key={prod.productId} className="product-ranking-item">
                   <div className="product-rank-details">
                     <span className="rank-prod-name">{prod.name}</span>
                     <div className="rank-prod-ratings">
@@ -211,13 +268,13 @@ export const AdminDashboardPage: React.FC = () => {
                       <strong className="rank-metric-val">{formatCurrency(prod.revenue)}</strong>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

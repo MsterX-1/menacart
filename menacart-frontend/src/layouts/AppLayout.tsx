@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LuMoon, LuSun, LuHeart, LuShoppingCart, LuBell, LuChevronDown } from 'react-icons/lu';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Logo } from '../components/Logo';
@@ -47,6 +49,13 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="app-layout">
+      {/* Animated Background Shapes */}
+      <div className="app-bg-shapes">
+        <div className="app-shape app-shape-1" />
+        <div className="app-shape app-shape-2" />
+        <div className="app-shape app-shape-3" />
+      </div>
+
       <header className="app-header">
         <div className="header-container">
           <Link to="/" aria-label="Go to home">
@@ -103,10 +112,7 @@ export const AppLayout: React.FC = () => {
                 )}
                 {isSeller && (
                   <>
-                    <Link to="/seller/settings" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Store Settings</Link>
-                    <Link to="/seller/products" className="nav-link" onClick={() => setMobileMenuOpen(false)}>My Products</Link>
-                    <Link to="/seller/shipping-rules" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Shipping Rules</Link>
-                    <Link to="/seller/orders" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Fulfill Orders</Link>
+                    <Link to="/seller/documents" className="nav-link" onClick={() => setMobileMenuOpen(false)}>KYC Documents</Link>
                   </>
                 )}
                 {isAdmin && (
@@ -130,7 +136,7 @@ export const AppLayout: React.FC = () => {
               title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             >
               <span className="bell-icon" aria-hidden="true">
-                {theme === 'light' ? '🌙' : '☀️'}
+                {theme === 'light' ? <LuMoon size={20} /> : <LuSun size={20} />}
               </span>
             </button>
 
@@ -138,13 +144,13 @@ export const AppLayout: React.FC = () => {
             {isAuthenticated && isCustomer && (
               <div className="customer-header-shortcuts">
                 <Link to="/wishlist" className="header-icon-shortcut" title="Wishlist" aria-label="Wishlist">
-                  <span className="shortcut-icon" aria-hidden="true">🖤</span>
+                  <span className="shortcut-icon" aria-hidden="true"><LuHeart size={20} /></span>
                   {wishlistCount > 0 && (
                     <span className="shortcut-badge-count">{wishlistCount}</span>
                   )}
                 </Link>
                 <Link to="/cart" className="header-icon-shortcut" title="Shopping Cart" aria-label="Shopping Cart">
-                  <span className="shortcut-icon" aria-hidden="true">🛒</span>
+                  <span className="shortcut-icon" aria-hidden="true"><LuShoppingCart size={20} /></span>
                   {cartCount > 0 && (
                     <span className="shortcut-badge-count">{cartCount}</span>
                   )}
@@ -159,7 +165,7 @@ export const AppLayout: React.FC = () => {
                   onClick={() => setShowNotifications(!showNotifications)}
                   aria-label="Toggle notifications menu"
                 >
-                  <span className="bell-icon">🔔</span>
+                  <span className="bell-icon"><LuBell size={20} /></span>
                   {unreadCount > 0 && (
                     <span className="bell-badge-count">{unreadCount}</span>
                   )}
@@ -180,7 +186,7 @@ export const AppLayout: React.FC = () => {
                     {user.firstName[0]?.toUpperCase()}{user.lastName[0]?.toUpperCase()}
                   </div>
                   <span className="user-firstname-text">{user.firstName}</span>
-                  <span className="dropdown-caret" aria-hidden="true">▼</span>
+                  <span className="dropdown-caret" aria-hidden="true"><LuChevronDown size={14} /></span>
                 </button>
                 
                 <div className="profile-dropdown-menu">
@@ -206,12 +212,6 @@ export const AppLayout: React.FC = () => {
                   {isSeller && (
                     <>
                       <Link to="/seller/dashboard" className="dropdown-link-item">Seller Dashboard</Link>
-                      <Link to="/seller/settings" className="dropdown-link-item">Store Settings</Link>
-                      <Link to="/seller/products" className="dropdown-link-item">My Products</Link>
-                      <Link to="/seller/shipping-rules" className="dropdown-link-item">Shipping Rules</Link>
-                      <Link to="/seller/orders" className="dropdown-link-item">Fulfill Orders</Link>
-                      <Link to="/seller/returns" className="dropdown-link-item">Manage Returns</Link>
-                      <Link to="/seller/payouts" className="dropdown-link-item">Payouts</Link>
                       <Link to="/seller/documents" className="dropdown-link-item">KYC Documents</Link>
                     </>
                   )}

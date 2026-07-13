@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/Toast';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { registerSchema } from './api/types';
@@ -10,7 +12,8 @@ import type { RegisterFormValues } from './api/types';
 import './RegisterPage.css';
 
 export const RegisterPage: React.FC = () => {
-  const { register: signup } = useAuth();
+  const { register: signup, loginWithGoogle } = useAuth();
+  const { success, error: toastError } = useToast();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -147,6 +150,35 @@ export const RegisterPage: React.FC = () => {
           Create Account
         </Button>
       </form>
+
+      <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+        <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
+        <span style={{ padding: '0 10px', color: '#6b7280', fontSize: '0.875rem' }}>Or continue with</span>
+        <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
+        <GoogleLogin
+          onSuccess={async (credentialResponse) => {
+            if (credentialResponse.credential) {
+              try {
+                await loginWithGoogle(credentialResponse.credential);
+                success('Registered with Google successfully.');
+                navigate('/dashboard', { replace: true });
+              } catch (err: any) {
+                toastError(err.response?.data?.message || 'Google registration failed');
+              }
+            }
+          }}
+          onError={() => {
+            toastError('Google Registration Failed');
+          }}
+          shape="pill"
+          width="400"
+          text="signup_with"
+          useOneTap
+        />
+      </div>
 
       <div className="auth-card-footer">
         <p className="auth-switch-text">

@@ -5,6 +5,7 @@ import { getPublicSellers } from '../seller-onboarding/api/sellerOnboardingApi';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
 import { getOptimizedImageUrl } from '../../utils/cloudinary';
+import { LuSearch } from 'react-icons/lu';
 import './SellersListPage.css';
 import '../home/HomePage.css'; // For seller-card styles
 
@@ -54,7 +55,7 @@ export const SellersListPage: React.FC = () => {
         </header>
 
         <div className="search-bar-wrapper">
-          <span className="search-icon-prefix">🔍</span>
+          <span className="search-icon-prefix"><LuSearch size={18} /></span>
           <input
             type="text"
             className="search-input"

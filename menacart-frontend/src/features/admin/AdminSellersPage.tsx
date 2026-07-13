@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import { 
   useAdminSellers, 
   useAdminUpdateSellerStatus,
@@ -93,11 +95,16 @@ export const AdminSellersPage: React.FC = () => {
               <p>Try adjusting your filter criteria to see more results.</p>
             </div>
           ) : (
-            <div className="sellers-list">
-              {sellers.map((seller) => {
+            <motion.div layout className="sellers-list">
+              <AnimatePresence>
+              {sellers.map((seller, idx) => {
                 const isSelected = selectedSeller?.sellerId === seller.sellerId;
                 return (
-                  <div 
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: idx * 0.05 }}
                     key={seller.sellerId}
                     className={`seller-list-item ${isSelected ? 'selected' : ''}`}
                     onClick={() => setSelectedSeller(seller)}
@@ -118,10 +125,11 @@ export const AdminSellersPage: React.FC = () => {
                         {seller.isVerified && <span className="seller-list-verified">Verified</span>}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           )}
 
           {totalPages > 1 && (
@@ -131,7 +139,7 @@ export const AdminSellersPage: React.FC = () => {
                 disabled={page === 1}
                 onClick={() => setPage((prev) => prev - 1)}
               >
-                &larr; Prev
+                <LuChevronLeft size={16} /> Prev
               </button>
               <span className="pagination-text">
                 {page} / {totalPages}
@@ -141,7 +149,7 @@ export const AdminSellersPage: React.FC = () => {
                 disabled={page === totalPages}
                 onClick={() => setPage((prev) => prev + 1)}
               >
-                Next &rarr;
+                Next <LuChevronRight size={16} />
               </button>
             </div>
           )}

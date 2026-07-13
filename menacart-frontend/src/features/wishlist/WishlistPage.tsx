@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LuHeart } from 'react-icons/lu';
 import { useWishlist, useRemoveFromWishlist } from './hooks/useWishlist';
 import { useAddCartItem } from '../cart/hooks/useCart';
 import { Button } from '../../components/Button';
@@ -71,7 +73,12 @@ export const WishlistPage: React.FC = () => {
   const isEmpty = !wishlistItems || wishlistItems.length === 0;
 
   return (
-    <div className="wishlist-page animate-fade-in">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="wishlist-page animate-fade-in"
+    >
       <header className="wishlist-header">
         <h1 className="wishlist-title">My Wishlist</h1>
         <p className="wishlist-subtitle">Your curated catalog of favorite items and product variations.</p>
@@ -79,7 +86,7 @@ export const WishlistPage: React.FC = () => {
 
       {isEmpty ? (
         <div className="wishlist-empty ">
-          <div className="wishlist-empty-icon">❤️</div>
+          <div className="wishlist-empty-icon"><LuHeart size={48} color="var(--color-text-disabled)" /></div>
           <h2>Your wishlist is empty</h2>
           <p>Explore our products catalog and save items to buy them later.</p>
           <Link to="/products">
@@ -87,9 +94,17 @@ export const WishlistPage: React.FC = () => {
           </Link>
         </div>
       ) : (
-        <div className="wishlist-grid">
-          {wishlistItems.map((item) => (
-            <div className="wishlist-card " key={item.wishlistId}>
+        <motion.div layout className="wishlist-grid">
+          <AnimatePresence>
+            {wishlistItems.map((item) => (
+              <motion.div 
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                className="wishlist-card " 
+                key={item.wishlistId}
+              >
               <Link to={`/products/${item.productId}`} className="wishlist-card-image-link">
                 <div className="wishlist-card-image">
                   {item.mainImageUrl ? (
@@ -131,10 +146,11 @@ export const WishlistPage: React.FC = () => {
                   </Button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+          </AnimatePresence>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };

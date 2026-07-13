@@ -97,7 +97,7 @@ export const LoginPage: React.FC = () => {
         <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }}></div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
         <GoogleLogin
           onSuccess={async (credentialResponse) => {
             if (credentialResponse.credential) {
@@ -113,6 +113,8 @@ export const LoginPage: React.FC = () => {
           onError={() => {
             error('Google Login Failed');
           }}
+          shape="pill"
+          width="400"
           useOneTap
         />
       </div>

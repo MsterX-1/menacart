@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { LuCloudUpload, LuFile, LuFileText, LuImage } from 'react-icons/lu';
 import { useMyKYCDocuments, useUploadKYCDocument } from './hooks/useSellerOnboarding';
 import { Button } from '../../components/Button';
 import { useToast } from '../../components/Toast';
@@ -161,7 +162,7 @@ export const KYCDocumentsPage: React.FC = () => {
 
               <div className="dropzone-content">
                 <span className="upload-cloud-icon">
-                  {selectedFile ? '📄' : '📁'}
+                  {selectedFile ? <LuFile size={36} /> : <LuCloudUpload size={48} />}
                 </span>
                 {selectedFile ? (
                   <div className="selected-file-details">
@@ -220,7 +221,7 @@ export const KYCDocumentsPage: React.FC = () => {
                   <div key={doc.sellerDocumentId} className={`kyc-doc-card doc-status-${doc.status.toLowerCase()}`}>
                     <div className="doc-card-row">
                       <div className="doc-icon-column">
-                        <span className="doc-type-icon">{isPdf ? '📕' : '🖼️'}</span>
+                        <span className="doc-type-icon">{isPdf ? <LuFileText size={24} /> : <LuImage size={24} />}</span>
                       </div>
                       <div className="doc-meta-column">
                         <span className="doc-type-badge">{doc.documentType}</span>

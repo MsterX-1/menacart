@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { LuPackage } from 'react-icons/lu';
 import { useMyOrders, useCancelOrder, usePayForOrder } from './hooks/useOrders';
 import { LoadingSkeleton } from '../../components/LoadingSkeleton';
 import { Button } from '../../components/Button';
@@ -72,7 +73,7 @@ export const OrderListPage: React.FC = () => {
 
       {isEmpty ? (
         <div className="orders-empty-state">
-          <div className="empty-orders-icon">&#128230;</div>
+          <div className="empty-orders-icon"><LuPackage size={48} /></div>
           <h2>No orders placed yet</h2>
           <p>Once you purchase items, they will show up here for you to track.</p>
           <Link to="/products">

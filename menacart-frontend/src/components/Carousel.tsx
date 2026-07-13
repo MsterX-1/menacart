@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import './Carousel.css';
 
 interface CarouselProps {
@@ -28,10 +29,10 @@ export const Carousel: React.FC<CarouselProps> = ({ title, children }) => {
           <h2 className="carousel-title">{title}</h2>
           <div className="carousel-controls">
             <button onClick={scrollLeft} className="carousel-btn" aria-label="Scroll left">
-              &lt;
+              <LuChevronLeft size={20} />
             </button>
             <button onClick={scrollRight} className="carousel-btn" aria-label="Scroll right">
-              &gt;
+              <LuChevronRight size={20} />
             </button>
           </div>
         </div>

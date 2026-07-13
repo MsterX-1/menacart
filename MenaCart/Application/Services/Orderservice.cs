@@ -925,7 +925,7 @@ namespace Application.Services
             PaymentStatus = order.PaymentStatus.ToString(),
             CouponId = order.CouponId,
             CreatedAt = order.CreatedAt,
-            SubOrders = order.SubOrders.Select(MapSubOrderToDto).ToList()
+            SubOrders = (order.SubOrders?.Select(MapSubOrderToDto) ?? Enumerable.Empty<SubOrderDto>()).ToList()
         };
 
         private static SubOrderDto MapSubOrderToDto(SubOrder s) => new()
@@ -937,7 +937,7 @@ namespace Application.Services
             ShippingCost = s.ShippingCost,
             Carrier = s.Shipping?.Carrier,
             TrackingNumber = s.Shipping?.TrackingNumber,
-            Items = s.OrderItems.Select(i => new OrderItemDto
+            Items = (s.OrderItems?.Select(i => new OrderItemDto
             {
                 OrderItemId = i.OrderItemId,
                 VariantId = i.VariantId,
@@ -947,7 +947,7 @@ namespace Application.Services
                 Size = i.ProductVariant?.Size,
                 Quantity = i.Quantity,
                 PriceAtPurchase = i.PriceAtPurchase
-            }).ToList()
+            }) ?? Enumerable.Empty<OrderItemDto>()).ToList()
         };
     }
 }
