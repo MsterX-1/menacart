@@ -44,6 +44,18 @@ export const HomePage: React.FC = () => {
     queryFn: () => getPublicSellers(undefined, 1, 10),
   });
 
+  const allCategories = React.useMemo(() => {
+    if (!categories) return [];
+    const flat: typeof categories = [];
+    categories.forEach(parent => {
+      flat.push(parent);
+      if (parent.childCategories) {
+        flat.push(...parent.childCategories);
+      }
+    });
+    return flat;
+  }, [categories]);
+
   return (
     <motion.div 
       className="home-page"
@@ -93,17 +105,7 @@ export const HomePage: React.FC = () => {
                 />
               ))
             ) : (
-              React.useMemo(() => {
-                if (!categories) return [];
-                const flat: typeof categories = [];
-                categories.forEach(parent => {
-                  flat.push(parent);
-                  if (parent.childCategories) {
-                    flat.push(...parent.childCategories);
-                  }
-                });
-                return flat;
-              }, [categories])?.map((cat) => {
+              allCategories?.map((cat) => {
                 const isParent = !cat.parentCategoryId;
                 return (
                   <Link 
