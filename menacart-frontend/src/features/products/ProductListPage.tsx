@@ -11,9 +11,9 @@ import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from '../wishlis
 import type { Category } from '../../types/category';
 import { getOptimizedImageUrl } from '../../utils/cloudinary';
 import { 
-  LuSearch, LuSlidersHorizontal, LuSmartphone, LuLaptop, 
+  LuSearch, LuSlidersHorizontal,
   LuPlug, LuShirt, LuDribbble, LuSparkles, 
-  LuGamepad2, LuPalette, LuShoppingBag, LuBox, LuBook, LuShoppingCart, LuGem, LuCar,
+  LuGamepad2, LuBox, LuBook, LuShoppingCart, LuGem, LuCar,
   LuStore, LuGlobe, LuHeart, LuStar
 } from 'react-icons/lu';
 import { FiHome } from 'react-icons/fi';

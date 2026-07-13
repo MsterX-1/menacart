@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { LuMoon, LuSun, LuHeart, LuShoppingCart, LuBell, LuChevronDown } from 'react-icons/lu';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

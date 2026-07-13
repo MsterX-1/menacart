@@ -8,12 +8,12 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://localhost:7210',
+        target: 'https://menacart.runasp.net',
         changeOrigin: true,
         secure: false, // Dev SSL certificates
       },
       '/uploads': {
-        target: 'https://localhost:7210',
+        target: 'https://menacart.runasp.net',
         changeOrigin: true,
         secure: false, // Dev SSL certificates
       }

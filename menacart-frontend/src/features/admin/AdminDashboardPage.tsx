@@ -139,7 +139,7 @@ export const AdminDashboardPage: React.FC = () => {
                   contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   itemStyle={{ color: '#0f172a', fontWeight: 600 }}
                   labelStyle={{ color: '#475569', fontWeight: 500, paddingBottom: '4px' }}
-                  formatter={(value: any, name: any, props: any) => [
+                  formatter={(value: any, _name: any, props: any) => [
                     props.payload.name.includes('Profit') || props.payload.name.includes('Volume') ? formatCurrency(Number(value)) : value,
                     props.payload.name
                   ]}
